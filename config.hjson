@@ -1,0 +1,136 @@
+{
+   version: 0.1.0
+   global_modules: false
+   minify: false
+   inject_CA: true
+   cache_dir: .CACHE
+   c_libs: {
+      lfs: lfs
+      lzip: lzip
+      lcurl: lcurl
+      lcurl_safe: lcurl.safe
+   }
+   lua_libs: [
+      {
+         auto: true
+         path: lua-modules/hjson
+         ignore: .*test.*
+      },
+      {
+         auto: true
+         path: lua-modules/lustache/src
+      },
+      {
+         auto: true
+         path: lua-modules/argparse/src
+      },
+      {
+         auto: true
+         path: modules/lcurl/src/lua
+      },
+      {
+         auto: true
+         path: lua-modules/eli
+         ignore: init.lua
+      } 
+   ]
+   init: [
+      lua-modules/eli/init.lua
+   ]
+   downloads: [
+      {
+         id: lua
+         repository: lua/lua
+         version: v5.3.5
+         destination: lua/src
+         omitRoot: true
+         cmakelists: { source: "lua_CMakeLists.txt", destination: "lua/CMakeLists.txt" } 
+      },
+      {
+         id: eli-lib
+         repository: cryon-io/eli-lib
+         version: 0.1.0
+         destination: lua-modules/eli
+         omitRoot: true
+      },
+      {
+         id: lfs
+         repository: keplerproject/luafilesystem
+         version: v1_7_0_2
+         destination: modules/lfs
+         omitRoot: true
+         cmakelists: { source: "lfs_CMakeLists.txt", destination: "modules/lfs/CMakeLists.txt" }
+      },
+      {
+         id: lcurl
+         repository: Lua-cURL/Lua-cURLv3
+         version: v0.3.11
+         destination: modules/lcurl
+         omitRoot: true
+         cmakelists: { source: "lcurl_CMakeLists.txt", destination: "modules/lcurl/CMakeLists.txt" }
+      },
+      {
+         id: lzip
+         repository: brimworks/lua-zip
+         version: v0.2.0
+         destination: modules/lzip
+         omitRoot: true
+         cmakelists: { source: "lzip_CMakeLists.txt", destination: "modules/lzip/CMakeLists.txt" }
+      },
+      { 
+         id: mbedtls
+         repository: ARMmbed/mbedtls  
+         version: mbedtls-2.16.3
+         destination: modules/mbedtls
+         omitRoot: true
+      },
+      {
+         id: zlib
+         repository: madler/zlib
+         version: v1.2.11
+         destination: modules/zlib
+         omitRoot: true
+      },
+      {
+         id: libzip
+         repository: nih-at/libzip
+         version: rel-1-5-2
+         destination: modules/libzip
+         omitRoot: true
+      },
+      {
+         id: curl
+         url: https://github.com/curl/curl/releases/download/curl-7_66_0/curl-7.66.0.zip
+         destination: modules/curl
+         omitRoot: true
+      },
+      {
+         id: lustache
+         repository: Olivine-Labs/lustache
+         version: v1.3.1-0
+         destination: lua-modules/lustache
+         omitRoot: true
+      },
+      {
+         id: hjson
+         repository: cryi/hjson-lua
+         version: 0.1.0
+         destination: lua-modules/hjson
+         omitRoot: true
+      },
+      {
+         id: argparse
+         repository: mpeterv/argparse
+         version: 0.6.0
+         destination: lua-modules/argparse 
+         omitRoot: true
+      }
+      { 
+         id: luasrcdiet
+         repository: jirutka/luasrcdiet
+         version: v1.0.0
+         destination: tools/luasrcdiet
+         omitRoot: true
+      }
+   ]
+}
