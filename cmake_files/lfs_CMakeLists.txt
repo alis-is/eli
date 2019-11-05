@@ -1,0 +1,8 @@
+cmake_minimum_required (VERSION 2.6)
+project (lfs)  # project here actually means solution in premake
+
+file(GLOB lfs_sources ./src/**.c)
+SET(lfs ${lfs_sources})
+
+ADD_LIBRARY (lfs  ${lfs})
+TARGET_LINK_LIBRARIES (lfs)

@@ -1,0 +1,8 @@
+cmake_minimum_required (VERSION 2.6)
+project (lzip)  # project here actually means solution in premake
+
+file(GLOB lzip_sources ./**.c)
+SET(lzip ${lzip_sources})
+
+ADD_LIBRARY (lzip  ${lzip})
+TARGET_LINK_LIBRARIES (lzip)
