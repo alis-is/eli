@@ -1,5 +1,5 @@
 {
-   version: 0.1.0
+   version: 0.1.2
    global_modules: false
    minify: false
    inject_CA: true
@@ -41,7 +41,7 @@
       {
          id: lua
          repository: lua/lua
-         version: v5.3.5
+         version: v5.4-beta
          destination: lua/src
          omitRoot: true
          cmakelists: { source: "lua_CMakeLists.txt", destination: "lua/CMakeLists.txt" } 
@@ -49,7 +49,7 @@
       {
          id: eli-lib
          repository: cryon-io/eli-lib
-         version: 0.1.0
+         version: 0.1.2
          destination: lua-modules/eli
          omitRoot: true
       },
