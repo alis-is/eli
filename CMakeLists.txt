@@ -132,17 +132,11 @@ if(WIN32)
         add_definitions( -D_CRT_SECURE_NO_WARNINGS )
 endif()
 
-# 1. eli static library
-
-add_library (lualib STATIC  lua/src/lapi.c  lua/src/lcode.c  lua/src/lctype.c  lua/src/ldebug.c  lua/src/ldo.c  lua/src/ldump.c  lua/src/lfunc.c  lua/src/lgc.c  lua/src/llex.c  lua/src/lmem.c  lua/src/lobject.c  lua/src/lopcodes.c                                            lua/src/lparser.c  lua/src/lstate.c  lua/src/lstring.c  lua/src/ltable.c  lua/src/ltm.c  lua/src/lundump.c  lua/src/lvm.c  lua/src/lzio.c  lua/src/lauxlib.c  lua/src/lbaselib.c  lua/src/lbitlib.c  lua/src/lcorolib.c  lua/src/ldblib.c                                   lua/src/liolib.c  lua/src/lmathlib.c  lua/src/loslib.c  lua/src/lstrlib.c  lua/src/ltablib.c  lua/src/loadlib.c  lua/src/linit.c lua/src/lutf8lib.c)
-set_target_properties(lualib PROPERTIES OUTPUT_NAME "lua") 
-
-
-# 2. eli interpreter
+# 1. eli interpreter
 
 link_directories (${LUA_BINARY_DIR})
-add_executable (eli  lua/src/lua.c)
-target_link_libraries (eli lualib lcurl lzip lfs curl mbedx509 mbedtls mbedcrypto zip zlib "-static") 
+add_executable (eli  lua/src/onelua.c)
+target_link_libraries (eli lcurl lzip lfs curl mbedx509 mbedtls mbedcrypto zip zlib "-static") 
 target_link_libraries(eli ${CMAKE_THREAD_LIBS_INIT} "-static")
 add_dependencies(eli zip curl)
 set_target_properties(eli PROPERTIES OUTPUT_NAME "eli") 
@@ -151,11 +145,11 @@ if(UNIX)
         target_link_libraries(eli m "-static")
 endif()
 
-# 3. eli compiler
+# 2. eli compiler
 
 link_directories (${LUA_BINARY_DIR})
-add_executable (elic  lua/src/lua.c)
-target_link_libraries (elic lualib lcurl lzip lfs curl mbedx509 mbedtls mbedcrypto zip zlib "-static") 
+add_executable (elic  lua/src/onelua.c)
+target_link_libraries (elic lcurl lzip lfs curl mbedx509 mbedtls mbedcrypto zip zlib "-static") 
 target_link_libraries(elic ${CMAKE_THREAD_LIBS_INIT} "-static")
 add_dependencies(elic curl zip)
 set_target_properties(elic PROPERTIES OUTPUT_NAME "elic") 
