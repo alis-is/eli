@@ -1,7 +1,7 @@
 {
-   version: 0.1.2
-   global_modules: false
-   minify: false
+   version: 0.1.4
+   global_modules: false//disables global modules loading (only looks up for modules in cwd)
+   minify: true
    inject_CA: true
    cache_dir: .CACHE
    c_libs: {
@@ -9,6 +9,7 @@
       lzip: lzip
       lcurl: lcurl
       lcurl_safe: lcurl.safe
+      is_tty: is_tty
    }
    lua_libs: [
       {
@@ -49,14 +50,21 @@
       {
          id: eli-lib
          repository: cryon-io/eli-lib
-         version: 0.1.2
+         version: 0.1.4
          destination: lua-modules/eli
          omitRoot: true
       },
       {
+         id: is_tty
+         repository: cryon-io/lua_is_tty
+         version: 0.1.1
+         destination: modules/lua_is_tty
+         omitRoot: true
+      },
+      {
          id: lfs
-         repository: keplerproject/luafilesystem
-         version: v1_7_0_2
+         repository: cryon-io/luafilesystem
+         version: v1_7_0_2-lua5.4
          destination: modules/lfs
          omitRoot: true
          cmakelists: { source: "lfs_CMakeLists.txt", destination: "modules/lfs/CMakeLists.txt" }
@@ -114,7 +122,7 @@
       {
          id: hjson
          repository: cryi/hjson-lua
-         version: 0.1.0
+         version: 0.1.1
          destination: lua-modules/hjson
          omitRoot: true
       },

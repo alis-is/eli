@@ -12,6 +12,7 @@ include_directories(${CMAKE_BINARY_DIR}/modules/curl/include ${CMAKE_CURRENT_SOU
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lcurl/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/mbedtls/ EXCLUDE_FROM_ALL)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lfs/)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lua_is_tty/)
 
 ExternalProject_Add(
   zlib_lib
@@ -118,7 +119,7 @@ ExternalProject_Add(
   BUILD_COMMAND make
   BUILD_IN_SOURCE 1
 )
-add_dependencies(curl_lib mbedtls zlib) #zlibstatic)
+add_dependencies(curl_lib mbedtls zlib)
 
 SET(CURL_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/curl/include)
 SET(CURL_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/curl/lib)
@@ -136,7 +137,7 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (eli  lua/src/onelua.c)
-target_link_libraries (eli lcurl lzip lfs curl mbedx509 mbedtls mbedcrypto zip zlib "-static") 
+target_link_libraries (eli lis_tty lcurl lzip lfs curl mbedx509 mbedtls mbedcrypto zip zlib "-static") 
 target_link_libraries(eli ${CMAKE_THREAD_LIBS_INIT} "-static")
 add_dependencies(eli zip curl)
 set_target_properties(eli PROPERTIES OUTPUT_NAME "eli") 
@@ -149,7 +150,7 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (elic  lua/src/onelua.c)
-target_link_libraries (elic lcurl lzip lfs curl mbedx509 mbedtls mbedcrypto zip zlib "-static") 
+target_link_libraries (elic lis_tty lcurl lzip lfs curl mbedx509 mbedtls mbedcrypto zip zlib "-static") 
 target_link_libraries(elic ${CMAKE_THREAD_LIBS_INIT} "-static")
 add_dependencies(elic curl zip)
 set_target_properties(elic PROPERTIES OUTPUT_NAME "elic") 
