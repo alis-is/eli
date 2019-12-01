@@ -66,7 +66,7 @@
          id: mbed_hash
          repository: cryon-io/lua-mbed-hash
          version: 0.1.0
-         destination: lua-modules/lua_mbed_hash
+         destination: modules/lua_mbed_hash
          omitRoot: true
       },
       {
