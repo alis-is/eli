@@ -13,3 +13,6 @@
 # Init scripts:
 - initialize eliVersion, eliPath, eliDir
 
+# posix & windows specific functions
+- in eli.extra
+- wont be included on exotic platforms
