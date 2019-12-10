@@ -76,7 +76,7 @@ local function generateModuleString(config, minify, amalgate)
           writefile(tmpFile, s)
              
           lfs.chdir("tools/luasrcdiet")
-          local f = io.popen("/root/luabuild/eli" .. ' ' .. path.combine(oldworkDir, "tools/luasrcdiet/bin/luasrcdiet")  .. ' ' .. tmpFile .. ' -o ' .. tmpOutput, "r")
+          local f = io.popen("/root/luabuild/eli" .. ' ' .. path.combine(oldworkDir, "tools/luasrcdiet/bin/luasrcdiet")  .. ' ' .. tmpFile .. ' -o ' .. tmpOutput .. ' --basic', "r")
           assert(f:read('*a'):match("lexer%-based optimizations summary"), "Minification Failed")
           s = readfile(tmpOutput)
           f:close()
