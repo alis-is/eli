@@ -91,7 +91,7 @@ copyrightPattern = '#define LUA_COPYRIGHT\tLUA_RELEASE "  Copyright %(C%).-"'
 
 copyright = luah:match(copyrightPattern)
 if not copyright:match("Eli.-cryon.io") then
-   newCopyright = copyright:sub(1, copyright:len() - 1) .. '\\nEli ' .. config.version .. '  Copyright (C) 2019 cryon.io"'
+   newCopyright = copyright:sub(1, copyright:len() - 1) .. '\\nEli ' .. config.version .. '  Copyright (C) 2019-2020 cryon.io"'
    start, _end = luah:find(copyright, 1, true)
    writefile("lua/src/lua.h", luah:sub(1, start - 1) .. newCopyright .. luah:sub(_end + 1, luah:len()))
 end
