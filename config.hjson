@@ -72,7 +72,7 @@
       {
          id: eli_fs_extra
          repository: cryon-io/eli-fs-extra
-         version: 0.1.3
+         version: 0.1.4
          destination: modules/eli-fs-extra
          omitRoot: true
       },
