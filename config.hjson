@@ -1,11 +1,12 @@
 {
-   version: 0.2.8
+   version: 0.2.9
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    inject_CA: true
    cache_dir: .CACHE
    c_libs: {
       eli_fs_extra: "eli.fs.extra"
+      eli_proc_extra: "eli.proc.extra"
       lzip: lzip
       lcurl: lcurl
       lcurl_safe: lcurl.safe
@@ -51,7 +52,7 @@
       {
          id: eli-lib
          repository: cryon-io/eli-lib
-         version: 0.2.8
+         version: 0.2.9
          destination: lua-modules/eli
          omitRoot: true
       },
@@ -74,6 +75,13 @@
          repository: cryon-io/eli-fs-extra
          version: 0.1.4
          destination: modules/eli-fs-extra
+         omitRoot: true
+      },
+      {
+         id: eli_proc_extra
+         repository: cryon-io/eli-proc-extra
+         version: 0.1.0
+         destination: modules/eli-proc-extra
          omitRoot: true
       },
       {
