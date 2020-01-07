@@ -4,6 +4,9 @@ Contains libs and function necessary for basic server side scripting.
 
 Embedded libraries: 
 - [eli](https://github.com/cryon-io/eli-lib)
+- [eli.fs.extra](https://github.com/cryon-io/eli-fs-extra)
+- [eli.proc.extra](https://github.com/cryon-io/eli-proc-extra)
+- [eli.env.extra](https://github.com/cryon-io/eli-env-extra)
 - [hjson ](https://github.com/cryi/hjson-lua)
 - [lustache](https://github.com/Olivine-Labs/lustache)
 - [argparse](https://github.com/mpeterv/argparse)
@@ -13,8 +16,9 @@ Embedded libraries:
 
 Predefined variables:
 - `interpreter` - path to interpreter
-- `appRootScript` - path to executed script 
-- `appRoot` - path to directory containing `appRootScript`
+- `APP_ROOT_SCRIPT` - path to executed script 
+- `APP_ROOT` - path to directory containing `APP_ROOT_SCRIPT`
+- `ELI_LIB_VERSION` - version of eli library
 
 ### Build eli
 
