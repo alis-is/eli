@@ -22,8 +22,8 @@ Predefined variables:
 
 ### Build eli
 
-Requirements:
-- docker
+Build requirements:
+- docker or podman
 
 Steps:
 1. `git clone https://github.com/cryon-io/eli && cd eli`
