@@ -1,5 +1,5 @@
 {
-   version: 0.2.9
+   version: 0.3.0
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    inject_CA: true
@@ -7,6 +7,7 @@
    c_libs: {
       eli_fs_extra: "eli.fs.extra"
       eli_proc_extra: "eli.proc.extra"
+      eli_env_extra: "eli.env.extra"
       lzip: lzip
       lcurl: lcurl
       lcurl_safe: lcurl.safe
@@ -52,7 +53,7 @@
       {
          id: eli-lib
          repository: cryon-io/eli-lib
-         version: 0.2.9
+         version: 0.3.0
          destination: lua-modules/eli
          omitRoot: true
       },
@@ -82,6 +83,13 @@
          repository: cryon-io/eli-proc-extra
          version: 0.1.0
          destination: modules/eli-proc-extra
+         omitRoot: true
+      },
+      {
+         id: eli_env_extra
+         repository: cryon-io/eli-env-extra
+         version: 0.1.0
+         destination: modules/eli-env-extra
          omitRoot: true
       },
       {
@@ -147,7 +155,7 @@
          version: 0.6.0
          destination: lua-modules/argparse 
          omitRoot: true
-      }
+      },
       { 
          id: luasrcdiet
          repository: jirutka/luasrcdiet
