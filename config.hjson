@@ -1,5 +1,5 @@
 {
-   version: 0.3.0
+   version: 0.3.1
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    inject_CA: true
@@ -74,14 +74,14 @@
       {
          id: eli_fs_extra
          repository: cryon-io/eli-fs-extra
-         version: 0.1.4
+         version: 0.1.5
          destination: modules/eli-fs-extra
          omitRoot: true
       },
       {
          id: eli_proc_extra
          repository: cryon-io/eli-proc-extra
-         version: 0.1.0
+         version: 0.1.2
          destination: modules/eli-proc-extra
          omitRoot: true
       },
