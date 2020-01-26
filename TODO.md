@@ -1,18 +1,19 @@
 # Eli
-- logs 
-- support for init scripts
-- debug build
+* [x] logs 
+* [x] support for init scripts
+* [ ] debug build
 
 # Build 
-- make toolchain configurable
-- make optional use of cache during build
+* [x] toolchain configurable
+* [ ] optional use of cache during build
+* [ ] replace curl with libfetch (requires testing)
 
 ## CMakeLists 
-- optional build Eli mini - without eli.net and curl related libs 
+* [ ] optional build Eli mini - without eli.net and curl related libs 
 
 # Init scripts:
-- initialize eliVersion, eliPath, eliDir
+* [x] initialize ELI_LIB_VERSION, INTERPRETER, APP_ROOT_SCRIPT, APP_ROOT
 
 # posix & windows specific functions
-- in eli.extra
-- wont be included on exotic platforms
+* [x] in eli.extra
+* [ ] wont be included on exotic platforms
