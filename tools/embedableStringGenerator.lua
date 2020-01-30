@@ -20,12 +20,12 @@ local function getFiles(path, recurse, filter, ignore, resultSeparator)
 
         if type(ignore) == 'table' then
             for i,v in ipairs(ignore) do 
-                if file:match(ignore) then 
+                if file:match(v) then 
                     return true
                 end
             end
             return false
-        else if type(ignore) == 'string' 
+        elseif type(ignore) == 'string' then
             return file:match(ignore)
         else 
             return false
