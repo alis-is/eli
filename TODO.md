@@ -16,4 +16,6 @@
 
 # posix & windows specific functions
 * [x] in eli.extra
-* [ ] wont be included on exotic platforms
+* [ ] check for file lock
+
+*NOTICE: wont be included on exotic platforms*

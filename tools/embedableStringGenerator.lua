@@ -15,15 +15,32 @@ local function getFiles(path, recurse, filter, ignore, resultSeparator)
          resultSeparator = separator 
     end
     local result = {}
+    local function should_ignore(file)
+        if not file then return false end
+
+        if type(ignore) == 'table' then
+            for i,v in ipairs(ignore) do 
+                if file:match(ignore) then 
+                    return true
+                end
+            end
+            return false
+        else if type(ignore) == 'string' 
+            return file:match(ignore)
+        else 
+            return false
+        end
+    end
+
     if lfs.attributes(path,"mode") == "file" then
-        if (not filter or path:match(filter)) and (not ignore or not path:match(ignore)) then  
+        if (not filter or path:match(filter)) and not should_ignore(file) then  
             table.insert(result, path) 
             return result
         end
     end
     
     for file in lfs.dir(path) do  
-        if file ~= '.' and file ~= '..' and (not ignore or not file:match(ignore)) then 
+        if file ~= '.' and file ~= '..' and not should_ignore(file) then 
             local fullPath = path .. separator .. file        
             if lfs.attributes(fullPath, "mode") == "file" and (not filter or file:match(filter)) then 
                 table.insert(result, file)
