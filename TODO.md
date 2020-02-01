@@ -2,6 +2,8 @@
 * [x] logs 
 * [x] support for init scripts
 * [ ] debug build
+* [ ] smaller eli.path with smaller feature support, but with support for basic URL manipulation
+* [ ] eli.fs.extra check whether file is locked
 
 # Build 
 * [x] toolchain configurable
