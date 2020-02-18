@@ -20,6 +20,10 @@ Predefined variables:
 - `APP_ROOT` - path to directory containing `APP_ROOT_SCRIPT`
 - `ELI_LIB_VERSION` - version of eli library
 
+### Install latest binary release (currently unix only)
+
+`wget https://raw.githubusercontent.com/cryon-io/eli/master/install.sh -O /tmp/install.sh && sh /tmp/install.sh`
+
 ### Build eli
 
 Build requirements:
