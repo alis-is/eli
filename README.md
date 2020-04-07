@@ -10,9 +10,9 @@ Embedded libraries:
 - [hjson ](https://github.com/cryi/hjson-lua)
 - [lustache](https://github.com/Olivine-Labs/lustache)
 - [argparse](https://github.com/mpeterv/argparse)
-- [curl](https://github.com/curl/curl) + [lcurl](https://github.com/Lua-cURL/Lua-cURLv3)
-- [libzip](https://github.com/nih-at/libzip) + [lzip](https://github.com/brimworks/lua-zip)
-- [mbedtls](https://github.com/ARMmbed/mbedtls) and [zlib](https://github.com/madler/zlib) (*for curl*)
+- [lua-fetch](https://github.com/cryi/lua-fetch) + [libfetch mbedtls patch](https://github.com/cryi/libfetch-mbedtls-patch) + [libfetch from apktools](https://github.com/alpinelinux/apk-tools)
+- [lzip](https://github.com/brimworks/lua-zip) + [libzip](https://github.com/nih-at/libzip) + [zlib](https://github.com/madler/zlib)
+- [mbedtls](https://github.com/ARMmbed/mbedtls)
 
 Predefined variables:
 - `interpreter` - path to interpreter

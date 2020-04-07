@@ -2,21 +2,29 @@ cmake_minimum_required (VERSION 2.6)
 project (lua)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -s -fPIC")
-set(CURL_HOST "x86_64-linux-musl")
 SET(BUILD_SHARED_LIBS OFF)
 SET(CMAKE_EXE_LINKER_FLAGS "-static")
 SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 
 include(ExternalProject)
-include_directories(${CMAKE_BINARY_DIR}/modules/curl/include ${CMAKE_CURRENT_SOURCE_DIR}/lua/src/ ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib ${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip/lib ${CMAKE_BINARY_DIR}/modules/libzip)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lcurl/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lua/src/ 
+                ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib 
+                ${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip/lib 
+                ${CMAKE_BINARY_DIR}/modules/libzip 
+                ${CMAKE_BINARY_DIR}/modules/mbedtls/include
+                ${CMAKE_CURRENT_SOURCE_DIR}/modules/apk-tools/libfetch/
+                )
+
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/mbedtls/ EXCLUDE_FROM_ALL)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lua_is_tty/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lua_mbed_hash/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-fs-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-proc-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-env-extra/)
-
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/apk-tools/libfetch/)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lfetch/)
+add_dependencies(fetch mbedtls)
+add_dependencies(lfetch fetch mbedtls)
 
 ExternalProject_Add(
   zlib_lib
@@ -43,7 +51,7 @@ SET(ZLIB_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib)
 SET(ENABLE_ZLIB_SUPPORT ON CACHE BOOL "")
 add_library(zlib STATIC IMPORTED)
 set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib/libz.a)
-add_dependencies(zlib zlib_lib)
+#add_dependencies(zlib zlip_lib)
 
 ExternalProject_Add(
   zip_lib
@@ -74,64 +82,15 @@ ExternalProject_Add(
                            "-DZLIBLIBPATH:STRING=${ZLIB_LIB_DIR}"
   BUILD_ALWAYS ON
 )
-add_dependencies(zip_lib mbedtls)
+add_dependencies(zip_lib mbedtls zlib zlib_lib)
 
 add_library(zip STATIC IMPORTED)
 set_target_properties(zip PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/modules/libzip/lib/libzip.a)
-add_dependencies(zip zip_lib zlib_lib)
-
-find_package(Threads REQUIRED)
+add_dependencies(zip zip_lib zlib)
 
 set(LUA_ZIP_BUILD_SHARED OFF CACHE BOOL "")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lzip/)
 add_dependencies(lzip zip)
-
-set(CURL_LIB_CPPFLAGS "-I${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/include -I${CMAKE_CURRENT_BINARY_DIR}/modules/zlib -I${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib")
-set(CURL_LIB_LDFLAGS "-L${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library")
-
-ExternalProject_Add(
-  curl_lib
-  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/
-  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/configure "CFLAGS=-Os -s" CPPFLAGS=${CURL_LIB_CPPFLAGS} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} LD=${CMAKE_LINKER} AR=${CMAKE_AR} RANLIB=${CMAKE_RANLIB} LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/modules/zlib LDFLAGS=${CURL_LIB_LDFLAGS}
-                    --prefix=${CMAKE_BINARY_DIR}/modules/curl/
-                    --without-ssl
-                    --with-mbedtls=${CMAKE_BINARY_DIR}/modules/mbedtls
-                    --without-libpsl
-                    --without-libidn2
-                    --disable-ldap
-                    --disable-tftp
-                    --disable-dict
-                    --disable-pop3
-                    --disable-smtp
-                    --disable-telnet
-                    --disable-rtsp
-                    --disable-imap
-                    --disable-gopher
-                    --disable-verbose
-                    --disable-libcurl-option
-                    --without-nghttp2
-                    --without-zlib
-                    --with-zlib=${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib
-                    --host=${CURL_HOST}
-                    --disable-smb
-                    --disable-ntlm-wb
-                    --disable-shared
-                    --without-ca-bundle
-                    --without-ca-path
-#                    --with-ca-bundle=path/to/ca/bundle
-  PREFIX ${CMAKE_BINARY_DIR}/modules/curl/
-  BUILD_COMMAND make
-  BUILD_IN_SOURCE 1
-)
-add_dependencies(curl_lib mbedtls zlib)
-
-SET(CURL_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/curl/include)
-SET(CURL_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/curl/lib)
-
-add_library(curl STATIC IMPORTED)
-add_dependencies(lcurl curl_lib)
-set_target_properties(curl PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/modules/curl/lib/libcurl.a)
-
 
 if(WIN32)
         add_definitions( -D_CRT_SECURE_NO_WARNINGS )
@@ -141,9 +100,8 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (eli  lua/src/onelua.c)
-target_link_libraries (eli lis_tty lcurl lzip eli_fs_extra eli_proc_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
-target_link_libraries(eli ${CMAKE_THREAD_LIBS_INIT} "-static")
-add_dependencies(eli zip curl)
+target_link_libraries (eli lis_tty lfetch fetch mbed_compat lzip eli_fs_extra eli_proc_extra eli_env_extra mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
+add_dependencies(eli zip)
 set_target_properties(eli PROPERTIES OUTPUT_NAME "eli") 
 
 if(UNIX)
@@ -154,9 +112,8 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (elic  lua/src/onelua.c)
-target_link_libraries (elic lis_tty lcurl lzip eli_fs_extra eli_proc_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
-target_link_libraries(elic ${CMAKE_THREAD_LIBS_INIT} "-static")
-add_dependencies(elic curl zip)
+target_link_libraries (elic lis_tty lfetch fetch mbed_compat lzip eli_fs_extra eli_proc_extra eli_env_extra mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
+add_dependencies(elic zip)
 set_target_properties(elic PROPERTIES OUTPUT_NAME "elic") 
 
 
