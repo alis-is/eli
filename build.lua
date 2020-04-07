@@ -18,6 +18,11 @@ config = hjson.parse(configFile)
 require"tools.download"
 print("Preparing env")
 require"tools.create-env"
+
+oldDir = lfs.currentdir()
+lfs.chdir("modules/apk-tools/libfetch")
+require"patch"
+lfs.chdir(oldDir)
 print("env prepared")
 
 toolchains = os.getenv("TOOLCHAINS")
@@ -93,33 +98,31 @@ if config.inject_CA then
    local caDir = "build/ca"
    getCACert(caDir)
 
-   mbedtls = readfile"modules/curl/lib/vtls/mbedtls.c" 
+--   mbedtls = readfile"modules/curl/lib/vtls/mbedtls.c" 
+
+   mbedtls = readfile"modules/apk-tools/libfetch/mbedtls.c"
 
    local cacert = readfile(path.combine(caDir, "cacert.pem")) -- "/etc/ssl/certs/ca-certificates.crt"  --(path.combine(caDir, "cacert.pem"))
 
    tmp_cert = ""
    for line in lines(cacert) do 
-      tmp_cert = tmp_cert .. '"'  .. require"tools.escape".escape_string(line, 'txt') .. '\\n"\n'
+      if line == "-----BEGIN CERTIFICATE-----" then 
+         tmp_cert = tmp_cert .. '"'
+      end
+      tmp_cert = tmp_cert .. require"tools.escape".escape_string(line, 'txt') .. '\\n'
+      if line == "-----END CERTIFICATE-----" then
+         tmp_cert = tmp_cert .. '"\n'
+      end
    end
    tmp_cert = tmp_cert:sub(1, #tmp_cert -1)
    tmp_cert = tmp_cert .. ';'   
    
-   inject = [[mbedtls_x509_crt_init(&BACKEND->cacert);
-  /* CA Certificates */
-  const char eli_cacert[] = ]] .. tmp_cert .. [[
-  ret = mbedtls_x509_crt_parse(&BACKEND->cacert, eli_cacert, sizeof(eli_cacert));
-  if (ret) {
-#ifdef MBEDTLS_ERROR_C
-    mbedtls_strerror(ret, errorbuf, sizeof(errorbuf));
-#endif /* MBEDTLS_ERROR_C */
-    failf(data, "Error reading ca cert file - mbedTLS: (-0x%%04X) %%s", -ret, errorbuf);
-    if(verifypeer)
-        return CURLE_SSL_CERTPROBLEM;
-  }
-  if(ssl_cafile && false)]]
+   inject = [[ 
+   const unsigned char cacert_s[] = ]] .. tmp_cert .. [[
+]]
 
-   local content = mbedtls:gsub("mbedtls_x509_crt_init%(&BACKEND%->cacert%);.-if%(ssl_cafile.-%)", inject)
-   writefile("modules/curl/lib/vtls/mbedtls.c", content)   
+   local content = mbedtls:gsub('const unsigned char %*cacert_s = "";', inject)
+   writefile("modules/apk-tools/libfetch/mbedtls.c", content)
 end
 
 mkdirp("/opt/cross/")

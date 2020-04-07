@@ -7,8 +7,8 @@
 
 # Build 
 * [x] toolchain configurable
+* [x] replace curl with libfetch (requires testing)
 * [ ] optional use of cache during build
-* [ ] replace curl with libfetch (requires testing)
 
 ## CMakeLists 
 * [ ] optional build Eli mini - without eli.net and curl related libs 

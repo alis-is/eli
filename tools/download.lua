@@ -18,7 +18,7 @@ lfs.mkdir(config.cache_dir)
 clean = os.getenv("CLEAN") or config.auto_clean
 
 for _, download in ipairs(config.downloads) do 
-   if lfs.attributes(download.destination) == nil or clean then
+   if lfs.attributes(download.destination) == nil or clean or download.force then
       print("Downloading " .. download.id .. "...")
       local cached = config.cache_dir .. separator .. download.id .. ".zip"
       local url = download.url
@@ -27,7 +27,9 @@ for _, download in ipairs(config.downloads) do
       end
       downloadfile(url, cached, { follow_redirects = true })
       print("Extracting " .. download.id .. "...")
-      delete(download.destination, true)
+      if type(download.clean) == "nil" or download.clean == true then 
+         delete(download.destination, true)
+      end
       mkdirp(download.destination)
       extract(cached, download.destination, download.omitRoot)
       if download.cmakelists then
