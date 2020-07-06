@@ -63,7 +63,7 @@ local function buildWithChain(id, buildDir)
    -- download toolchain if not available
    if lfs.attributes("/opt/cross/".. id) == nil then
       local tmp = os.tmpname()
-      downloadfile("https://musl.cc/" .. id .. ".tgz", tmp)
+      downloadfile("https://more.musl.cc/10/i686-linux-musl/" .. id .. ".tgz", tmp)
       os.execute("tar -xzvf " .. tmp .. " && mv " .. id .. " /opt/cross/".. id)
    end
    buildDir = buildDir or path.combine("build", id)
