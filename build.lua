@@ -78,11 +78,12 @@ local function buildWithChain(id, buildDir)
    exit, signal, ld = execute('find -H /opt/cross/' .. id ..' -name "*-ld" -type f')
    exit, signal, ar = execute('find -H /opt/cross/' .. id ..'/bin -name "*-ar" -type f ! -name "*-gcc-ar"')
    exit, signal, ranlib = execute('find -H /opt/cross/' .. id ..' -name "*-ranlib" -type f')
+   exit, signal, rc = execute('find -H /opt/cross/' .. id ..' -name "*-windres" -type f')
 
    configureTemplate = [[
-CC="{{{gcc}}}" CXX="{{{gpp}}}" AR="{{{ar}}}" LD="{{{ld}}}" RANLIB="{{{ranlib}}}" cmake {{{rootDir}}} -DCMAKE_AR="{{{ar}}}" -DCMAKE_C_COMPILER="{{{gcc}}}" -DCMAKE_CXX_COMPILER="{{{gpp}}}"
+CC="{{{gcc}}}" CXX="{{{gpp}}}" AR="{{{ar}}}" LD="{{{ld}}}" RANLIB="{{{ranlib}}}" cmake {{{rootDir}}} -DCMAKE_AR="{{{ar}}}" -DCMAKE_C_COMPILER="{{{gcc}}}" -DCMAKE_CXX_COMPILER="{{{gpp}}}" -DCMAKE_RC_COMPILER="{{{rc}}}"
 ]]
-   cmd = lustache:render(configureTemplate, { ld = ld:gsub("\n",""), ranlib = ranlib:gsub("\n",""), ar = ar:gsub("\n",""), gcc = gcc:gsub("\n",""), gpp = gpp:gsub("\n",""), rootDir = oldDir })
+   cmd = lustache:render(configureTemplate, { ld = ld:gsub("\n",""), ranlib = ranlib:gsub("\n",""), ar = ar:gsub("\n",""), gcc = gcc:gsub("\n",""), gpp = gpp:gsub("\n",""), rootDir = oldDir, rc = rc:gsub("\n","") })
    print(cmd)
    os.execute(cmd)
    os.execute"make"
