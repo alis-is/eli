@@ -1,10 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
-project (lua)
-
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -s -fPIC")
 SET(BUILD_SHARED_LIBS OFF)
 SET(CMAKE_EXE_LINKER_FLAGS "-static")
-SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+
+project (lua)
 
 include(ExternalProject)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lua/src/ 
@@ -39,6 +38,7 @@ ExternalProject_Add(
                            "-DCMAKE_AR:STRING=${CMAKE_AR}"
                            "-DCMAKE_ARRANLIB:STRING=${CMAKE_RANLIB}"
                            "-DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}"
+                           "-DCMAKE_RC_COMPILER:STRING=${CMAKE_RC_COMPILER}"
   BUILD_ALWAYS ON
 )
 
@@ -80,6 +80,7 @@ ExternalProject_Add(
                            "-DMBEDTLS_LIBRARIES:STRING=${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library"
                            "-DZLIBINCLUDEDIR:STRING=${ZLIB_INCLUDE_DIR}"
                            "-DZLIBLIBPATH:STRING=${ZLIB_LIB_DIR}"
+                           "-DCMAKE_RC_COMPILER:STRING=${CMAKE_RC_COMPILER}"
   BUILD_ALWAYS ON
 )
 add_dependencies(zip_lib mbedtls zlib zlib_lib)
