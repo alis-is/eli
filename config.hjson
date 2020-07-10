@@ -1,5 +1,5 @@
 {
-   version: 0.6.4.1
+   version: 0.6.4.2
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    inject_CA: true
@@ -90,7 +90,7 @@
       {
          id: lfetch
          repository: cryi/lua-fetch
-         version: 0.0.1
+         version: 0.0.2
          destination: modules/lfetch
          omitRoot: true
       },
@@ -133,7 +133,7 @@
       {
          id: libfetch-mbedtls-patch
          repository: cryi/libfetch-mbedtls-patch
-         version: 0.0.2
+         version: 0.0.3
          destination: modules/apk-tools/libfetch
          omitRoot: true
          force: true
