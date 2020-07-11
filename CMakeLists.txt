@@ -5,6 +5,8 @@ SET(CMAKE_EXE_LINKER_FLAGS "-static")
 
 project (lua)
 
+add_definitions(-DLIBFETCH_WITH_MBEDTLS)
+
 include(ExternalProject)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lua/src/ 
                 ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib 
