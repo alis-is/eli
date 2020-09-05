@@ -48,7 +48,7 @@
       {
          id: eli-lib
          repository: cryon-io/eli-lib
-         version: 0.6.6
+         version: 0.6.7
          destination: lua-modules/eli
          omitRoot: true
       },
@@ -105,7 +105,7 @@
       { 
          id: mbedtls
          repository: ARMmbed/mbedtls  
-         version: mbedtls-2.23.0
+         version: mbedtls-2.24.0
          destination: modules/mbedtls
          omitRoot: true
       },
