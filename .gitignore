@@ -4,3 +4,5 @@ modules
 build
 tools/luasrcdiet
 .CACHE
+lib/tests/tmp/*
+!lib/tests/tmp/.gitkeep
