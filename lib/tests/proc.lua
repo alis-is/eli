@@ -19,12 +19,12 @@ _test["eli.proc available"] = function()
 end
 
 _test["os_execute"] = function()
-    local _ok, _exit, _code = _eliProc.os_execute("sh -c 'exit 173'")
+    local _ok, _, _code = _eliProc.os_execute("sh -c 'exit 173'")
     _test.assert(not _ok and _code == 173)
 end
 
 _test["io_execute"] = function()
-    local _ok, _exit, _output = _eliProc.io_execute('sh -c "printf \'test\'"')
+    local _ok, _, _output = _eliProc.io_execute('sh -c "printf \'test\'"')
     _test.assert(_ok and _output == "test")
 end
 

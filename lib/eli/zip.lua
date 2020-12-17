@@ -4,7 +4,6 @@ local path = require "eli.path"
 local separator = require "eli.path".default_sep()
 local util = require "eli.util"
 local generate_safe_functions = util.generate_safe_functions
-local escape_magic_characters = util.escape_magic_characters
 local _join = require"eli.extensions.string".join
 
 local function get_root_dir(zipArch)
@@ -12,11 +11,11 @@ local function get_root_dir(zipArch)
    local stat = zipArch:stat(1)
 
    local rootDirCandidate = stat.name:match("^.-" .. separator)
-   local rootDir = nil 
+   local rootDir = nil
 
    if rootDirCandidate then
       local _segments = {}
-      for segment in string.gmatch(stat.name, "(.-)" .. separator) do 
+      for segment in string.gmatch(stat.name, "(.-)" .. separator) do
          table.insert(_segments, segment)
       end
 
@@ -24,11 +23,11 @@ local function get_root_dir(zipArch)
          stat = zipArch:stat(i)
 
          local j = 1
-         if not string.find(stat.name, "(.-)" .. separator) then 
+         if not string.find(stat.name, "(.-)" .. separator) then
             return "" -- found file in root, no usable root dir
          end
-         for segment in string.gmatch(stat.name, "(.-)" .. separator) do 
-            if segment ~= _segments[j] then 
+         for segment in string.gmatch(stat.name, "(.-)" .. separator) do
+            if segment ~= _segments[j] then
                local _tmp = {}
                _segments = table.move(_segments, 1, j - 1, 1, _tmp)
                break
@@ -37,7 +36,7 @@ local function get_root_dir(zipArch)
          end
       end
 
-      if #_segments > 0 then 
+      if #_segments > 0 then
          rootDir = _join('/', table.unpack(_segments))
       end
    end
@@ -101,7 +100,8 @@ local function extract(source, destination, options)
          goto files_loop
       end
 
-      local targetPath = path.filename(stat.name) -- by default we assume that mkdir is nor supported and we cannot create directories
+      -- by default we assume that mkdir is nor supported and we cannot create directories
+      local targetPath = path.filename(stat.name)
 
       if type(transform_path) == "function" then -- if supplied transform with transform functions
          targetPath = transform_path(stat.name:sub(il), destination)
@@ -199,7 +199,8 @@ local function extract_file(source, file, destination, options)
          goto files_loop
       end
 
-      local targetPath = path.filename(stat.name) -- by default we assume that mkdir is nor supported and we cannot create directories
+      -- by default we assume that mkdir is nor supported and we cannot create directories
+      local targetPath = path.filename(stat.name)
 
       if type(transform_path) == "function" then -- if supplied transform with transform functions
          targetPath = transform_path(stat.name:sub(il), destination)
@@ -319,7 +320,7 @@ local function get_files(source, options)
       if type(transform_path) == "function" then -- if supplied transform with transform functions
          targetPath = transform_path(stat.name:sub(il))
       end
-      table.insert(files, stat.name:sub(il))
+      table.insert(files, targetPath)
       ::files_loop::
    end
    zipArch:close()
@@ -334,16 +335,16 @@ local function _add_to_archive(archive, path, type, content)
       archive:add(path, "file", content)
    elseif type == 'string' then
       archive:add(path, "string", content)
-   else 
+   else
       error("Unsupported data type for compression...")
    end
 end
 
-local function _open_archive(path, checkcons) 
+local function _open_archive(path, checkcons)
    local _result, _error
-   if checkcons then 
+   if checkcons then
       _result, _error = zip.open(path, zip.CHECKCONS)
-   else 
+   else
       _result, _error =  zip.open(path)
    end
    assert(_result, _error)
@@ -364,9 +365,9 @@ local function _compress(source, target, options)
       error("Cannot compress. Invalid source " .. (source or ""))
    end
 
-   if options.overwrite then 
+   if options.overwrite then
       local _targetType = fs.file_type(target)
-      if _targetType == 'file' then 
+      if _targetType == 'file' then
          fs.remove(target)
       elseif _targetType ~= nil then -- exists but not file
          error("Can not overwrite! Target is not a file. (" .. (_targetType or "unknown type") .. ")")
@@ -387,7 +388,7 @@ local function _compress(source, target, options)
    end
 
    local _dirEntries = fs.read_dir(source, { recurse = options.recurse, asDirEntries = true })
-   for _, entry in ipairs(_dirEntries) do 
+   for _, entry in ipairs(_dirEntries) do
       _add_to_archive(_archive, entry:fullpath():sub(_skipLength), entry:type(), entry:fullpath())
    end
    _archive:close()

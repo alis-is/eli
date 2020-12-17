@@ -10,7 +10,7 @@ local _env = {
     EENV = _eenvLoaded
 }
 
-if not _eenvLoaded then 
+if not _eenvLoaded then
     return _generate_safe_functions(_env)
 end
 

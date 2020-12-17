@@ -65,7 +65,8 @@ local function _execute(file, args, options)
    local rd, proc_wr = _create_pipe(options.stdout, options.stdio)
    local rderr, proc_werr = _create_pipe(options.stderr, options.stdio)
 
-   local _proc, err = eproc.spawn {stdin = proc_rd, stdout = proc_wr, stderr = proc_werr, command = file, args = args, env = options.env}
+   local _proc, err = eproc.spawn {stdin = proc_rd, stdout = proc_wr, stderr = proc_werr, command = file,
+      args = args, env = options.env}
    _close_fd(proc_rd)
    _close_fd(proc_wr)
    _close_fd(proc_werr)
