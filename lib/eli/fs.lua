@@ -64,7 +64,7 @@ local function _remove(dst, options)
       assert(_ok, _error or "")
    end
 
-   if type(options) ~= "table" then 
+   if type(options) ~= "table" then
       options = {}
    end
 
@@ -92,7 +92,7 @@ local function _remove(dst, options)
          end
       end
    end
-   if not contentOnly then 
+   if not contentOnly then
       efs.rmdir(dst)
    end
 end
@@ -157,21 +157,21 @@ local function _direntry_type(entry)
    return nil
 end
 
-local function _read_dir_recurse(path, asDirEntries, lenOfPathToRemove)
-   if type(_lenOfPathToRemove) ~= 'number' then 
+local function _read_dir_recurse(path, asDirEntries, _lenOfPathToRemove)
+   if type(_lenOfPathToRemove) ~= 'number' then
       _lenOfPathToRemove = 0
-   end 
+   end
    local _entries = efs.read_dir(path, asDirEntries)
    local result = {}
    for _, entry in ipairs(_entries) do
       local _path = asDirEntries and entry:fullpath() or combine(path, entry)
       if _direntry_type(asDirEntries and entry or _path) == "directory" then
-         local _subEntries = _read_dir_recurse(_path, asDirEntries, lenOfPathToRemove)
+         local _subEntries = _read_dir_recurse(_path, asDirEntries, _lenOfPathToRemove)
          for _, subEntry in ipairs(_subEntries) do
             table.insert(result, subEntry)
          end
       end
-      table.insert(result, asDirEntries and entry or _path:sub(lenOfPathToRemove + 1))
+      table.insert(result, asDirEntries and entry or _path:sub(_lenOfPathToRemove + 1))
    end
    return result
 end
@@ -182,14 +182,14 @@ local function _read_dir(path, options)
    end
    if options.recurse then
       local _lenOfPathToRemove = path:match(".*/") and #path or #path + 1
-      if options.returnFullPaths then 
+      if options.returnFullPaths then
          _lenOfPathToRemove = 0
       end
       return _read_dir_recurse(path, options.asDirEntries, _lenOfPathToRemove)
    end
    local _result = efs.read_dir(path, options.asDirEntries)
-   if not options.asDirEntries and options.returnFullPaths then 
-      for i, v in ipairs(_result) do 
+   if not options.asDirEntries and options.returnFullPaths then
+      for i, v in ipairs(_result) do
          _result[i] = combine(path, v)
       end
    end
@@ -207,7 +207,7 @@ local function _chown(path, uid, gid, options)
 
    efs.chown(path, uid, gid)
 
-   _paths = _read_dir(path, {recurse = true, returnFullPaths = true})
+   local _paths = _read_dir(path, {recurse = true, returnFullPaths = true})
    for _, _path in ipairs(_paths) do
       efs.chown(_path, uid, gid)
    end

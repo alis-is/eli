@@ -10,7 +10,7 @@ local function _split(s, sep, trim)
     end
     local _result = {}
     for str in string.gmatch(s, "([^" .. sep .. "]+)") do
-        if trim then 
+        if trim then
             str = _trim(str)
         end
         table.insert(_result, str)
@@ -23,7 +23,7 @@ local function _join(separator, ...)
     if type(separator) ~= "string" then
         separator = ""
     end
-    for i, v in ipairs(table.pack(...)) do
+    for _, v in ipairs(table.pack(...)) do
         if #_result == 0 then
             _result = v
         else
@@ -36,7 +36,7 @@ end
 -- joins only strings, ignoring other values
 local function _join_strings(separator, ...)
     local _tmp = {}
-    for i, v in ipairs(table.pack(...)) do
+    for _, v in ipairs(table.pack(...)) do
         if type(v) == "string" then
             table.insert(_tmp, v)
         end

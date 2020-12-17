@@ -10,19 +10,19 @@ local function eli_init()
       if path.default_sep() == "/" then
          local io = require "io"
          local f = io.popen("which " .. interpreter)
-         local path = f:read("a*")
-         if path ~= nil then
-            path = path:gsub("%s*", "")
+         local _path = f:read("a*")
+         if _path ~= nil then
+            _path = _path:gsub("%s*", "")
          end
-         exit = f:close()
-         if exit == 0 then
-            return path
+         local _exit = f:close()
+         if _exit == 0 then
+            return _path
          end
       else
-         path = requore "os".getenv "PATH"
-         if path then
-            for subpath in path:gmatch("([^;]+)") do
-               if path.file(subpath) == interpreter then
+         local _path = require "os".getenv "PATH"
+         if _path then
+            for subpath in _path:gmatch("([^;]+)") do
+               if _path.file(subpath) == interpreter then
                   return subpath
                end
             end
@@ -50,7 +50,7 @@ local function eli_init()
       end
       APP_ROOT = path.dir(APP_ROOT_SCRIPT)
    end
-   ELI_LIB_VERSION = "0.8.0"
+   ELI_LIB_VERSION = "0.8.1"
 end
 
 eli_init()

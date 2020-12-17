@@ -33,6 +33,10 @@ function Logger:new(options)
         options.includeFields = true
     end
 
+    if options.noTime == nil then
+        options.noTime = false
+    end
+
     logger.__type = "ELI_LOGGER"
     logger.options = options
 
@@ -71,7 +75,7 @@ local _levelValueMap = {
 local function _level_value(lvl)
     if type(lvl) ~= 'string' then return 0 end
     local _lvl = _levelValueMap[lvl]
-    if (type(_lvl) == nil) then return 0 end 
+    if (type(_lvl) == nil) then return 0 end
     return _lvl
 end
 
@@ -87,15 +91,17 @@ local function log_txt(data, colorful, color, noTime, includeFields)
         data.msg = data.msg:sub(1, #data.msg - 1)
     end
 
-    if includeFields then 
+    if includeFields then
 
         if not util.is_array(includeFields) then
-            includeFields = util.filter_table(util.keys(data), function(k,v) return v ~= 'msg' and v ~= 'module' and v ~= 'level' end)
+            includeFields = util.filter_table(util.keys(data), function(_,v)
+                return v ~= 'msg' and v ~= 'module' and v ~= 'level'
+            end)
         end
 
         local _fields = {}
         local _any = false
-        for i,v in ipairs(includeFields) do 
+        for _,v in ipairs(includeFields) do
             _any = true
             _fields[v] = data[v]
         end
@@ -122,14 +128,12 @@ local function wrap_msg(msg)
     return msg
 end
 
-function Logger:log(msg, lvl, options)
-    local noTime = type(options) == "table" and options.noTime or false
-
+function Logger:log(msg, lvl)
     msg = wrap_msg(msg)
     if lvl ~= nil then
         msg.level = lvl
     end
-    if _level_value(self.options.level) > _level_value(lvl) then 
+    if _level_value(self.options.level) > _level_value(lvl) then
         return
     end
 
@@ -141,28 +145,28 @@ function Logger:log(msg, lvl, options)
     end
 end
 
-function Logger:success(msg, options)
-    self:log(msg, "success", options)
+function Logger:success(msg)
+    self:log(msg, "success")
 end
 
-function Logger:debug(msg, options)
-    self:log(msg, "debug", options)
+function Logger:debug(msg)
+    self:log(msg, "debug")
 end
 
-function Logger:trace(msg, options)
-    self:log(msg, "trace", options)
+function Logger:trace(msg)
+    self:log(msg, "trace")
 end
 
-function Logger:info(msg, options)
-    self:log(msg, "info", options)
+function Logger:info(msg)
+    self:log(msg, "info")
 end
 
-function Logger:warn(msg, options)
-    self:log(msg, "warn", options)
+function Logger:warn(msg)
+    self:log(msg, "warn")
 end
 
-function Logger:error(msg, options)
-    self:log(msg, "error", options)
+function Logger:error(msg)
+    self:log(msg, "error")
 end
 
 return Logger

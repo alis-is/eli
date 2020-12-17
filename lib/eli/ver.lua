@@ -92,7 +92,7 @@ local function _compare_version(v1, v2)
             return -1
         end
     end
-    if type(v1) == "string" then 
+    if type(v1) == "string" then
         v1 = _parse_semver(v1)
     end
     if type(v2) == "string" then
@@ -100,11 +100,11 @@ local function _compare_version(v1, v2)
     end
     assert(type(v1) == "table", "Invalid v1 version!")
     assert(type(v2) == "table", "Invalid v1 version!")
-    
+
     if v1.major ~= v2.major then
         return v1.major > v2.major and 1 or -1
     end
-    
+
     if v1.minor ~= v2.minor then
         return v1.minor > v2.minor and 1 or -1
     end

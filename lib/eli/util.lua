@@ -1,9 +1,9 @@
 local function keys(t)
-   local keys = {}
+   local _keys = {}
    for k, _ in pairs(t) do
-      table.insert(keys, k)
+      table.insert(_keys, k)
    end
-   return keys
+   return _keys
 end
 
 local function values(t)
@@ -50,14 +50,13 @@ local function merge_tables(t1, t2, overwrite)
    local _result = {}
    if _is_array(t1) and _is_array(t2) then
       for _, v in ipairs(t1) do
-         -- merge index based arrays
+         -- merge id based arrays
          if type(v.id) == "string" then
             for i = 1, #t2, 1 do
                local v2 = t2[i]
                if type(v2.id) == "string" and v2.id == v.id then
                   v = merge_tables(v, v2, overwrite)
                   table.remove(t2, i)
-                  i = i - 1
                   break
                end
             end
@@ -117,7 +116,7 @@ local function generate_safe_functions(functions)
    if type(functions) ~= "table" then
       return functions
    end
-   if _is_array(functions) then 
+   if _is_array(functions) then
       return functions -- safe function can be generated only on dictionary
    end
    local res = {}
@@ -143,7 +142,7 @@ end
 
 local function _global_log_factory(module, ...)
    local _result = {}
-   for i, lvl in ipairs({...}) do
+   for _, lvl in ipairs({...}) do
       if type(GLOBAL_LOGGER) ~= "table" or GLOBAL_LOGGER.__type ~= "ELI_LOGGER" then
          table.insert(
             _result,
@@ -169,12 +168,12 @@ end
 -- this is provides ability to load not packaged eli from cwd
 -- for debug purposes
 local function _remove_preloaded_lib()
-   for k, v in pairs(package.loaded) do
+   for k, _ in pairs(package.loaded) do
       if k and k:match("eli%..*") then
          package.loaded[k] = nil
       end
    end
-   for k, v in pairs(package.preload) do
+   for k, _ in pairs(package.preload) do
       if k and k:match("eli%..*") then
          package.preload[k] = nil
       end

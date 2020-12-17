@@ -102,7 +102,7 @@ function path.format(type, path, drive, pl)
 	elseif type == 'abs_long' then
 		return '\\\\?\\' .. drive .. ':' .. path
 	elseif type == 'unc' then
-		local path = '\\\\' .. drive .. path
+		return '\\\\' .. drive .. path
 	elseif type == 'unc_long' then
 		return '\\\\?\\UNC\\' .. drive .. path
 	elseif type == 'dev' then
@@ -505,10 +505,10 @@ function path.filename(s, pl, repl, break_on_err)
 		return path.filename(s, pl, repl, err) --tail call
 	end
 
-	function subcheck(patt, err, msg)
+	local function subcheck(patt, err, msg)
 		local user_repl = repl
 		function repl(s, err)
-			local s, repl_count = s:gsub(patt, function(c)
+			local _, repl_count = s:gsub(patt, function(c)
 				return user_repl(c, err) --returning nil/false means no repl.
 			end)
 			return repl_count > 0 and s
@@ -517,7 +517,6 @@ function path.filename(s, pl, repl, break_on_err)
 	end
 
 	local invalid_chars = win and '[%z\1-\31<>:"|%?%*\\/]' or '[%z/]'
-	local empty
 
 	if s == '' then
 		return check(s, 'empty filename')

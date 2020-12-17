@@ -18,7 +18,7 @@ local function _download(url, write_function, options)
          flags = flags .. "p"
       end
       if type(options.additionalFlags) == "string" then
-         flags = flags .. additionalFlags
+         flags = flags .. options.additionalFlags
       end
    end
 
@@ -66,7 +66,7 @@ local function download_file(url, destination, options)
       end
 
       local _ok, _error, _code = _download(url, _write, options)
-      if _ok then 
+      if _ok then
          _df:close()
          break
       elseif (_tries >= _retryLimit or _code ~= 15) then -- 15 => FETCH_TIMEOUT
