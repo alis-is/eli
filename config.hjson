@@ -83,7 +83,7 @@
       {
          id: eli_proc_extra
          repository: cryon-io/eli-proc-extra
-         version: 0.1.4
+         version: 0.2.0
          destination: modules/eli-proc-extra
          omitRoot: true
       },
@@ -119,7 +119,7 @@
       { 
          id: mbedtls
          repository: ARMmbed/mbedtls  
-         version: mbedtls-2.24.0
+         version: mbedtls-2.25.0
          destination: modules/mbedtls
          omitRoot: true
       },
