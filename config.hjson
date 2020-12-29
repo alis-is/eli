@@ -1,5 +1,5 @@
 {
-   version: 0.8.0
+   version: 0.9.0
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    inject_CA: true
@@ -40,7 +40,7 @@
       {
          id: lua
          repository: lua/lua
-         version: v5.4.0
+         version: v5.4.2
          destination: lua/src
          omitRoot: true
          cmakelists: { source: "lua_CMakeLists.txt", destination: "lua/CMakeLists.txt" } 
@@ -60,6 +60,20 @@
          omitRoot: true
       },
       {
+         id: eli_stream_extra
+         repository: cryon-io/eli-stream-extra
+         version: 0.0.1
+         destination: modules/eli-stream-extra
+         omitRoot: true
+      },
+      {
+         id: eli_pipe_extra
+         repository: cryon-io/eli-pipe-extra
+         version: 0.0.1
+         destination: modules/eli-pipe-extra
+         omitRoot: true
+      },
+      {
          id: eli_fs_extra
          repository: cryon-io/eli-fs-extra
          version: 0.2.2
@@ -71,6 +85,13 @@
          repository: cryon-io/eli-proc-extra
          version: 0.1.4
          destination: modules/eli-proc-extra
+         omitRoot: true
+      },
+      {
+         id: eli_proc_extra_utils
+         repository: cryon-io/eli-proc-extra-utils
+         version: 0.0.1
+         destination: modules/eli-proc-extra-utils
          omitRoot: true
       },
       {
