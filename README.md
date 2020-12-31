@@ -33,10 +33,14 @@ Steps:
 1. `git clone https://github.com/cryon-io/eli && cd eli`
 2. `docker build -t elibuild .`
 3. `chmod +x eli`
-4. `docker run -v $(pwd):"/root/luabuild" -e TOOLCHAINS='x86_64-linux-musl-cross;i686-linux-musl-cross' elibuild`
+4. `docker run -v $(pwd):"/root/luabuild" -v "$(pwd)/toolchains:/opt/cross" -e TOOLCHAINS='x86_64-linux-musl-cross;i686-linux-musl-cross' elibuild`
 5. Built binaries `eli` and `elic` will be created in build directory and per `<toolchain>` subdirectories
 
 *Note: You can choose build toolchain you like from https://musl.cc/ and set its name in TOOLCHAINS*
+
+Tests:
+- Run `run_tests.sh` with args <path to built binary> and <test suite>
+    * Example: `./run_tests.sh $(pwd)/build/eli all.lua`
 
 Libraries used for build: 
 
