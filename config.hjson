@@ -1,5 +1,5 @@
 {
-   version: 0.8.0
+   version: 0.9.0
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    inject_CA: true
@@ -8,6 +8,9 @@
       eli_fs_extra: "eli.fs.extra"
       eli_proc_extra: "eli.proc.extra"
       eli_env_extra: "eli.env.extra"
+      eli_pipe_extra: "eli.pipe.extra"
+      eli_stream_extra: "eli.stream.extra"
+      eli_os_extra: "eli.os.extra"
       lzip: lzip
       lfetch: lfetch
       is_tty: is_tty
@@ -40,7 +43,7 @@
       {
          id: lua
          repository: lua/lua
-         version: v5.4.0
+         version: v5.4.2
          destination: lua/src
          omitRoot: true
          cmakelists: { source: "lua_CMakeLists.txt", destination: "lua/CMakeLists.txt" } 
@@ -60,17 +63,45 @@
          omitRoot: true
       },
       {
+         id: eli_extra_utils
+         repository: cryon-io/eli-extra-utils
+         version: 0.0.1
+         destination: modules/eli-extra-utils
+         omitRoot: true
+      },
+      {
+         id: eli_stream_extra
+         repository: cryon-io/eli-stream-extra
+         version: 0.0.1
+         destination: modules/eli-stream-extra
+         omitRoot: true
+      },
+      {
+         id: eli_pipe_extra
+         repository: cryon-io/eli-pipe-extra
+         version: 0.0.1
+         destination: modules/eli-pipe-extra
+         omitRoot: true
+      },
+      {
          id: eli_fs_extra
          repository: cryon-io/eli-fs-extra
-         version: 0.2.2
+         version: 0.3.0
          destination: modules/eli-fs-extra
          omitRoot: true
       },
       {
          id: eli_proc_extra
          repository: cryon-io/eli-proc-extra
-         version: 0.1.4
+         version: 0.2.0
          destination: modules/eli-proc-extra
+         omitRoot: true
+      },
+      {
+         id: eli_os_extra
+         repository: cryon-io/eli-os-extra
+         version: 0.0.2
+         destination: modules/eli-os-extra
          omitRoot: true
       },
       {
@@ -98,7 +129,7 @@
       { 
          id: mbedtls
          repository: ARMmbed/mbedtls  
-         version: mbedtls-2.24.0
+         version: mbedtls-2.25.0
          destination: modules/mbedtls
          omitRoot: true
       },

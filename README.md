@@ -7,6 +7,10 @@ Embedded libraries:
 - [eli.fs.extra](https://github.com/cryon-io/eli-fs-extra)
 - [eli.proc.extra](https://github.com/cryon-io/eli-proc-extra)
 - [eli.env.extra](https://github.com/cryon-io/eli-env-extra)
+- [eli.os.extra](https://github.com/cryon-io/eli-os-extra)
+- [eli.pipe.extra](https://github.com/cryon-io/eli-pipe-extra)
+- [eli.stream.extra](https://github.com/cryon-io/eli-stream-extra)
+- [eli.extra.utils](https://github.com/cryon-io/eli-extra-utils)
 - [hjson ](https://github.com/cryi/hjson-lua)
 - [lustache](https://github.com/Olivine-Labs/lustache)
 - [argparse](https://github.com/mpeterv/argparse)
@@ -32,11 +36,14 @@ Build requirements:
 Steps:
 1. `git clone https://github.com/cryon-io/eli && cd eli`
 2. `docker build -t elibuild .`
-3. `chmod +x eli`
-4. `docker run -v $(pwd):"/root/luabuild" -e TOOLCHAINS='x86_64-linux-musl-cross;i686-linux-musl-cross' elibuild`
-5. Built binaries `eli` and `elic` will be created in build directory and per `<toolchain>` subdirectories
+3. `docker run -v $(pwd):"/root/luabuild" -v "$(pwd)/toolchains:/opt/cross" -e TOOLCHAINS='x86_64-linux-musl-cross;i686-linux-musl-cross' elibuild`
+4. Built binaries `eli` and `elic` will be created in build directory and per `<toolchain>` subdirectories
 
 *Note: You can choose build toolchain you like from https://musl.cc/ and set its name in TOOLCHAINS*
+
+Tests:
+- Run `run_tests.sh` with args <path to built binary> and <test suite>
+    * Example: `./run_tests.sh $(pwd)/build/eli all.lua`
 
 Libraries used for build: 
 
