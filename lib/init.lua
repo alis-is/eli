@@ -1,6 +1,6 @@
 local function eli_init()
    local path = require"eli.path"
-   local proc = require"eli.proc"
+   local _eos = require"eli.os"
    local i_min = 0
    while arg[i_min] do
       i_min = i_min - 1
@@ -36,15 +36,15 @@ local function eli_init()
       if identified then
          INTERPRETER = _interpreter
       end
-   elseif not path.isabs(INTERPRETER) and proc.EPROC then
-      INTERPRETER = path.abs(INTERPRETER, proc.cwd())
+   elseif not path.isabs(INTERPRETER) and _eos.EOS then
+      INTERPRETER = path.abs(INTERPRETER, _eos.cwd())
    end
 
    if i_min == -1 then -- we are running without script (interactive mode)
       APP_ROOT = nil
    else
-      if proc.EPROC and not path.isabs(arg[0]) then
-         APP_ROOT_SCRIPT = path.abs(arg[0], proc.cwd())
+      if _eos.EOS and not path.isabs(arg[0]) then
+         APP_ROOT_SCRIPT = path.abs(arg[0], _eos.cwd())
       else
          APP_ROOT_SCRIPT = arg[0]
       end

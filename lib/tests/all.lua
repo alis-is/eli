@@ -8,6 +8,7 @@ require"env"
 require"zip"
 require"util"
 require"ver"
+require"os"
 
 require"extensions.string"
 

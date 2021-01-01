@@ -1,8 +1,6 @@
 local _test = TEST or require "u-test"
 local _ok, _eliProc = pcall(require, "eli.proc")
 local _eliFs = require("eli.fs")
-local _hjson = require"hjson"
-local _epipe = require"eli.pipe.extra"
 
 if not _ok then
     _test["eli.proc available"] = function()

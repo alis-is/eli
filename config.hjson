@@ -10,7 +10,7 @@
       eli_env_extra: "eli.env.extra"
       eli_pipe_extra: "eli.pipe.extra"
       eli_stream_extra: "eli.stream.extra"
-      eli_proc_extra_utils: "eli.proc.extra.utils"
+      eli_os_extra: "eli.os.extra"
       lzip: lzip
       lfetch: lfetch
       is_tty: is_tty
@@ -98,10 +98,10 @@
          omitRoot: true
       },
       {
-         id: eli_proc_extra_utils
-         repository: cryon-io/eli-proc-extra-utils
-         version: 0.0.1
-         destination: modules/eli-proc-extra-utils
+         id: eli_os_extra
+         repository: cryon-io/eli-os-extra
+         version: 0.0.2
+         destination: modules/eli-os-extra
          omitRoot: true
       },
       {
