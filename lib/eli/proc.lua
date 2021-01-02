@@ -77,49 +77,52 @@ function EliProcessCompat:exited()
    return true
 end
 
-local function _execute_compat(file, args, options)
+local function _stdoption_to_filename(stdStreamOption)
+   if stdStreamOption == "pipe" then
+      return os.tmpname
+   elseif type(stdStreamOption) == "string" then
+      return stdStreamOption
+   end
+   return "ignore"
+end
+
+local function _exec(cmd, options)
    if type(options) ~= "table" then
       options = {}
    end
-   if type(options.env) == "table" then
-      return nil, "Setting env is not possible in proc compatibility mode!"
-   end
-   if type(options.wait) == "boolean" and options.wait == false then
-      return nil, "Process in compat mode always waits for exit!"
-   end
-
-   if type(options.stdio) == "table" and options.stdio.stdin ~= "ignore" then
-      return nil, "Process in compat mode wont expose stdin!"
-   end
-
-   local function _generate_cmdline(...)
-      local _result = ""
-      for _, v in ipairs(...) do
-         if type(v) ~= "string" then 
-            error("Failed to generate compat process command line '".. tostring(v) .. "' is not a string!")
-         end
-         if not v:sub(1,1):match("[\"']") or not v:sub(#v,#v):match("[\"']") then
-            v = v:gsub("\"", "\\\"") -- escape "
-         end
-         _result = _result .. v .. " "
+   if type(options.stdio) ~= "table" then
+      if type(options.stdio) == "string" then
+         options.stdio = {
+            stdout = options.stdio,
+            stderr= options.stdio
+         }
+      else
+         options.stdio = {
+            stdout = "ignore",
+            stderr = "ignore"
+         }
       end
-      return _result
    end
 
-   local _stdoutFile
-   if options.stdio == nil or options.stdio == "pipe" then
-      _stdoutFile = os.tmpname()
-   --[[
-      // TODO:
-      what about passed FILE/STREAM as arguments -> we do not have path so we have to report properly...
-    ]]
+   local _injectStdout = ""
+   local _stdoutFile =_stdoption_to_filename(options.stdio.stdout)
+   if _stdoutFile ~= "ignore" then
+      _injectStdout = " >" .. _stdoutFile
    end
-   local _stderrFile = os.tmpname()
 
-   -- we do not quote file for cases when we pipe into process
-   local _cmdline = file .. " " .. _generate_cmdline(table.unpack(args))
-      .. ' >"' .. _stdoutFile .. ' 2>"'.. _stderrFile .. '"'
+   local _injectStderr = ""
+   local _stderrFile =_stdoption_to_filename(options.stdio.stderr)
+   if _stderrFile ~= "ignore" then
+      _injectStdout = " >" .. _stderrFile
+   end
+
+   local _cmdline = cmd .. _injectStdout .. _injectStderr
    local _, _, _exitcode = os.execute(_cmdline)
+
+--[[
+   create lua temporary file here
+   custom metatable with removal on gc or close
+]]
 
    local _result = EliProcessCompat:new({
       stdoutStream = io.open(_stdoutFile),
@@ -132,8 +135,7 @@ local function _execute_compat(file, args, options)
 end
 
 local proc = {
-   os_execute = os.execute,
-   safe_os_execute = os.execute,
+   exec = _exec,
    EPROC = eprocLoaded
 }
 
@@ -142,7 +144,7 @@ if not eprocLoaded then
 end
 local epipe = require"eli.pipe.extra"
 
-local function _execute(file, args, options)
+local function _spawn(file, args, options)
    if type(options) ~= "table" then
       options = {}
    end
@@ -167,6 +169,6 @@ local function _execute(file, args, options)
    return _proc
 end
 
-proc.execute = _execute
+proc.spawn = _spawn
 
 return generate_safe_functions(merge_tables(proc, eproc, true))
