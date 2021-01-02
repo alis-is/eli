@@ -38,6 +38,7 @@ function Logger:new(options)
     end
 
     logger.__type = "ELI_LOGGER"
+    logger.__tostring = function() return "ELI_LOGGER" end
     logger.options = options
 
     setmetatable(logger, self)

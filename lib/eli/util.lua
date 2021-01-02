@@ -201,6 +201,48 @@ local function _random_string(length, charset)
    return _random_string(length - 1) .. charset[math.random(1, #charset)]
 end
 
+local function _internal_clone(v, cache, deep)
+   if type(deep) == "number" then deep = deep - 1 end
+   local _go_deeper = deep == true or (type(deep) == 'number' and deep >= 0)
+
+   cache = cache or {}
+   if type(v) == 'table' then
+       if cache[v] then
+           return cache[v]
+       else
+           local _clone_fn = _go_deeper and _internal_clone or function (v) return v end
+           local copy = {}
+           cache[v] = copy
+           for k, _v in next, v, nil do
+               copy[_clone_fn(k, cache, deep)] = _clone_fn(_v, cache, deep)
+           end
+           setmetatable(copy, _clone_fn(getmetatable(v), cache, deep))
+           return copy
+       end
+   else -- number, string, boolean, etc
+      return v
+   end
+end
+
+local function _clone(v, deep)
+   return _internal_clone(v, {}, deep)
+end
+
+local function _equals(v, v2, deep)
+   if type(deep) == "number" then deep = deep - 1 end
+   local _go_deeper = deep == true or (type(deep) == 'number' and deep >= 0)
+
+   if type(v) == 'table' and type(v2) == "table" and _go_deeper then
+      for k, _v in next, pairs(v), nil do
+         local _result = _equals(v2[k], _v, _go_deeper)
+         if not _result then return false end
+      end
+      return true
+  else -- number, string, boolean, etc
+     return v == v2
+  end
+end
+
 return {
    keys = keys,
    values = values,
@@ -213,5 +255,7 @@ return {
    print_table = print_table,
    global_log_factory = _global_log_factory,
    remove_preloaded_lib = _remove_preloaded_lib,
-   random_string = _random_string
+   random_string = _random_string,
+   clone = _clone,
+   equals = _equals
 }
