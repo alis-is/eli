@@ -1,9 +1,9 @@
 #include "lnproc.h"
 #include "lauxlib.h"
-#include "lua.h"
 #include "luaconf.h"
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /*
@@ -20,12 +20,12 @@
 #include <unistd.h>
 #define ELI_TMPNAMBUFSIZE 32
 #if !defined(ELI_TMPNAMTEMPLATE)
-#define ELI_TMPNAMBUFSIZE "/tmp/eli_XXXXXX"
+#define ELI_TMPNAMTEMPLATE "/tmp/eli_XXXXXX"
 #endif
 
 #define eli_tmpnam(b, e)                                                       \
   {                                                                            \
-    strcpy(b, LUA_TMPNAMTEMPLATE);                                             \
+    strcpy(b, ELI_TMPNAMTEMPLATE);                                             \
     e = mkstemp(b);                                                            \
     if (e != -1)                                                               \
       close(e);                                                                \
@@ -50,17 +50,11 @@
 /*
 ** use appropriate macros to interpret 'pclose' return status
 */
-#define l_inspectstat(stat, what)                                              \
-  if (WIFEXITED(stat)) {                                                       \
-    stat = WEXITSTATUS(stat);                                                  \
-  } else if (WIFSIGNALED(stat)) {                                              \
-    stat = WTERMSIG(stat);                                                     \
-    what = "signal";                                                           \
-  }
-
+#define l_getstat(stat)                                                    \
+    stat = WEXITSTATUS(stat);
 #else
 
-#define l_inspectstat(stat, what) /* no op */
+#define l_getstat(stat) /* no op */
 
 #endif
 
@@ -70,8 +64,7 @@ static NATIVE_PROC_STDSTREAM_KIND get_stdstream_kind(lua_State *L, int idx) {
   int stdstreamType = lua_type(L, idx);
   switch (stdstreamType) {
   case LUA_TBOOLEAN:
-    int wants = lua_toboolean(L, idx);
-    return wants ? NATIVE_PROC_STDSTREAM_TMP_KIND
+    return lua_toboolean(L, idx) ? NATIVE_PROC_STDSTREAM_TMP_KIND
                  : NATIVE_PROC_STDSTREAM_IGNORE_KIND;
   case LUA_TSTRING:
     return NATIVE_PROC_STDSTREAM_FILE_KIND;
@@ -113,57 +106,71 @@ static int eli_exec(lua_State *L) {
         }
         lua_pop(L, 1);
         break;
+      case LUA_TSTRING:
+        /**
+         * ignore = false
+         * pipe = tmp
+         * path = file
+        */
       case LUA_TBOOLEAN:;
         int collect = lua_toboolean(L, 3);
         collect_stdout = collect ? NATIVE_PROC_STDSTREAM_TMP_KIND
                                  : NATIVE_PROC_STDSTREAM_IGNORE_KIND;
         collect_stderr = collect ? NATIVE_PROC_STDSTREAM_TMP_KIND
                                  : NATIVE_PROC_STDSTREAM_IGNORE_KIND;
+        lua_pop(L, 1);
         break;
       }
-      lua_pop(L, 1);
       break;
+    case LUA_TNONE:
     case LUA_TNIL:
       break;
     default:
       return luaL_typeerror(L, 2, "table");
     }
 
+    lua_pop(L, 1);
+
+    int shouldCollectStd = 0;
     if (collect_stdout != NATIVE_PROC_STDSTREAM_IGNORE_KIND) {
       if (stdoutFile == NULL) {
-        const char buff[ELI_TMPNAMBUFSIZE];
+        char buff[ELI_TMPNAMBUFSIZE];
         int err;
         eli_tmpnam(buff, err);
         stdoutFile = buff;
       }
+      shouldCollectStd = 1;
     }
     if (collect_stderr != NATIVE_PROC_STDSTREAM_IGNORE_KIND) {
       if (stderrFile == NULL) {
-        const char buff[ELI_TMPNAMBUFSIZE];
+        char buff[ELI_TMPNAMBUFSIZE];
         int err;
         eli_tmpnam(buff, err);
         stderrFile = buff;
       }
+      shouldCollectStd = 1;
     }
-
+    if (shouldCollectStd) {
     int stdoutFilel = stdoutFile == NULL ? 0 : strlen(stdoutFile) + 5;
     int stderrFilel = stderrFile == NULL ? 0 : strlen(stderrFile) + 6;
-    const char *newCmd = malloc(cmdl + stdoutFilel + stderrFilel);
-    const char *p = newCmd;
+    char *newCmd = malloc(cmdl + stdoutFilel + stderrFilel);
+    char *p = newCmd;
     strcpy(p, cmd);
     p += cmdl;
     strcpy(p, " >\"");
     p += 3;
     strcpy(p, stdoutFile);
     p += strlen(stdoutFile);
-    strcpy(p++, '"');
+    strcpy(p++, "\"");
 
     strcpy(p, " 2>\"");
     p += 4;
     strcpy(p, stderrFile);
     p += strlen(stderrFile);
-    strcpy(p, '"');
+    strcpy(p, "\"");
     cmd = newCmd;
+    printf("cmd: %s\n, len: %d\n", cmd, cmdl + stdoutFilel + stderrFilel);
+    }
   }
 
   int stat;
@@ -173,6 +180,8 @@ static int eli_exec(lua_State *L) {
     if (stat == -1) /* error? */
       return luaL_fileresult(L, 0, NULL);
     else {
+      l_getstat(stat);
+      // TODO: open file
       lua_pushinteger(L, stat);
       lua_pushstring(L, stdoutFile);
       lua_pushstring(L, stderrFile);
@@ -192,8 +201,6 @@ static const struct luaL_Reg eliProcNative[] = {
 
 int luaopen_eli_proc_native(lua_State *L)
 {
-    process_create_meta(L);
-
     lua_newtable(L);
     luaL_setfuncs(L, eliProcNative, 0);
     return 1;
