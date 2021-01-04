@@ -5,6 +5,18 @@ local merge_tables = util.merge_tables
 local clone = util.clone
 local eprocLoaded, eproc = pcall(require, "eli.proc.extra")
 
+local function _generate_exec_result(_proc)
+   if (type(_proc) ~= "userdata" and type(_proc) ~= "table") or
+      (_proc.__type ~= "ELI_PROCESS") then
+	   return nil, "Generate process result is possible only from ELI_PROCESS data structure!"
+   end
+   return {
+      exitcode = _proc:get_exitcode(),
+      stdoutStream = _proc:get_stdout(),
+      stderrStream = _proc:get_stderr()
+   }
+end
+
 local proc = {
    exec = _exec,
    EPROC = eprocLoaded
