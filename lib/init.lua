@@ -56,4 +56,4 @@ end
 eli_init()
 -- cleanup init
 eli_init = nil
-elify = require("eli.elify")
+elify = require("eli.elify").elify
