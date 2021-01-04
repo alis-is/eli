@@ -14,7 +14,7 @@
       lzip: lzip
       lfetch: lfetch
       is_tty: is_tty
-      lmbed_hash: lmbed_hash,
+      lmbed_hash: lmbed_hash
       eli_proc_native: "eli.proc.native"
    }
    lua_libs: [
