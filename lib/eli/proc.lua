@@ -42,4 +42,4 @@ end
 
 proc.spawn = _spawn
 
-return generate_safe_functions(merge_tables(proc, eproc, true))
+return generate_safe_functions(proc)
