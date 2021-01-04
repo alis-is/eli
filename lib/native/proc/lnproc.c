@@ -150,6 +150,8 @@ static int eli_exec(lua_State *L) {
       }
       shouldCollectStd = 1;
     }
+
+    // TODO: consider inject type / cat as stdin 
     if (shouldCollectStd) {
     int stdoutFilel = stdoutFile == NULL ? 0 : strlen(stdoutFile) + 5;
     int stderrFilel = stderrFile == NULL ? 0 : strlen(stderrFile) + 6;
@@ -181,7 +183,6 @@ static int eli_exec(lua_State *L) {
       return luaL_fileresult(L, 0, NULL);
     else {
       l_getstat(stat);
-      // TODO: open file
       lua_pushinteger(L, stat);
       lua_pushstring(L, stdoutFile);
       lua_pushstring(L, stderrFile);

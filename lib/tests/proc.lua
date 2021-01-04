@@ -103,6 +103,18 @@ _test["spawn (file as stdin)"] = function()
     _test.assert(_result.exitcode == 0 and _result.stdoutStream:read("a") == "13354\n")
 end
 
+_test["spawn (stdin/stdout/stderr as path)"] = function()
+    local _result = _eliProc.spawn("sh", {}, {
+        wait = true,
+        stdio = {
+            stdin = "test.script",
+            stdout = "tmp/stdout.log",
+            stderr = "tmp/stderr.log"
+        }
+    })
+    _test.assert(_result.exitcode == 0 and _result.stdoutStream:read("a") == "13354\n")
+end
+
 if not TEST then
     _test.summary()
 end
