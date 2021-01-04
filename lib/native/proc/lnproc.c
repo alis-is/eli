@@ -50,8 +50,7 @@
 /*
 ** use appropriate macros to interpret 'pclose' return status
 */
-#define l_getstat(stat)                                                    \
-    stat = WEXITSTATUS(stat);
+#define l_getstat(stat) stat = WEXITSTATUS(stat);
 #else
 
 #define l_getstat(stat) /* no op */
@@ -65,7 +64,7 @@ static NATIVE_PROC_STDSTREAM_KIND get_stdstream_kind(lua_State *L, int idx) {
   switch (stdstreamType) {
   case LUA_TBOOLEAN:
     return lua_toboolean(L, idx) ? NATIVE_PROC_STDSTREAM_TMP_KIND
-                 : NATIVE_PROC_STDSTREAM_IGNORE_KIND;
+                                 : NATIVE_PROC_STDSTREAM_IGNORE_KIND;
   case LUA_TSTRING:
     return NATIVE_PROC_STDSTREAM_FILE_KIND;
   default:
@@ -78,6 +77,7 @@ static int eli_exec(lua_State *L) {
   const char *cmd = luaL_optlstring(L, 1, NULL, &cmdl);
   const char *stdoutFile = NULL;
   const char *stderrFile = NULL;
+  char *newCmd = NULL;
   if (cmd != NULL) {
     int optionsType = lua_type(L, 2);
     NATIVE_PROC_STDSTREAM_KIND collect_stdout =
@@ -107,11 +107,11 @@ static int eli_exec(lua_State *L) {
         lua_pop(L, 1);
         break;
       case LUA_TSTRING:
-        /**
+        /** TODO:
          * ignore = false
          * pipe = tmp
          * path = file
-        */
+         */
       case LUA_TBOOLEAN:;
         int collect = lua_toboolean(L, 3);
         collect_stdout = collect ? NATIVE_PROC_STDSTREAM_TMP_KIND
@@ -151,27 +151,27 @@ static int eli_exec(lua_State *L) {
       shouldCollectStd = 1;
     }
 
-    // TODO: consider inject type / cat as stdin 
+    // TODO: consider inject type / cat as stdin
     if (shouldCollectStd) {
-    int stdoutFilel = stdoutFile == NULL ? 0 : strlen(stdoutFile) + 5;
-    int stderrFilel = stderrFile == NULL ? 0 : strlen(stderrFile) + 6;
-    char *newCmd = malloc(cmdl + stdoutFilel + stderrFilel);
-    char *p = newCmd;
-    strcpy(p, cmd);
-    p += cmdl;
-    strcpy(p, " >\"");
-    p += 3;
-    strcpy(p, stdoutFile);
-    p += strlen(stdoutFile);
-    strcpy(p++, "\"");
+      int stdoutFilel = stdoutFile == NULL ? 0 : strlen(stdoutFile) + 5;
+      int stderrFilel = stderrFile == NULL ? 0 : strlen(stderrFile) + 6;
+      newCmd = malloc(cmdl + stdoutFilel + stderrFilel);
+      char *p = newCmd;
+      strcpy(p, cmd);
+      p += cmdl;
+      strcpy(p, " >\"");
+      p += 3;
+      strcpy(p, stdoutFile);
+      p += strlen(stdoutFile);
+      strcpy(p++, "\"");
 
-    strcpy(p, " 2>\"");
-    p += 4;
-    strcpy(p, stderrFile);
-    p += strlen(stderrFile);
-    strcpy(p, "\"");
-    cmd = newCmd;
-    printf("cmd: %s\n, len: %d\n", cmd, cmdl + stdoutFilel + stderrFilel);
+      strcpy(p, " 2>\"");
+      p += 4;
+      strcpy(p, stderrFile);
+      p += strlen(stderrFile);
+      strcpy(p, "\"");
+      cmd = newCmd;
+      printf("cmd: %s\n, len: %d\n", cmd, cmdl + stdoutFilel + stderrFilel);
     }
   }
 
@@ -179,6 +179,9 @@ static int eli_exec(lua_State *L) {
   errno = 0;
   stat = system(cmd);
   if (cmd != NULL) {
+    if (newCmd != NULL)
+      free(newCmd);
+
     if (stat == -1) /* error? */
       return luaL_fileresult(L, 0, NULL);
     else {
@@ -200,9 +203,8 @@ static const struct luaL_Reg eliProcNative[] = {
     {NULL, NULL},
 };
 
-int luaopen_eli_proc_native(lua_State *L)
-{
-    lua_newtable(L);
-    luaL_setfuncs(L, eliProcNative, 0);
-    return 1;
+int luaopen_eli_proc_native(lua_State *L) {
+  lua_newtable(L);
+  luaL_setfuncs(L, eliProcNative, 0);
+  return 1;
 }
