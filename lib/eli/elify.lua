@@ -4,7 +4,7 @@ local _overridenValues = {}
 
 local function _elify()
     if (_elified) then return end
-    local _special = { os = true, proc = true }
+    local _special = { os = true }
     local _exclude = { "eli%..*%.extra", "eli%.extensions%..*", "eli%.elify" }
     for k, v in pairs(package.preload) do
         if not k:match("eli%..*") then goto continue end
