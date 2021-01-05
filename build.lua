@@ -7,7 +7,7 @@ local hjson=require"hjson"
 local fs = require"eli.fs"
 local path = require"eli.path"
 
-local BUILD_TYPE = arg[1] or "RELEASE"
+local BUILD_TYPE = arg[1] or "MINSIZEREL"
 
 readfile = fs.readfile
 mkdirp = fs.mkdirp
@@ -96,7 +96,7 @@ CC="{{{gcc}}}" CXX="{{{gpp}}}" AR="{{{ar}}}" LD="{{{ld}}}" RANLIB="{{{ranlib}}}"
       rootDir = oldDir,
       rc = rc:gsub("\n",""),
       BUILD_TYPE = BUILD_TYPE,
-      ccf = BUILD_TYPE == "RELEASE" and "-s" or "" })
+      ccf = BUILD_TYPE == "MINSIZEREL" and "-s" or "" })
 
    print(cmd)
    os.execute(cmd)
