@@ -17,7 +17,7 @@ local function _elify()
         ::continue::
     end
     _overridenValues.os = os
-    os = util.merge_table(os, require("eli.os"))
+    os = util.merge_tables(os, require("eli.os"))
 
     _overridenValues.type = type
     type = function(v)
