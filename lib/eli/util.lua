@@ -233,8 +233,8 @@ local function _equals(v, v2, deep)
    local _go_deeper = deep == true or (type(deep) == 'number' and deep >= 0)
 
    if type(v) == 'table' and type(v2) == "table" and _go_deeper then
-      for k, _v in next, pairs(v), nil do
-         local _result = _equals(v2[k], _v, _go_deeper)
+      for k, _v in pairs(v) do
+         local _result = _equals(v2[k], _v, deep)
          if not _result then return false end
       end
       return true
