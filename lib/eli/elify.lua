@@ -13,7 +13,7 @@ local function _elify()
         end
         local _efk = k:match("eli%.(.*)")
         if not _efk or _special[_efk] then goto continue end
-        _G[_efk] = v
+        _G[_efk] = require(k)
         ::continue::
     end
     _overridenValues.os = os
