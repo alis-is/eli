@@ -19,14 +19,14 @@ _test["eli.net available"] = function ()
 end
 
 _test["download_string"] = function ()
-    local _expected = "cee96dc092845bea85c7eabe0734bc7c704984bdaade73334bd0e2113c7bd6d5"
+    local _expected = "d11ca745153a3d9c54a79840e2dc7abd7bde7ff33fb0723517282abeea23e393"
     local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com/cryon-io/eli/master/LICENSE")
     local _result = _sha256sum(_s, true)
     _test.assert(_expected == _result, "hashes do not match")
 end
 
 _test["download_file"] = function ()
-    local _expected = "cee96dc092845bea85c7eabe0734bc7c704984bdaade73334bd0e2113c7bd6d5"
+    local _expected = "d11ca745153a3d9c54a79840e2dc7abd7bde7ff33fb0723517282abeea23e393"
     local _ok, _error = _eliNet.safe_download_file("https://raw.githubusercontent.com/cryon-io/eli/master/LICENSE", "tmp/LICENSE")
     _test.assert(_ok, _error)
     local _ok, _file = pcall(io.open, "tmp/LICENSE", "r")
