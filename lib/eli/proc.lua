@@ -1,32 +1,104 @@
-local io = require "io"
 local util = require "eli.util"
-local generate_safe_functions = util.generate_safe_functions
-local merge_tables = util.merge_tables
 local eprocLoaded, eproc = pcall(require, "eli.proc.extra")
+local _sx = require"eli.extensions.string"
 
-local function _io_execute(cmd)
-   local _processFile = io.popen(cmd)
-   local _output = _processFile:read "a*"
-   local _ok, _exitCode = _processFile:close()
-   return _ok, _exitCode, _output
+local settings = {
+   stdoutRedirectTemplate = '> "<file>"',
+   stderrRedirectTemplate = '2> "<file>"',
+   stdinRedirectTemplate = 'type "<file>" |',
+}
+
+local function _set_settings(param, value)
+   if type(param) == "string" then
+      settings[param] = value
+   elseif type(param) == "table" then
+      settings = util.merge_tables(settings, param)
+   end
+end
+
+local function _get_stdstream_cmd_part(stdname, file, options)
+   local _tmpMode = false
+   if file == nil then
+      return "", nil
+   end
+   if file == "pipe" then
+      file = os.tmpname()
+      _tmpMode = true
+   end
+   if type(file) ~= "string" then
+      error("Invalid " .. stdname .. " filename (got: " .. tostring(file) .. ", expects: string)!")
+   end
+   if file == "ignore" then return "", nil end
+   local _template = options[stdname.. "RedirectTemplate"] or settings[stdname.. "RedirectTemplate"]
+   if type(_template) == "function" then
+      return _template(file), file, _tmpMode
+   elseif type(_template) == "string" then
+      return _template:gsub("<file>", file), file, _tmpMode
+   else
+      return "", nil
+   end
+end
+
+local ExecTmpFile = {}
+ExecTmpFile.__index = ExecTmpFile
+
+function ExecTmpFile:new(path)
+   local _tmpFile = {}
+   _tmpFile.path = path
+   _tmpFile.__file = io.open(path)
+   _tmpFile.__type = "ELI_EXEC_TMP_FILE"
+   _tmpFile.__tostring = function() return "ELI_EXEC_TMP_FILE" end
+
+   setmetatable(_tmpFile, self)
+   self.__index = self
+   return _tmpFile
+end
+
+function ExecTmpFile:read(mode)
+   return self.__file:read(mode)
+end
+
+function ExecTmpFile:close(mode)
+   return self.__file:close(mode)
+end
+
+function ExecTmpFile:__gc()
+   self.__file:close()
+   os.remove(self.path)
+end
+
+local function _exec(cmd, options)
+   if type(options) ~= "table" then options = {} end
+
+   local _stdoutPart, _stdout, _tmpStdout = _get_stdstream_cmd_part("stdout", options.stdout, options)
+   local _stderrPart, _stderr, _tmpStderr = _get_stdstream_cmd_part("stderr", options.stderr, options)
+   local _stdinPart = _get_stdstream_cmd_part("stdin", options.stdin, options)
+
+   local _cmd = _sx.join_strings(" ", _stdinPart, cmd, _stdoutPart, _stderrPart)
+   local _, _exitType, _code = os.execute(_cmd)
+
+   return {
+      exitcode = _code,
+      exittype = _exitType,
+      stdoutStream = _stdout and (_tmpStdout and ExecTmpFile:new(_stdout) or io.open(_stdout)),
+      stderrStream = _stderr and (_tmpStderr and ExecTmpFile:new(_stderr) or io.open(_stderr))
+   }
 end
 
 local proc = {
-   io_execute = _io_execute,
-   os_execute = os.execute,
-   safe_io_execute = _io_execute,
-   safe_os_execute = os.execute,
+   exec = _exec,
+   set_settings = _set_settings,
    EPROC = eprocLoaded
 }
 
 if not eprocLoaded then
-   return proc
+   return util.generate_safe_functions(proc)
 end
-local epipe = require"eli.pipe.extra"
 
 local function _generate_exec_result(_proc)
-   if (type(_proc) ~= "userdata" and type(_proc) ~= "table")  or _proc.__type ~= "ELI_PROCESS" then
-	return nil, "Can not generate process from non ELI_PROCESS data structure!"
+   if (type(_proc) ~= "userdata" and type(_proc) ~= "table") or
+      (_proc.__type ~= "ELI_PROCESS") then
+	   return nil, "Generate process result is possible only from ELI_PROCESS data structure!"
    end
    return {
       exitcode = _proc:get_exitcode(),
@@ -35,7 +107,7 @@ local function _generate_exec_result(_proc)
    }
 end
 
-local function _execute(file, args, options)
+local function _spawn(file, args, options)
    if type(options) ~= "table" then
       options = {}
    end
@@ -60,6 +132,6 @@ local function _execute(file, args, options)
    return _proc
 end
 
-proc.execute = _execute
+proc.spawn = _spawn
 
-return generate_safe_functions(merge_tables(proc, eproc))
+return util.generate_safe_functions(proc)

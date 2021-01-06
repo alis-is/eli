@@ -7,6 +7,8 @@ local hjson=require"hjson"
 local fs = require"eli.fs"
 local path = require"eli.path"
 
+local BUILD_TYPE = arg[1] or "MINSIZEREL"
+
 readfile = fs.readfile
 mkdirp = fs.mkdirp
 delete = fs.delete
@@ -81,9 +83,21 @@ local function buildWithChain(id, buildDir)
    exit, signal, rc = execute('find -H /opt/cross/' .. id ..' -name "*-windres" -type f')
 
    configureTemplate = [[
-CC="{{{gcc}}}" CXX="{{{gpp}}}" AR="{{{ar}}}" LD="{{{ld}}}" RANLIB="{{{ranlib}}}" cmake {{{rootDir}}} -DCMAKE_AR="{{{ar}}}" -DCMAKE_C_COMPILER="{{{gcc}}}" -DCMAKE_CXX_COMPILER="{{{gpp}}}" -DCMAKE_RC_COMPILER="{{{rc}}}"
+CC="{{{gcc}}}" CXX="{{{gpp}}}" AR="{{{ar}}}" LD="{{{ld}}}" RANLIB="{{{ranlib}}}" cmake {{{rootDir}}} \
+-DCMAKE_AR="{{{ar}}}" -DCMAKE_C_COMPILER="{{{gcc}}}" -DCMAKE_CXX_COMPILER="{{{gpp}}}" -DCMAKE_RC_COMPILER="{{{rc}}}" \
+-DCMAKE_BUILD_TYPE={{{BUILD_TYPE}}} -DCMAKE_C_FLAGS={{{ccf}}}
 ]]
-   cmd = lustache:render(configureTemplate, { ld = ld:gsub("\n",""), ranlib = ranlib:gsub("\n",""), ar = ar:gsub("\n",""), gcc = gcc:gsub("\n",""), gpp = gpp:gsub("\n",""), rootDir = oldDir, rc = rc:gsub("\n","") })
+   cmd = lustache:render(configureTemplate, {
+      ld = ld:gsub("\n",""),
+      ranlib = ranlib:gsub("\n",""),
+      ar = ar:gsub("\n",""),
+      gcc = gcc:gsub("\n",""),
+      gpp = gpp:gsub("\n",""),
+      rootDir = oldDir,
+      rc = rc:gsub("\n",""),
+      BUILD_TYPE = BUILD_TYPE,
+      ccf = BUILD_TYPE == "MINSIZEREL" and "-s" or "" })
+
    print(cmd)
    os.execute(cmd)
    os.execute"make"

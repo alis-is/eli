@@ -1,4 +1,3 @@
-  
 local _test = TEST or require 'u-test'
 local _ok, _eliUtil = pcall(require, "eli.util")
 
@@ -151,6 +150,66 @@ _test["global_log_factory (GLOBAL_LOGGER == 'ELI_LOGGER')"] = function ()
     _test.assert(_called)
 end
 
-if not TEST then 
+_test["clone - primitive"] = function ()
+    local _n = 5
+    local _s = "stringToClone"
+    local _nil = nil
+    local _fn = function () end
+
+    _test.assert(_n == _eliUtil.clone(_n))
+    _test.assert(_s == _eliUtil.clone(_s))
+    _test.assert(_nil == _eliUtil.clone(_nil))
+    _test.assert(_fn == _eliUtil.clone(_fn))
+end
+
+_test["equals - primitive"] = function ()
+    local function _validate(v1, v2)
+        return _eliUtil.equals(v1, v2) == (v1 == v2)
+    end
+    _test.assert(_validate("aaa", "aaa"))
+    _test.assert(_validate("aaa", "bbb"))
+    _test.assert(_validate(2, 2))
+    _test.assert(_validate(2, 3))
+    _test.assert(_validate(2, 2))
+    _test.assert(_validate(nil, 3))
+    _test.assert(_validate(nil, nil))
+    _test.assert(_validate(true, false))
+    _test.assert(_validate(true, true))
+    _test.assert(_validate(true, true))
+end
+
+_test["clone & equals - shallow"] = function ()
+    local _t = {
+        _n = 5,
+        _s = "stringToClone",
+        _nil = nil,
+        _fn = function () end
+    }
+    local _clone = _eliUtil.clone(_t)
+    _test.assert(_clone ~= _t)
+    _test.assert(_eliUtil.equals(_t, _clone, 1))
+end
+
+_test["clone & equals - deep"] = function ()
+    local _debug = _eliUtil.global_log_factory("test/util", "debug")
+    local _t = {
+        _n = 5,
+        _s = "stringToClone",
+        _nil = nil,
+        _fn = function () end,
+        _t = {
+            _n = 5,
+            _s = "stringToClone",
+            _nil = nil,
+            _fn = function () end
+        }
+    }
+    local _clone = _eliUtil.clone(_t, true)
+    _test.assert(_clone ~= _t)
+    _test.assert(not _eliUtil.equals(_t, _clone, 1))
+    _test.assert(_eliUtil.equals(_t, _clone, true))
+end
+
+if not TEST then
     _test.summary()
 end

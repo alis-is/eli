@@ -50,9 +50,10 @@ local function eli_init()
       end
       APP_ROOT = path.dir(APP_ROOT_SCRIPT)
    end
-   ELI_LIB_VERSION = "0.8.1"
+   ELI_LIB_VERSION = "0.10.0"
 end
 
 eli_init()
 -- cleanup init
 eli_init = nil
+elify = require("eli.elify").elify
