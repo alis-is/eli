@@ -1,9 +1,0 @@
-#include "lua.h"
-
-typedef enum NATIVE_PROC_STDSTREAM_KIND {
-    NATIVE_PROC_STDSTREAM_IGNORE_KIND,
-    NATIVE_PROC_STDSTREAM_TMP_KIND,
-    NATIVE_PROC_STDSTREAM_FILE_KIND
-} NATIVE_PROC_STDSTREAM_KIND;
-
-int luaopen_eli_proc_native(lua_State *L);
