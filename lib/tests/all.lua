@@ -12,5 +12,12 @@ require"elios"
 
 require"extensions.string"
 
+--[[
+    NOTE:
+    elify tests has to be run at last
+    (elify modifies global env while other tests should be run in standard environment)
+]]
+require"elify"
+
 local _ntests, _nfailed = _test.result()
 _test.summary()
