@@ -16,7 +16,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lua/src/
                 ${CMAKE_CURRENT_SOURCE_DIR}/modules/apk-tools/libfetch/
                 )
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/native/proc/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/mbedtls/ EXCLUDE_FROM_ALL)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lua_is_tty/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lua_mbed_hash/)
@@ -108,7 +107,7 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (eli  lua/src/onelua.c)
-target_link_libraries (eli lis_tty lfetch fetch mbed_compat lzip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra mbedx509 mbedtls mbedcrypto lhash zip zlib eli_proc_native "-static") 
+target_link_libraries (eli lis_tty lfetch fetch mbed_compat lzip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
 add_dependencies(eli zip)
 set_target_properties(eli PROPERTIES OUTPUT_NAME "eli") 
 
@@ -120,7 +119,7 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (elic  lua/src/onelua.c)
-target_link_libraries (elic lis_tty lfetch fetch mbed_compat lzip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra mbedx509 mbedtls mbedcrypto lhash zip zlib eli_proc_native "-static")
+target_link_libraries (elic lis_tty lfetch fetch mbed_compat lzip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra mbedx509 mbedtls mbedcrypto lhash zip zlib "-static")
 add_dependencies(elic zip)
 set_target_properties(elic PROPERTIES OUTPUT_NAME "elic") 
 
