@@ -34,13 +34,12 @@ _test["exec (stdout - path)"] = function ()
 end
 
 _test["exec (stderr)"] = function ()
-    local _result = _eliProc.exec("printf 'error 173' >&2", { stderr = "pipe" })
-
+    local _result = _eliProc.exec("sh -c \"printf 'error 173' >&2\"", { stderr = "pipe" })
     _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and _result.stderrStream:read("a") == "173")
 end
 
 _test["exec (stderr - path)"] = function ()
-    local _result = _eliProc.exec("printf 'error 173' >&2", { stderr = "tmp/stderr.tmp" })
+    local _result = _eliProc.exec("sh -c \"printf 'error 173' >&2\"", { stderr = "tmp/stderr.tmp" })
     _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and  _result.stderrStream:read("a") == "173")
 end
 

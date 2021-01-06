@@ -17,8 +17,13 @@ local function _set_settings(param, value)
 end
 
 local function _get_stdstream_cmd_part(stdname, file, options)
-   if file == nil or file == "pipe" then
+   local _tmpMode = false
+   if file == nil then
+      return "", nil
+   end
+   if file == "pipe" then
       file = os.tmpname()
+      _tmpMode = true
    end
    if type(file) ~= "string" then
       error("Invalid " .. stdname .. " filename (got: " .. tostring(file) .. ", expects: string)!")
@@ -26,29 +31,57 @@ local function _get_stdstream_cmd_part(stdname, file, options)
    if file == "ignore" then return "", nil end
    local _template = options[stdname.. "RedirectTemplate"] or settings[stdname.. "RedirectTemplate"]
    if type(_template) == "function" then
-      return _template(file), file
+      return _template(file), file, _tmpMode
    elseif type(_template) == "string" then
-      return _template:gsub("<file>", file), file
+      return _template:gsub("<file>", file), file, _tmpMode
    else
       return "", nil
    end
 end
 
+local ExecTmpFile = {}
+ExecTmpFile.__index = ExecTmpFile
+
+function ExecTmpFile:new(path)
+   local _tmpFile = {}
+   _tmpFile.path = path
+   _tmpFile.__file = io.open(path)
+   _tmpFile.__type = "ELI_EXEC_TMP_FILE"
+   _tmpFile.__tostring = function() return "ELI_EXEC_TMP_FILE" end
+
+   setmetatable(_tmpFile, self)
+   self.__index = self
+   return _tmpFile
+end
+
+function ExecTmpFile:read(mode)
+   return self.__file:read(mode)
+end
+
+function ExecTmpFile:close(mode)
+   return self.__file:close(mode)
+end
+
+function ExecTmpFile:__gc()
+   self.__file:close()
+   os.remove(self.path)
+end
+
 local function _exec(cmd, options)
    if type(options) ~= "table" then options = {} end
 
-   local _stdoutPart, _stdout = _get_stdstream_cmd_part("stdout", options.stdout, options)
-   local _stderrPart, _stderr = _get_stdstream_cmd_part("stderr", options.stderr, options)
+   local _stdoutPart, _stdout, _tmpStdout = _get_stdstream_cmd_part("stdout", options.stdout, options)
+   local _stderrPart, _stderr, _tmpStderr = _get_stdstream_cmd_part("stderr", options.stderr, options)
    local _stdinPart = _get_stdstream_cmd_part("stdin", options.stdin, options)
 
-   local _cmd = _sx.join_strings(" ", { _stdinPart, cmd, _stdoutPart, _stderrPart})
+   local _cmd = _sx.join_strings(" ", _stdinPart, cmd, _stdoutPart, _stderrPart)
    local _, _exitType, _code = os.execute(_cmd)
 
    return {
       exitcode = _code,
       exittype = _exitType,
-      stdoutStream = _stdout and io.open(_stdout),
-      stderrStream = _stderr and io.open(_stderr)
+      stdoutStream = _stdout and (_tmpStdout and ExecTmpFile:new(_stdout) or io.open(_stdout)),
+      stderrStream = _stderr and (_tmpStderr and ExecTmpFile:new(_stderr) or io.open(_stderr))
    }
 end
 
