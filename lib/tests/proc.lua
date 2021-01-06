@@ -19,28 +19,28 @@ _test["eli.proc available"] = function()
 end
 
 _test["exec"] = function ()
-    local _result = _eliProc.exec("echo 135")
+    local _result = _eliProc.exec("printf 135")
     _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and _result.stderrStream == nil)
 end
 
 _test["exec (stdout)"] = function ()
-    local _result = _eliProc.exec("echo 135", { stdout = "pipe" })
+    local _result = _eliProc.exec("printf 135", { stdout = "pipe" })
     _test.assert(_result.exitcode == 0 and _result.stdoutStream:read("a") == "135"  and _result.stderrStream == nil)
 end
 
 _test["exec (stdout - path)"] = function ()
-    local _result = _eliProc.exec("echo 135", { stdout = "tmp/stdout.tmp" })
+    local _result = _eliProc.exec("printf 135", { stdout = "tmp/stdout.tmp" })
     _test.assert(_result.exitcode == 0 and _result.stdoutStream:read("a") == "135" and _result.stderrStream == nil)
 end
 
 _test["exec (stderr)"] = function ()
     local _result = _eliProc.exec("sh -c \"printf 'error 173' >&2\"", { stderr = "pipe" })
-    _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and _result.stderrStream:read("a") == "173")
+    _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and _result.stderrStream:read("a") == "error 173")
 end
 
 _test["exec (stderr - path)"] = function ()
     local _result = _eliProc.exec("sh -c \"printf 'error 173' >&2\"", { stderr = "tmp/stderr.tmp" })
-    _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and  _result.stderrStream:read("a") == "173")
+    _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and  _result.stderrStream:read("a") == "error 173")
 end
 
 _test["exec (stdin)"] = function ()
