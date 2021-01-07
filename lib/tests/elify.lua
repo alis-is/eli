@@ -73,6 +73,15 @@ _test["get_overriden_values"] = function()
     _test.assert(_overriden.type == _origType)
 end
 
+_test["extensions.string"] = function()
+    local _esx = require("eli.extensions.string")
+    for k, v in pairs(_esx) do
+        if k ~= "globalize" then
+            _test.assert(string[k] == v)
+        end
+    end
+end
+
 
 if not TEST then
     _test.summary()
