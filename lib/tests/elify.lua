@@ -76,7 +76,9 @@ end
 _test["extensions.string"] = function()
     local _esx = require("eli.extensions.string")
     for k, v in pairs(_esx) do
-        _test.assert(string[k] == v)
+        if k ~= "globalize" then
+            _test.assert(string[k] == v)
+        end
     end
 end
 
