@@ -33,6 +33,18 @@ local function _elify()
         return _t
     end
 
+    -- extensions
+    for k, v in pairs(package.preload) do
+        if not k:match("eli%.extensions%..*") then goto continue end
+        local _efk = k:match("eli%.extensions%.(.*)")
+        if not _efk then goto continue end
+        local _extension = require(k)
+        if type(_extension.globalize) == "function" then
+            _extension.globalize()
+        end
+        ::continue::
+    end
+
     _elified = true
 end
 
