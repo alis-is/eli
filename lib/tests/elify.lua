@@ -67,6 +67,15 @@ _test["os"] = function()
     end
 end
 
+_test["type"] = function()
+    _test.assert(type("string") == "string")
+    _test.assert(type(true) == "boolean")
+    _test.assert(type(nil) == "nil")
+    _test.assert(type(0) == "number")
+    _test.assert(type({}) == "table")
+    _test.assert(type({ __type = "test" }) == "test")
+end
+
 _test["get_overriden_values"] = function()
     local _overriden = require"eli.elify".get_overriden_values()
     _test.assert(_overriden.os == require"os")

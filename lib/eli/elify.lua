@@ -23,11 +23,11 @@ local function _elify()
     type = function(v)
         local _t = _overridenValues.type(v)
         if _t == "table" then
-            local _ttype = type(_t.__type)
-            if type(_ttype) == "string" then
-                return _t.__type
-            elseif type(_ttype) == "function" then
-                return _t.__type()
+            local _ttype = type(v.__type)
+            if _ttype == "string" then
+                return v.__type
+            elseif _ttype == "function" then
+                return v.__type()
             end
         end
         return _t
