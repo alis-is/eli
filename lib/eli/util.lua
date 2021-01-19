@@ -243,6 +243,38 @@ local function _equals(v, v2, deep)
   end
 end
 
+local function _base_get(obj, path)
+   if type(obj) ~= "table" then
+      return nil
+   end
+   if type(path) == "string" then
+      return obj[path]
+   elseif _is_array(path) then
+      return _base_get(obj[table.remove(path)], path)
+   else
+      return nil
+   end
+end
+
+local function _get(obj, path, default)
+   local _result = _base_get(obj, path)
+   if _result == nil then
+      return default
+   end
+end
+
+local function _set(obj, path, value)
+   if type(obj) ~= "table" then
+      return obj
+   end
+   if type(path) == "string" then
+      obj[path] = value
+   elseif _is_array(path) then
+      _set(obj[table.remove(path)], path, value)
+   end
+   return obj
+end
+
 return {
    keys = keys,
    values = values,
@@ -257,5 +289,7 @@ return {
    remove_preloaded_lib = _remove_preloaded_lib,
    random_string = _random_string,
    clone = _clone,
-   equals = _equals
+   equals = _equals,
+   get = _get,
+   set = _set
 }

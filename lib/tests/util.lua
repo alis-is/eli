@@ -210,6 +210,49 @@ _test["clone & equals - deep"] = function ()
     _test.assert(_eliUtil.equals(_t, _clone, true))
 end
 
+_test["get"] = function ()
+    local _t = {
+        t2 = {
+            v1 = "aaa"
+        },
+        v2 = "bbb"
+    }
+    _test.assert(type(_eliUtil.get(_t, "t2")) == "table")
+    _test.assert(_eliUtil.get(_t, "v2") == "bbb")
+    _test.assert(_eliUtil.get(_t, "v3") == nil)
+    _test.assert(_eliUtil.get(_t, "v3", "ccc") == "ccc")
+
+    _test.assert(_eliUtil.get(_t, { "t2", "v1" }) == "aaa")
+    _test.assert(_eliUtil.get(_t, { "t2", "v2" }) == nil)
+    _test.assert(_eliUtil.get("invalid", { "t2", "v2" }) == nil)
+
+    local _t2 = { "aaa", "bbb", "ccc" }
+    _test.assert(_eliUtil.get(_t2, { "t2", "v2" }) == nil)
+    _test.assert(_eliUtil.get(_t2, { "1" }) == "aaa")
+    _test.assert(_eliUtil.get(_t2, { "3" }) == "ccc")
+end
+
+_test["set"] = function ()
+    local _t = {
+        t2 = {
+            v1 = "aaa"
+        },
+        v2 = "bbb"
+    }
+    _test.set(_t, "t3", {})
+    _test.assert(type(_eliUtil.get(_t, "t3")) == "table")
+    _test.assert(_eliUtil.get(_t, "v3") == nil)
+    _test.set(_t, "v3", "vvv")
+    _test.assert(_eliUtil.get(_t, "v3") == "vvv")
+
+    _test.set(_t, { "t2", "v1" }, "zzz")
+    _test.assert(_eliUtil.get(_t, { "t2", "v1" }) == "zzz")
+
+    local _t2 = { "aaa", "bbb", "ccc" }
+    _test.set(_t2, "2", "zzz")
+    _test.assert(_eliUtil.get(_t2, { "2" }) == "zzz")
+end
+
 if not TEST then
     _test.summary()
 end
