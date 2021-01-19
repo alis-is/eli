@@ -239,17 +239,17 @@ _test["set"] = function ()
         },
         v2 = "bbb"
     }
-    _test.set(_t, "t3", {})
+    _eliUtil.set(_t, "t3", {})
     _test.assert(type(_eliUtil.get(_t, "t3")) == "table")
     _test.assert(_eliUtil.get(_t, "v3") == nil)
-    _test.set(_t, "v3", "vvv")
+    _eliUtil.set(_t, "v3", "vvv")
     _test.assert(_eliUtil.get(_t, "v3") == "vvv")
 
-    _test.set(_t, { "t2", "v1" }, "zzz")
+    _eliUtil.set(_t, { "t2", "v1" }, "zzz")
     _test.assert(_eliUtil.get(_t, { "t2", "v1" }) == "zzz")
 
     local _t2 = { "aaa", "bbb", "ccc" }
-    _test.set(_t2, "2", "zzz")
+    _eliUtil.set(_t2, "2", "zzz")
     _test.assert(_eliUtil.get(_t2, { "2" }) == "zzz")
 end
 
