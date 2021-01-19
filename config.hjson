@@ -28,10 +28,6 @@
       },
       {
          auto: true
-         path: lua-modules/argparse/src
-      },
-      {
-         auto: true
          path: lib
          ignore: [ "init.lua", ".*test.*" ]
       } 
@@ -175,13 +171,6 @@
          repository: cryi/hjson-lua
          version: 0.1.2
          destination: lua-modules/hjson
-         omitRoot: true
-      },
-      {
-         id: argparse
-         repository: mpeterv/argparse
-         version: 0.6.0
-         destination: lua-modules/argparse 
          omitRoot: true
       },
       { 
