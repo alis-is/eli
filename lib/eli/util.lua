@@ -142,25 +142,21 @@ end
 
 local function _global_log_factory(module, ...)
    local _result = {}
+   if (type(GLOBAL_LOGGER) ~= "table" and type(GLOBAL_LOGGER) ~= "ELI_LOGGER") or GLOBAL_LOGGER.__type ~= "ELI_LOGGER" then
+      GLOBAL_LOGGER = (require"eli.Logger"):new()
+   end
+
    for _, lvl in ipairs({...}) do
-      if type(GLOBAL_LOGGER) ~= "table" or GLOBAL_LOGGER.__type ~= "ELI_LOGGER" then
-         table.insert(
-            _result,
-            function()
+      table.insert(
+         _result,
+         function(msg)
+            if type(msg) ~= "table" then
+               msg = {msg = msg}
             end
-         )
-      else
-         table.insert(
-            _result,
-            function(msg)
-               if type(msg) ~= "table" then
-                  msg = {msg = msg}
-               end
-               msg.module = module
-               return GLOBAL_LOGGER:log(msg, lvl)
-            end
-         )
-      end
+            msg.module = module
+            return GLOBAL_LOGGER:log(msg, lvl)
+         end
+      )
    end
    return table.unpack(_result)
 end
