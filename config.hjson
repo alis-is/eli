@@ -95,7 +95,7 @@
       {
          id: eli_proc_extra
          repository: cryon-io/eli-proc-extra
-         version: 0.2.1
+         version: 0.3.0
          destination: modules/eli-proc-extra
          omitRoot: true
       },
