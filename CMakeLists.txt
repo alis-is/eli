@@ -1,8 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
 # SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -fPIC")
-SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -s -fPIC  -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto -gfull")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -s -fPIC  -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto -g3 -Wl,--as-needed -Wl,--gc-sections")
 SET(BUILD_SHARED_LIBS OFF)
-SET(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -s -dead_strip")
 SET(CMAKE_EXE_LINKER_FLAGS "-static -s -dead_strip")
 
 project (lua)

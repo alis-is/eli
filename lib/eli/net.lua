@@ -25,15 +25,15 @@ local function _download(url, write_function, options)
 
    local _ok, _error
    _ok, _error = _easy:setopt(curl.OPT_FOLLOWLOCATION, followRedirects)
-   assert(not _ok, _error)
+   assert(_ok, _error)
    _ok, _error = _easy:setopt(curl.OPT_SSL_VERIFYPEER, verifyPeer)
-   assert(not _ok, _error)
-   _ok, _error = _easy:setopt(curl.CURLOPT_TIMEOUT , options.timeout)
-   assert(not _ok, _error)
+   assert(_ok, _error)
+   _ok, _error = _easy:setopt(curl.OPT_TIMEOUT , options.timeout or 0)
+   assert(_ok, _error)
    _ok, _error = _easy:perform()
-   assert(not _ok, _error)
+   assert(_ok, _error)
    local code, _error = _easy:getinfo(curl.INFO_RESPONSE_CODE)
-   assert(not code, _error)
+   assert(code, _error)
    _easy:close()
    if code ~= 200 and not options.ignoreHttpErrors then
       error("Request failed with code " .. tostring(code) .. "!")
@@ -89,7 +89,7 @@ local function download_string(url, options)
 
       local _ok, _code = pcall(_download, url, _write, options)
       if _ok then
-         return _code
+         return _result, _code
       elseif (_tries >= _retryLimit) then
          error(_code)
       end
