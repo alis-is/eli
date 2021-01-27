@@ -108,9 +108,29 @@ ExternalProject_Add(
                     --with-mbedtls=${CMAKE_BINARY_DIR}/modules/mbedtls
                     --without-libpsl
                     --without-libidn2
+                    --disable-ares
+                    --disable-cookies
+                    --disable-manual
+                    --disable-unix-sockets
+                    --disable-versioned-symbols
+                    --enable-hidden-symbols
+                    --without-libdin
+                    --without-librtmp
                     --disable-ldap
                     --disable-tftp
                     --disable-dict
+#                    --disable-file
+#                    --disable-ftp
+                    --disable-ldaps
+                    --disable-thread
+                    --disable-dict
+                    --disable-sspi
+                    --disable-socketpair
+                    --disable-doh
+                    --disable-netrc
+                    --disable-dnsshuffle
+                    --disable-progress-meter
+                    --without-quiche                                                                                                                                                            --without-libssh2                                                                                                                                                           --without-nss                                                                                                                                                               --without-strerror
                     --disable-pop3
                     --disable-smtp
                     --disable-telnet
@@ -124,6 +144,7 @@ ExternalProject_Add(
                     --with-zlib=${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib
                     --host=${CURL_HOST}
                     --disable-smb
+                    --disable-mqtt
                     --disable-ntlm-wb
                     --disable-shared
                     --without-ca-bundle
