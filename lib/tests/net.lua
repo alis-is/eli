@@ -38,9 +38,7 @@ _test["download_file"] = function ()
 end
 
 _test["download_timeout"] = function ()
-    _eliNet.safe_set_tls_timeout(1)
-    local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com/cryon-io/eli/master/LICENSE")
-    _eliNet.safe_set_tls_timeout(0)
+    local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com:81/cryon-io/eli/master/LICENSE", {timeout = 1})
     _test.assert(not _ok, "should fail")
 end
 
