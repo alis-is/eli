@@ -1,7 +1,9 @@
 cmake_minimum_required (VERSION 2.6)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -fPIC")
+# SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -fPIC")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -s -fPIC  -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto -gfull")
 SET(BUILD_SHARED_LIBS OFF)
-SET(CMAKE_EXE_LINKER_FLAGS "-static")
+SET(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -s -dead_strip")
+SET(CMAKE_EXE_LINKER_FLAGS "-static -s -dead_strip")
 
 project (lua)
 
@@ -102,7 +104,8 @@ set(CURL_LIB_LDFLAGS "-L${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library")
 ExternalProject_Add(
   curl_lib
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/
-  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/configure "CFLAGS=-Os -s" CPPFLAGS=${CURL_LIB_CPPFLAGS} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} LD=${CMAKE_LINKER} AR=${CMAKE_AR} RANLIB=${CMAKE_RANLIB} LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/modules/zlib LDFLAGS=${CURL_LIB_LDFLAGS}
+#  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/configure "CFLAGS=-Os -s" CPPFLAGS=${CURL_LIB_CPPFLAGS} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} LD=${CMAKE_LINKER} AR=${CMAKE_AR} RANLIB=${CMAKE_RANLIB} LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/modules/zlib LDFLAGS=${CURL_LIB_LDFLAGS}
+  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/configure "CFLAGS=-Os -s -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto" CPPFLAGS=${CURL_LIB_CPPFLAGS} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} LD=${CMAKE_LINKER} AR=${CMAKE_AR} RANLIB=${CMAKE_RANLIB} LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/modules/zlib LDFLAGS=${CURL_LIB_LDFLAGS}
                     --prefix=${CMAKE_BINARY_DIR}/modules/curl/
                     --without-ssl
                     --with-mbedtls=${CMAKE_BINARY_DIR}/modules/mbedtls
