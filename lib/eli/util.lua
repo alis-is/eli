@@ -283,6 +283,17 @@ local function _set(obj, path, value)
    return obj
 end
 
+local function _map(arr, fn)
+   if not _is_array(arr) or type(fn) ~= "function" then
+      return arr
+   end
+   local _result = {}
+   for _,v in ipairs(arr) do
+      table.insert(arr, fn(v))
+   end
+   return _result
+end
+
 return {
    keys = keys,
    values = values,
@@ -299,5 +310,6 @@ return {
    clone = _clone,
    equals = _equals,
    get = _get,
-   set = _set
+   set = _set,
+   map = _map
 }
