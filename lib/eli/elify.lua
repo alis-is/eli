@@ -22,7 +22,7 @@ local function _elify()
     _overridenValues.type = type
     type = function(v)
         local _t = _overridenValues.type(v)
-        if _t == "table" then
+        if _t == "table" or _t == "userdata" then
             local _ttype = type(v.__type)
             if _ttype == "string" then
                 return v.__type
