@@ -4,7 +4,7 @@ local util = require "eli.util"
 local generate_safe_functions = util.generate_safe_functions
 local merge_tables = util.merge_tables
 local _hjson = require"hjson"
-local _exString = require"eli.extension.string"
+local _exString = require"eli.extensions.string"
 
 if not _curlLoaded then
    return nil
@@ -100,30 +100,65 @@ local function download_string(url, options)
 end
 
 
-local function _request(method, url, data, contentType)
+local function _request(method, url, options, data)
    assert(type(url) == "string", "URL has to be a string!")
    assert(type(method) == "string", "METHOD has to be a string!")
-   if url[#url] == '?' then
-      url = url .. this._opts.trailing;
-   else
-      url = url.replace('?', this._opts.trailing + '?');
+   local _result = ""
+   local _write = function(data)
+      _result = _result .. data
+   end
+   if type(options.write_function) == "function" then
+      _write = options.write_function
    end
 
-   -- // TODO
-   local _easy = curl.easy {
+   local _headers = util.merge_tables(options.headers or {}, {
+      ['Content-Type'] = options.contentType
+   })
+
+   print("url:", url)
+
+   local _easy = curl.easy{
       url = url,
-      writefunction = write_function
+      httpheader = _headers,
+      writefunction = _write,
+      [curl.OPT_CUSTOMREQUEST] = method,
    }
 
-   local _contentType = contentType or self.options.contentType
-   local _mime = self.options[_contentType]
-   local _encode = util.get(_mime, "encode")
+   local _mime = util.get(_headers, 'Content-Type')
+   local _encode = util.get(options, { _mime, "encode" })
    if type(_encode) == "function" then
       data = _encode(data)
    end
 
+   -- // TODO: fix headers
+   local _headers2 = {}
+   for k,v in pairs(_headers) do
+      local _sep = k[#k] == ":" and "" or ":"
+      table.insert(_headers2, k .. ":" .. v)
+   end
 
-   -- // TODO set request header
+   _easy:setopt{ httpheader = _headers2 }
+
+   if getmetatable(data) == getmetatable(curl.form()) then
+      _easy:setopt_httppost(data)
+   elseif getmetatable(data) == getmetatable(_easy:mime()) then
+      _easy:setopt{ mimepost = data }
+   elseif getmetatable(data) == getmetatable(io.stdout) then
+      _easy:setopt{ upload = true }
+      _easy:setopt_readfunction(data.read, data)
+   else
+      _easy:setopt{ postfields = data }
+   end
+
+   local _ok, err = _easy:perform()
+   if _ok then
+      local code, url, content =  _easy:getinfo_effective_url(),
+      _easy:getinfo_response_code(), _result
+      print(code, url, content)
+   else
+      print(err)
+   end
+   _easy:close()
 end
 
 local RestClient = {}
@@ -163,39 +198,37 @@ function RestClient:new(hostOrId, parentOrOptions, options)
       options = {}
    end
 
-   if type(parentOrOptions) == "table" then
-      if tostring(parentOrOptions) == "ELI_REST_CLIENT" then
-         _restClient.__is_child = true
-         _restClient.__parent = parentOrOptions
-         _restClient.__id = hostOrId
-         _restClient.options = util.merge_tables(options, util.clone(parentOrOptions.options))
-      else
-         options = parentOrOptions
-         _restClient.host = hostOrId
-         _restClient.options = util.merge_tables(options, {
-            followRedirects = true,
-            verifyPeer = true,
-            trailing = '',
-            shortcut = true,
-            shortcutRules = {},
-            contentType = 'application/json',
-            ['application/x-www-form-urlencoded'] = { encode = _encodeURIComponent },
-            ['application/json'] = {encode = _hjson.stringify_to_json, decode = _hjson.parse}
-         })
-      end
+   if type(parentOrOptions) == "table" and tostring(parentOrOptions) == "ELI_REST_CLIENT" then
+      _restClient.__is_child = true
+      _restClient.__parent = parentOrOptions
+      _restClient.__id = hostOrId
+      _restClient.options = util.merge_tables(options, util.clone(parentOrOptions.options))
+   else
+      options = parentOrOptions
+      _restClient.host = hostOrId
+      _restClient.options = util.merge_tables(options, {
+         followRedirects = true,
+         verifyPeer = true,
+         trailing = '',
+         shortcut = true,
+         shortcutRules = {},
+         contentType = 'application/json',
+         ['application/x-www-form-urlencoded'] = { encode = _encodeURIComponent },
+         ['application/json'] = {encode = _hjson.stringify_to_json, decode = _hjson.parse}
+      })
    end
 
    _restClient.__type = "ELI_REST_CLIENT"
    _restClient.__tostring = function() return "ELI_REST_CLIENT" end
-   _restClient.__index = function(t, k)
-      local _result = rawget(t, k)
+   setmetatable(_restClient, self)
+   self.__index = function(t, k)
+      local _result = rawget(self, k)
       if _result == nil then
-         return RestClient:new(k, _restClient)
+         -- // TODO:
+         --return RestClient:new(k, _restClient)
       end
       return _result
    end
-   setmetatable(_restClient, self)
-   self.__index = self
    return _restClient
 end
 
@@ -272,43 +305,56 @@ function RestClient:res(resources, options)
    end
 end
 
-
-function RestClient:get(...)
-   local _url = self:get_url()
-   local _args = { ... }
-   local _query = _exString.join("&", table.unpack(util.map(_args, encodeQueryParams)))
-   if type(_query) == "string" then
-      _url = _url .. '?' .. _query
+local function _get_request_url_n_options(client, pathOrOptions, pathOrOptions, options)
+   local _path = ""
+   if type(pathOrOptions) == "table" then
+      options = pathOrOptions
+   elseif type(pathOrOptions) == "string" then
+      _path = pathOrOptions
+   end 
+   if type(options) ~= "table" then
+      options = {}
    end
-   return _request('GET', _url)
-end
-
-function RestClient:post(data, contentType)
-   if type(contentType) ~= "string" then
-      contentType = self.options.contentType
+   local _url = #_path > 0 and _exString.join("/", client:get_url(), _path) or client:get_url()
+   if util.is_array(options.params) and #options.params > 1 then
+      local _query = _exString.join("&", table.unpack(util.map(options.params, encodeQueryParams)))
+      if type(_query) == "string" then
+         _url = _url .. '?' .. _query
+      end
    end
-   return _request('POST', self:get_url(), data, contentType)
+   return _url, util.merge_tables(options, client.options)
 end
 
-function RestClient:put(data, contentType)
-   if type(contentType) ~= "string" then 
-      contentType = self.options.contentType
-   end
-   return _request('PUT', self:get_url(), data, contentType)
+function RestClient:get(pathOrOptions, options)
+   local _url, options = _get_request_url_n_options(self, pathOrOptions, options)
+   return _request('GET', _url, options)
 end
 
-function RestClient:patch(data, contentType)
-   if type(contentType) ~= "string" then 
-      contentType = self.options.contentType
-   end
-   return _request('PATCH', self:get_url(), data, contentType)
+function RestClient:post(data, pathOrOptions, options)
+   local _url, options = _get_request_url_n_options(self, pathOrOptions, options)
+   return _request('POST', _url, options, data)
 end
 
-function RestClient:delete()
-   return _request('DELETE', self:get_url())
+function RestClient:put(data, pathOrOptions, options)
+   local _url, options = _get_request_url_n_options(self, pathOrOptions, options)
+   return _request('PUT', _url, options, data)
 end
+
+function RestClient:patch(data, pathOrOptions, options)
+   local _url, options = _get_request_url_n_options(self, pathOrOptions, options)
+   return _request('PATCH', _url, options, data)
+end
+
+function RestClient:delete(pathOrOptions, options)
+   local _url, options = _get_request_url_n_options(self, pathOrOptions, options)
+   return _request('DELETE', _url, options)
+end
+
+print"jere"
+print(RestClient)
 
 return generate_safe_functions({
    download_file = download_file,
-   download_string = download_string
+   download_string = download_string,
+   RestClient = RestClient
 })

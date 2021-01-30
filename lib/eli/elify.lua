@@ -2,6 +2,17 @@
 local _elified = false
 local _overridenValues = {}
 
+local _metaTypeMap = {
+    ["FILE*"] = "FILE"
+}
+
+local function _inject_meta_types()
+    for k,v in pairs(_metaTypeMap) do
+        local _mt = getmetatable(k)
+        _mt.__type = "FILE"
+    end
+end
+
 local function _elify()
     if (_elified) then return end
     local _special = { os = true }
