@@ -3,11 +3,11 @@ local _elified = false
 local _overridenValues = {}
 
 local _metaTypeMap = {
-    ["FILE*"] = "FILE"
+    [io.stderr] = "FILE"
 }
 
 local function _inject_meta_types()
-    for k,v in pairs(_metaTypeMap) do
+    for k, _ in pairs(_metaTypeMap) do
         local _mt = getmetatable(k)
         _mt.__type = "FILE"
     end
@@ -34,7 +34,7 @@ local function _elify()
     type = function(v)
         local _t = _overridenValues.type(v)
         if _t == "table" or _t == "userdata" then
-            local _ttype = type(v.__type)
+            local _ttype = type(getmetatable(v).__type)
             if _ttype == "string" then
                 return v.__type
             elseif _ttype == "function" then

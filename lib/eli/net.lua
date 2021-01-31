@@ -99,6 +99,15 @@ local function download_string(url, options)
    end
 end
 
+local function _encode_headers(headers)
+   local _result = {}
+   if type(headers) ~= "table" then return _result end
+   if util.is_array(headers) then return headers end
+   for k, v in pairs(headers) do
+      local _sep = k[#k] == ":" and "" or ":"
+      table.insert(_result, k .. _sep .. v)
+   end
+end
 
 local function _request(method, url, options, data)
    assert(type(url) == "string", "URL has to be a string!")
@@ -115,29 +124,27 @@ local function _request(method, url, options, data)
       ['Content-Type'] = options.contentType
    })
 
-   print("url:", url)
+   if type(options.curlOptions) ~= "table" then
+      options.curlOptions = {}
+   end
 
-   local _easy = curl.easy{
+   local _easyOpts = {
       url = url,
-      httpheader = _headers,
       writefunction = _write,
       [curl.OPT_CUSTOMREQUEST] = method,
+      httpheader = _encode_headers(_headers)
    }
+   for k, v in pairs(options.curlOptions) do
+      if _easyOpts[k] == nil then _easyOpts[k] = v end
+   end
+
+   local _easy = curl.easy(_easyOpts)
 
    local _mime = util.get(_headers, 'Content-Type')
    local _encode = util.get(options, { _mime, "encode" })
    if type(_encode) == "function" then
       data = _encode(data)
    end
-
-   -- // TODO: fix headers
-   local _headers2 = {}
-   for k,v in pairs(_headers) do
-      local _sep = k[#k] == ":" and "" or ":"
-      table.insert(_headers2, k .. ":" .. v)
-   end
-
-   _easy:setopt{ httpheader = _headers2 }
 
    if getmetatable(data) == getmetatable(curl.form()) then
       _easy:setopt_httppost(data)
@@ -150,15 +157,24 @@ local function _request(method, url, options, data)
       _easy:setopt{ postfields = data }
    end
 
-   local _ok, err = _easy:perform()
+   local _ok, _err = _easy:perform()
    if _ok then
-      local code, url, content =  _easy:getinfo_effective_url(),
-      _easy:getinfo_response_code(), _result
-      print(code, url, content)
+      local _code = _easy:getinfo_response_code()
+      if tonumber(_code) >= 200 and tonumber(_code) <= 299 and not options.ignoreHttpErrors then
+         _easy:close()
+         error("Request failed with code " .. tostring(_code) .. "!")
+      end
+      local _response = {
+         code = _code,
+         data = _result
+      }
+      setmetatable(_response, { __type = "ELI_RESTCLIENT_RESPONSE", __tostring = function () return "ELI_RESTCLIENT_RESPONSE" end })
+      _easy:close()
+      return _result
    else
-      print(err)
+      _easy:close()
+      error(_err)
    end
-   _easy:close()
 end
 
 local RestClient = {}
@@ -198,15 +214,15 @@ function RestClient:new(hostOrId, parentOrOptions, options)
       options = {}
    end
 
-   if type(parentOrOptions) == "table" and tostring(parentOrOptions) == "ELI_REST_CLIENT" then
+   if type(parentOrOptions) == "table" and tostring(parentOrOptions) == "ELI_RESTCLIENT" then
       _restClient.__is_child = true
       _restClient.__parent = parentOrOptions
       _restClient.__id = hostOrId
-      _restClient.options = util.merge_tables(options, util.clone(parentOrOptions.options))
+      _restClient.__options = util.merge_tables(options, util.clone(parentOrOptions.__options))
    else
       options = parentOrOptions
-      _restClient.host = hostOrId
-      _restClient.options = util.merge_tables(options, {
+      _restClient.__host = hostOrId
+      _restClient.__options = util.merge_tables(options, {
          followRedirects = true,
          verifyPeer = true,
          trailing = '',
@@ -218,14 +234,13 @@ function RestClient:new(hostOrId, parentOrOptions, options)
       })
    end
 
-   _restClient.__type = "ELI_REST_CLIENT"
-   _restClient.__tostring = function() return "ELI_REST_CLIENT" end
+   _restClient.__type = "ELI_RESTCLIENT"
+   _restClient.__tostring = function() return "ELI_RESTCLIENT" end
    setmetatable(_restClient, self)
    self.__index = function(t, k)
       local _result = rawget(self, k)
-      if _result == nil then
-         -- // TODO:
-         --return RestClient:new(k, _restClient)
+      if _result == nil and type(k) == "string" and not k:match"^__.*" then
+         return RestClient:new(k, _restClient)
       end
       return _result
    end
@@ -234,7 +249,7 @@ end
 
 function RestClient:get_url()
    if not self.__is_child then
-      return self.host
+      return self.__host
    end
    local _url = self.__parent:get_url()
    if type(self.__id) == "string" then
@@ -246,10 +261,10 @@ end
 
 function RestClient:conf(options)
    if options == nil then
-      return self.options
+      return self.__options
    end
-   self.options = util.merge_tables(options, self.options)
-   return self.options
+   self.__options = util.merge_tables(options, self.__options)
+   return self.__options
 end
 
 function RestClient:res(resources, options)
@@ -258,7 +273,7 @@ function RestClient:res(resources, options)
    end
    local _shortcut = options.shortcut
    if _shortcut == nil then
-      _shortcut = self.options.shortcut
+      _shortcut = self.__options.shortcut
    end
 
    local function makeResource(name)
@@ -296,8 +311,8 @@ function RestClient:res(resources, options)
       local _result = {}
       for k, v in pairs(resources) do
          local _resource = makeResource(k)
-         if resources[k] then
-            _resource.res(resources[k])
+         if v then
+            _resource.res(v)
          end
          _result[k] = _resource
       end
@@ -305,13 +320,13 @@ function RestClient:res(resources, options)
    end
 end
 
-local function _get_request_url_n_options(client, pathOrOptions, pathOrOptions, options)
+local function _get_request_url_n_options(client, pathOrOptions, options)
    local _path = ""
    if type(pathOrOptions) == "table" then
       options = pathOrOptions
    elseif type(pathOrOptions) == "string" then
       _path = pathOrOptions
-   end 
+   end
    if type(options) ~= "table" then
       options = {}
    end
@@ -322,32 +337,32 @@ local function _get_request_url_n_options(client, pathOrOptions, pathOrOptions, 
          _url = _url .. '?' .. _query
       end
    end
-   return _url, util.merge_tables(options, client.options)
+   return _url, util.merge_tables(options, client.__options)
 end
 
 function RestClient:get(pathOrOptions, options)
-   local _url, options = _get_request_url_n_options(self, pathOrOptions, options)
-   return _request('GET', _url, options)
+   local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
+   return _request('GET', _url, _options)
 end
 
 function RestClient:post(data, pathOrOptions, options)
-   local _url, options = _get_request_url_n_options(self, pathOrOptions, options)
-   return _request('POST', _url, options, data)
+   local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
+   return _request('POST', _url, _options, data)
 end
 
 function RestClient:put(data, pathOrOptions, options)
-   local _url, options = _get_request_url_n_options(self, pathOrOptions, options)
-   return _request('PUT', _url, options, data)
+   local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
+   return _request('PUT', _url, _options, data)
 end
 
 function RestClient:patch(data, pathOrOptions, options)
-   local _url, options = _get_request_url_n_options(self, pathOrOptions, options)
-   return _request('PATCH', _url, options, data)
+   local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
+   return _request('PATCH', _url, _options, data)
 end
 
 function RestClient:delete(pathOrOptions, options)
-   local _url, options = _get_request_url_n_options(self, pathOrOptions, options)
-   return _request('DELETE', _url, options)
+   local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
+   return _request('DELETE', _url, _options)
 end
 
 print"jere"
