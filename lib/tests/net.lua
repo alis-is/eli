@@ -6,11 +6,11 @@ if not _ok then
     _test["eli.net available"] = function ()
         _test.assert(false, "eli.net not available")
     end
-    if not TEST then 
+    if not TEST then
         _test.summary()
         os.exit()
-    else 
-        return 
+    else
+        return
     end
 end
 
@@ -40,6 +40,40 @@ end
 _test["download_timeout"] = function ()
     local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com:81/cryon-io/eli/master/LICENSE", {timeout = 1})
     _test.assert(not _ok, "should fail")
+end
+
+_test["RestClient get"] = function ()
+    local RestClient = _eliNet.RestClient
+    local _client = RestClient:new("https://raw.githubusercontent.com/")
+    
+end
+
+_test["RestClient post"] = function ()
+
+end
+
+_test["RestClient put"] = function ()
+
+end
+
+_test["RestClient patch"] = function ()
+
+end
+
+_test["RestClient delete"] = function ()
+
+end
+
+_test["RestClient get"] = function ()
+
+end
+
+_test["RestClient conf"] = function ()
+
+end
+
+_test["RestClient get_url"] = function ()
+
 end
 
 if not TEST then

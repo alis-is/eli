@@ -35,6 +35,12 @@ local function _request(method, url, options, data)
       ['Content-Type'] = options.contentType
    })
 
+   local followRedirects = options.followRedirects or false
+   local verifyPeer = options.verifyPeer
+   if verifyPeer == nil then
+      verifyPeer = true
+   end
+
    if type(options.curlOptions) ~= "table" then
       options.curlOptions = {}
    end
@@ -43,6 +49,9 @@ local function _request(method, url, options, data)
       url = url,
       writefunction = _write,
       [curl.OPT_CUSTOMREQUEST] = method,
+      [curl.OPT_FOLLOWLOCATION] = followRedirects,
+      [curl.OPT_SSL_VERIFYPEER] = verifyPeer,
+      [curl.OPT_TIMEOUT] = options.timeout or 0,
       httpheader = _encode_headers(_headers)
    }
    for k, v in pairs(options.curlOptions) do
@@ -292,11 +301,9 @@ local function _download(url, write_function, options)
    end
 
    local _client = RestClient:new(url, {
-      curlOptions = {
-         [curl.OPT_FOLLOWLOCATION] = followRedirects,
-         [curl.OPT_SSL_VERIFYPEER] = verifyPeer,
-         [curl.OPT_TIMEOUT] = options.timeout or 0,
-      },
+      followRedirects = followRedirects,
+      verifyPeer = verifyPeer,
+      timeout = options.timeout,
       write_function = write_function
    })
 
