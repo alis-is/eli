@@ -365,9 +365,6 @@ function RestClient:delete(pathOrOptions, options)
    return _request('DELETE', _url, _options)
 end
 
-print"jere"
-print(RestClient)
-
 return generate_safe_functions({
    download_file = download_file,
    download_string = download_string,
