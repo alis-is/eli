@@ -73,7 +73,9 @@ _test["type"] = function()
     _test.assert(type(nil) == "nil")
     _test.assert(type(0) == "number")
     _test.assert(type({}) == "table")
-    _test.assert(type({ __type = "test" }) == "test")
+    local _t = { __type = "test" }
+    setmetatable(_t, _t)
+    _test.assert(type(_t) == "test")
 end
 
 _test["get_overriden_values"] = function()
