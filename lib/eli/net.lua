@@ -160,7 +160,7 @@ local function _request(method, url, options, data)
    local _ok, _err = _easy:perform()
    if _ok then
       local _code = _easy:getinfo_response_code()
-      if tonumber(_code) >= 200 and tonumber(_code) <= 299 and not options.ignoreHttpErrors then
+      if (tonumber(_code) < 200 or tonumber(_code) > 299) and not options.ignoreHttpErrors then
          _easy:close()
          error("Request failed with code " .. tostring(_code) .. "!")
       end
