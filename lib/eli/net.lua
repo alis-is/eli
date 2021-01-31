@@ -10,95 +10,6 @@ if not _curlLoaded then
    return nil
 end
 
-local function _download(url, write_function, options)
-   if type(options) ~= "table" then
-      options = {}
-   end
-
-   local followRedirects = options.followRedirects or false
-   local verifyPeer = options.verifyPeer
-   if verifyPeer == nil then
-      verifyPeer = true
-   end
-   local _easy = curl.easy {
-      url = url,
-      writefunction = write_function
-   }
-
-   local _ok, _error
-   _ok, _error = _easy:setopt(curl.OPT_FOLLOWLOCATION, followRedirects)
-   assert(_ok, _error)
-   _ok, _error = _easy:setopt(curl.OPT_SSL_VERIFYPEER, verifyPeer)
-   assert(_ok, _error)
-   _ok, _error = _easy:setopt(curl.OPT_TIMEOUT , options.timeout or 0)
-   assert(_ok, _error)
-   _ok, _error = _easy:perform()
-   assert(_ok, _error)
-   local code, _error = _easy:getinfo(curl.INFO_RESPONSE_CODE)
-   assert(code, _error)
-   _easy:close()
-   if code ~= 200 and not options.ignoreHttpErrors then
-      error("Request failed with code " .. tostring(code) .. "!")
-   end
-   return code
-end
-
-local function _get_retry_limit(options)
-   local _retryLimit = tonumber(os.getenv("ELI_NET_RETRY_LIMIT")) or 0
-   if type(options) == "table" then
-      if type(options.retryLimit) == "number" and options.retryLimit > 0 then
-         _retryLimit = options._retryLimit
-      end
-   end
-   return _retryLimit
-end
-
-local function download_file(url, destination, options)
-   local _tries = 0
-   local _retryLimit = _get_retry_limit(options)
-
-   while _tries <= _retryLimit do
-      local _didOpenFile, _df = pcall(io.open, destination, "w+b")
-      if not _didOpenFile then
-         error(_df)
-      end
-
-      local _write = function(data)
-         _df:write(data)
-      end
-
-      local _ok, _code = pcall(_download, url, _write, options)
-      if _ok then
-         return _code
-      elseif (_tries >= _retryLimit) then
-         error(_code)
-      end
-
-      _tries = _tries + 1
-      _df:close()
-   end
-end
-
-local function download_string(url, options)
-   local _tries = 0
-   local _retryLimit = _get_retry_limit(options)
-
-   while _tries <= _retryLimit do
-      local _result = ""
-      local _write = function(data)
-         _result = _result .. data
-      end
-
-      local _ok, _code = pcall(_download, url, _write, options)
-      if _ok then
-         return _result, _code
-      elseif (_tries >= _retryLimit) then
-         error(_code)
-      end
-      _tries = _tries + 1
-   end
-end
-
 local function _encode_headers(headers)
    local _result = {}
    if type(headers) ~= "table" then return _result end
@@ -344,25 +255,108 @@ function RestClient:get(pathOrOptions, options)
    local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
    return _request('GET', _url, _options)
 end
+function RestClient:safe_get(pathOrOptions, options) pcall(self.get, self, pathOrOptions, options) end
 
 function RestClient:post(data, pathOrOptions, options)
    local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
    return _request('POST', _url, _options, data)
 end
+function RestClient:safe_post(data, pathOrOptions, options) pcall(self.post, self, data, pathOrOptions, options) end
 
 function RestClient:put(data, pathOrOptions, options)
    local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
    return _request('PUT', _url, _options, data)
 end
+function RestClient:safe_put(data, pathOrOptions, options) pcall(self.put, self, data, pathOrOptions, options) end
 
 function RestClient:patch(data, pathOrOptions, options)
    local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
    return _request('PATCH', _url, _options, data)
 end
+function RestClient:safe_patch(data, pathOrOptions, options) pcall(self.patch, self, data, pathOrOptions, options) end
 
 function RestClient:delete(pathOrOptions, options)
    local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
    return _request('DELETE', _url, _options)
+end
+function RestClient:safe_delete(pathOrOptions, options) pcall(self.delete, self, pathOrOptions, options) end
+
+local function _download(url, write_function, options)
+   if type(options) ~= "table" then
+      options = {}
+   end
+   local followRedirects = options.followRedirects or false
+   local verifyPeer = options.verifyPeer
+   if verifyPeer == nil then
+      verifyPeer = true
+   end
+
+   local _client = RestClient:new(url, {
+      curlOptions = {
+         [curl.OPT_FOLLOWLOCATION] = followRedirects,
+         [curl.OPT_SSL_VERIFYPEER] = verifyPeer,
+         [curl.OPT_TIMEOUT] = options.timeout or 0,
+      },
+      write_function = write_function
+   })
+
+   return _client:get()
+end
+
+local function _get_retry_limit(options)
+   local _retryLimit = tonumber(os.getenv("ELI_NET_RETRY_LIMIT")) or 0
+   if type(options) == "table" then
+      if type(options.retryLimit) == "number" and options.retryLimit > 0 then
+         _retryLimit = options._retryLimit
+      end
+   end
+   return _retryLimit
+end
+
+local function download_file(url, destination, options)
+   local _tries = 0
+   local _retryLimit = _get_retry_limit(options)
+
+   while _tries <= _retryLimit do
+      local _didOpenFile, _df = pcall(io.open, destination, "w+b")
+      if not _didOpenFile then
+         error(_df)
+      end
+
+      local _write = function(data)
+         _df:write(data)
+      end
+
+      local _ok, _code = pcall(_download, url, _write, options)
+      if _ok then
+         return _code
+      elseif (_tries >= _retryLimit) then
+         error(_code)
+      end
+
+      _tries = _tries + 1
+      _df:close()
+   end
+end
+
+local function download_string(url, options)
+   local _tries = 0
+   local _retryLimit = _get_retry_limit(options)
+
+   while _tries <= _retryLimit do
+      local _result = ""
+      local _write = function(data)
+         _result = _result .. data
+      end
+
+      local _ok, _code = pcall(_download, url, _write, options)
+      if _ok then
+         return _result, _code
+      elseif (_tries >= _retryLimit) then
+         error(_code)
+      end
+      _tries = _tries + 1
+   end
 end
 
 return generate_safe_functions({
