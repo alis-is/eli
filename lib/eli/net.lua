@@ -170,7 +170,7 @@ local function _request(method, url, options, data)
       }
       setmetatable(_response, { __type = "ELI_RESTCLIENT_RESPONSE", __tostring = function () return "ELI_RESTCLIENT_RESPONSE" end })
       _easy:close()
-      return _result
+      return _response
    else
       _easy:close()
       error(_err)
