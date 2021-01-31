@@ -30,20 +30,6 @@ local function _elify()
     _overridenValues.os = os
     os = util.merge_tables(os, require("eli.os"))
 
-    _overridenValues.type = type
-    type = function(v)
-        local _t = _overridenValues.type(v)
-        if _t == "table" or _t == "userdata" then
-            local _ttype = type(getmetatable(v).__type)
-            if _ttype == "string" then
-                return v.__type
-            elseif _ttype == "function" then
-                return v.__type()
-            end
-        end
-        return _t
-    end
-
     -- extensions
     for k, v in pairs(package.preload) do
         if not k:match("eli%.extensions%..*") then goto continue end
@@ -54,6 +40,21 @@ local function _elify()
             _extension.globalize()
         end
         ::continue::
+    end
+
+    _overridenValues.type = type
+    type = function(v)
+        local _t = _overridenValues.type(v)
+        if _t == "table" or _t == "userdata" then
+            local _meta = getmetatable(v)
+            local _ttype = type(util.get(_meta, "__type"))
+            if _ttype == "string" then
+                return _meta.__type
+            elseif _ttype == "function" then
+                return _meta.__type()
+            end
+        end
+        return _t
     end
 
     _elified = true
