@@ -376,6 +376,7 @@ local function download_file(url, destination, options)
 
       local _ok, _code = pcall(_download, url, _write, options)
       if _ok then
+         _df:close()
          return _code
       elseif (_tries >= _retryLimit) then
          error(_code)
