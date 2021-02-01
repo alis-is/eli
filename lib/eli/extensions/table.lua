@@ -113,7 +113,7 @@ local function _globalize()
     table.map = _map
     table.to_array = _to_array
     table.keys = _keys
-    tabke.values = _values
+    table.values = _values
     table.filter = _filter
     table.is_array = _util.is_array
 end
