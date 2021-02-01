@@ -43,12 +43,13 @@ _test["download_timeout"] = function ()
 end
 
 _test["RestClient get"] = function ()
+    local _expected = "d11ca745153a3d9c54a79840e2dc7abd7bde7ff33fb0723517282abeea23e393"
     local RestClient = _eliNet.RestClient
     local _client = RestClient:new("https://raw.githubusercontent.com/")
-    local _response = _client.get("cryon-io/eli/master/LICENSE")
-    local _result = _sha256sum(_s, true)
+    local _ok, _response = _client:safe_get("cryon-io/eli/master/LICENSE")
+    _test.assert(_ok, "request failed")
+    local _result = _sha256sum(_response.data, true)
     _test.assert(_expected == _result, "hashes do not match")
-
 end
 
 _test["RestClient post"] = function ()
