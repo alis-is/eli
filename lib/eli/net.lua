@@ -379,6 +379,7 @@ local function download_file(url, destination, options)
          _df:close()
          return _code
       elseif (_tries >= _retryLimit) then
+         os.remove(destination)
          error(_code)
       end
 
