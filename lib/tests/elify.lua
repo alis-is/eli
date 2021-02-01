@@ -93,6 +93,14 @@ _test["extensions.string"] = function()
     end
 end
 
+_test["extensions.table"] = function()
+    local _etx = require("eli.extensions.table")
+    for k, v in pairs(_etx) do
+        if k ~= "globalize" then
+            _test.assert(string[k] == v)
+        end
+    end
+end
 
 if not TEST then
     _test.summary()
