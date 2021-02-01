@@ -115,13 +115,13 @@ end
 
 _test["RestClient delete"] = function ()
     _client = RestClient:new("https://httpbin.org/")
-    _ok, _response = _client:safe_get("delete", { params = { test = "aaa", test2 = "bbb" } })
+    _ok, _response = _client:safe_delete("delete", { params = { test = "aaa", test2 = "bbb" } })
     _test.assert(_ok, "request failed")
     local _data = _hjson.parse(_response.data)
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
     _client = RestClient:new("https://httpbin.org/delete")
-    _ok, _response = _client:safe_get({ params = { "test=aaa", "test2=bbb" } })
+    _ok, _response = _client:safe_delete({ params = { "test=aaa", "test2=bbb" } })
     _test.assert(_ok, "request failed")
     _data = _hjson.parse(_response.data)
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
