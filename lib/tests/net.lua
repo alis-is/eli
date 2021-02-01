@@ -19,6 +19,7 @@ _test["eli.net available"] = function ()
     _test.assert(true)
 end
 
+local RestClient = _eliNet.RestClient
 _test["download_string"] = function ()
     local _expected = "d11ca745153a3d9c54a79840e2dc7abd7bde7ff33fb0723517282abeea23e393"
     local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com/cryon-io/eli/master/LICENSE")
@@ -45,7 +46,6 @@ end
 
 _test["RestClient get"] = function ()
     local _expected = "d11ca745153a3d9c54a79840e2dc7abd7bde7ff33fb0723517282abeea23e393"
-    local RestClient = _eliNet.RestClient
     local _client = RestClient:new("https://raw.githubusercontent.com/")
     local _ok, _response = _client:safe_get("cryon-io/eli/master/LICENSE")
     _test.assert(_ok, "request failed")
@@ -66,7 +66,19 @@ _test["RestClient get"] = function ()
 end
 
 _test["RestClient post"] = function ()
+    local _client = RestClient:new("https://httpbin.org/")
+    local _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post", { params = { test = "aaa", test2 = "bbb" } })
+    _test.assert(_ok, "request failed")
+    local _data = _hjson.parse(_response.data)
+    _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
+    _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
+    _client = RestClient:new("https://httpbin.org/post")
+    _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, { params = { "test=aaa", "test2=bbb" } })
+    _test.assert(_ok, "request failed")
+    _data = _hjson.parse(_response.data)
+    _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
+    _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 end
 
 _test["RestClient put"] = function ()

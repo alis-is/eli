@@ -17,6 +17,7 @@ local function _encode_headers(headers)
       local _sep = k:sub(#k, #k) == ":" and "" or ":"
       table.insert(_result, k .. _sep .. v)
    end
+   return _result
 end
 
 local function _request(method, url, options, data)
@@ -149,7 +150,12 @@ function RestClient:new(hostOrId, parentOrOptions, options)
          shortcutRules = {},
          contentType = 'application/json',
          ['application/x-www-form-urlencoded'] = { encode = _encodeURIComponent },
-         ['application/json'] = {encode = _hjson.stringify_to_json, decode = _hjson.parse}
+         ['application/json'] = {
+            encode = function(v)
+               return _hjson.stringify_to_json(v, { invalidObjectsAsType = true })
+            end,
+            decode = _hjson.parse
+         }
       })
    end
 
