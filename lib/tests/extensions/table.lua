@@ -55,9 +55,9 @@ _test["is_array (not array)"] = function ()
     _test.assert(not _exTable.is_array(_source))
 end
 
-_test["filter_table"] = function ()
+_test["filter"] = function ()
     local _source = { a = 'aa', c = 'cc', b = 'bb'}
-    local _result = _exTable.filter_table(_source, function(k,v) return k ~= 'a' end)
+    local _result = _exTable.filter(_source, function(k,v) return k ~= 'a' end)
 
     _test.assert(_result.a == nil, "filtered key found in result")
     _source.a = nil
