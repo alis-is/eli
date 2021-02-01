@@ -43,9 +43,9 @@ local function execute(cmd)
    return exit, signal, output
 end
 
-local function getCACert(dst) 
+local function getCACert(dst)
    local tmp = os.tmpname()
-   downloadfile("https://curl.haxx.se/ca/cacert.pem", tmp, { followRedirects = true })
+   downloadfile("https://curl.se/ca/cacert.pem", tmp, { followRedirects = true })
    local certs = ""
    local ca = readfile(tmp)
    for cert in ca:gmatch("%-%-%-%-%-BEGIN CERTIFICATE%-%-%-%-%-.-%-%-%-%-%-END CERTIFICATE%-%-%-%-%-") do

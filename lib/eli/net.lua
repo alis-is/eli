@@ -79,13 +79,21 @@ local function _request(method, url, options, data)
    local _ok, _err = _easy:perform()
    if _ok then
       local _code = _easy:getinfo_response_code()
+      local _type = _easy:getinfo_content_type()
       if (tonumber(_code) < 200 or tonumber(_code) > 299) and not options.ignoreHttpErrors then
          _easy:close()
          error("Request failed with code " .. tostring(_code) .. "!")
       end
+      local _data = nil
+      local _decode = _exTable.get(options, { _type, "decode" })
+      if type(_decode) == "function" then
+         local _ok, _decoded = pcall(_decode, _result)
+         if _ok then _data = _decoded end
+      end
       local _response = {
          code = _code,
-         data = _result
+         data = _data,
+         raw = _result
       }
       setmetatable(_response, { __type = "ELI_RESTCLIENT_RESPONSE", __tostring = function () return "ELI_RESTCLIENT_RESPONSE" end })
       _easy:close()
@@ -148,7 +156,8 @@ function RestClient:new(hostOrId, parentOrOptions, options)
          shortcut = true,
          shortcutRules = {},
          contentType = 'application/json',
-         ['application/x-www-form-urlencoded'] = { encode = _encodeURIComponent },
+         ['application/x-www-form-urlencoded'] = { encode = _encodeURIComponent },,
+         ['text/plain'] = { encode = tostring }
          ['application/json'] = {
             encode = function(v)
                return _hjson.stringify_to_json(v, { invalidObjectsAsType = true })
