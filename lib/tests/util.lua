@@ -1,48 +1,20 @@
 local _test = TEST or require 'u-test'
 local _ok, _eliUtil = pcall(require, "eli.util")
 
-if not _ok then 
+if not _ok then
     _test["eli.util available"] = function ()
         _test.assert(false, "eli.util not available")
     end
-    if not TEST then 
+    if not TEST then
         _test.summary()
         os.exit()
-    else 
-        return 
+    else
+        return
     end
 end
 
 _test["eli.util available"] = function ()
     _test.assert(true)
-end
-
-_test["keys"] = function ()
-    local _source = { a = 'a', c = 'c', b = 'b'}
-    local _keys = _eliUtil.keys(_source)
-    _test.assert(#_keys == 3)
-    for i, v in ipairs(_keys) do 
-        _test.assert(_source[v])
-    end
-end
-
-_test["values"] = function ()
-    local _source = { a = 'a', c = 'c', b = 'b'}
-    local _values = _eliUtil.values(_source)
-    _test.assert(#_values == 3)
-    for i, v in ipairs(_values) do 
-        _test.assert(_source[v] == v)
-    end
-end
-
-_test["to_array"] = function ()
-    local _source = { a = 'aa', c = 'cc', b = 'bb'}
-    local _arr = _eliUtil.to_array(_source)
-    _test.assert(#_arr == 3)
-
-    for i, v in ipairs(_arr) do 
-        _test.assert(_source[v.key] == v.value)
-    end
 end
 
 _test["is_array (array)"] = function ()
@@ -119,17 +91,6 @@ _test["merge_tables (array)"] = function ()
     _test.assert(_matched == 6)
 end
 
-_test["filter_table"] = function ()
-    local _source = { a = 'aa', c = 'cc', b = 'bb'}
-    local _result = _eliUtil.filter_table(_source, function(k,v) return k ~= 'a' end)
-
-    _test.assert(_result.a == nil, "filtered key found in result")
-    _source.a = nil
-    for k, v in pairs(_result) do 
-        _test.assert(_source[k] == v)
-    end
-end
-
 _test["global_log_factory (GLOBAL_LOGGER == nil)"] = function ()
     local _debug = _eliUtil.global_log_factory("test/util", "debug")
     _test.assert(pcall(_debug, "test"))
@@ -145,6 +106,7 @@ _test["global_log_factory (GLOBAL_LOGGER == 'ELI_LOGGER')"] = function ()
         end,
         __type = "ELI_LOGGER"
     }
+    setmetatable(GLOBAL_LOGGER, GLOBAL_LOGGER)
     local _debug = _eliUtil.global_log_factory("test/util", "debug")
     _test.assert(pcall(_debug, "test"))
     _test.assert(_called)
@@ -208,49 +170,6 @@ _test["clone & equals - deep"] = function ()
     _test.assert(_clone ~= _t)
     _test.assert(not _eliUtil.equals(_t, _clone, 1))
     _test.assert(_eliUtil.equals(_t, _clone, true))
-end
-
-_test["get"] = function ()
-    local _t = {
-        t2 = {
-            v1 = "aaa"
-        },
-        v2 = "bbb"
-    }
-    _test.assert(type(_eliUtil.get(_t, "t2")) == "table")
-    _test.assert(_eliUtil.get(_t, "v2") == "bbb")
-    _test.assert(_eliUtil.get(_t, "v3") == nil)
-    _test.assert(_eliUtil.get(_t, "v3", "ccc") == "ccc")
-
-    _test.assert(_eliUtil.get(_t, { "t2", "v1" }) == "aaa")
-    _test.assert(_eliUtil.get(_t, { "t2", "v2" }) == nil)
-    _test.assert(_eliUtil.get("invalid", { "t2", "v2" }) == nil)
-
-    local _t2 = { "aaa", "bbb", "ccc" }
-    _test.assert(_eliUtil.get(_t2, { "t2", "v2" }) == nil)
-    _test.assert(_eliUtil.get(_t2, { "1" }) == "aaa")
-    _test.assert(_eliUtil.get(_t2, { "3" }) == "ccc")
-end
-
-_test["set"] = function ()
-    local _t = {
-        t2 = {
-            v1 = "aaa"
-        },
-        v2 = "bbb"
-    }
-    _eliUtil.set(_t, "t3", {})
-    _test.assert(type(_eliUtil.get(_t, "t3")) == "table")
-    _test.assert(_eliUtil.get(_t, "v3") == nil)
-    _eliUtil.set(_t, "v3", "vvv")
-    _test.assert(_eliUtil.get(_t, "v3") == "vvv")
-
-    _eliUtil.set(_t, { "t2", "v1" }, "zzz")
-    _test.assert(_eliUtil.get(_t, { "t2", "v1" }) == "zzz")
-
-    local _t2 = { "aaa", "bbb", "ccc" }
-    _eliUtil.set(_t2, "2", "zzz")
-    _test.assert(_eliUtil.get(_t2, { "2" }) == "zzz")
 end
 
 if not TEST then

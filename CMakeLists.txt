@@ -1,11 +1,12 @@
 cmake_minimum_required (VERSION 2.6)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -fPIC")
+# SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -fPIC")
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -s -fPIC  -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto -g3 -Wl,--as-needed -Wl,--gc-sections")
 SET(BUILD_SHARED_LIBS OFF)
-SET(CMAKE_EXE_LINKER_FLAGS "-static")
+SET(CMAKE_EXE_LINKER_FLAGS "-static -s")
 
 project (lua)
 
-add_definitions(-DLIBFETCH_WITH_MBEDTLS)
+set(CURL_HOST "x86_64-linux-musl")
 
 include(ExternalProject)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lua/src/
@@ -13,7 +14,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lua/src/
                 ${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip/lib
                 ${CMAKE_BINARY_DIR}/modules/libzip
                 ${CMAKE_BINARY_DIR}/modules/mbedtls/include
-                ${CMAKE_CURRENT_SOURCE_DIR}/modules/apk-tools/libfetch/
+                ${CMAKE_BINARY_DIR}/modules/curl/include
                 )
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/mbedtls/ EXCLUDE_FROM_ALL)
@@ -26,10 +27,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-pipe-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-proc-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-os-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-env-extra/)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/apk-tools/libfetch/)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lfetch/)
-add_dependencies(fetch mbedtls)
-add_dependencies(lfetch fetch mbedtls)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lcurl/)
 
 ExternalProject_Add(
   zlib_lib
@@ -99,6 +97,74 @@ set(LUA_ZIP_BUILD_SHARED OFF CACHE BOOL "")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lzip/)
 add_dependencies(lzip zip)
 
+set(CURL_LIB_CPPFLAGS "-I${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/include -I${CMAKE_CURRENT_BINARY_DIR}/modules/zlib -I${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib")
+set(CURL_LIB_LDFLAGS "-L${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library")
+
+ExternalProject_Add(
+  curl_lib
+  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/
+#  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/configure "CFLAGS=-Os -s" CPPFLAGS=${CURL_LIB_CPPFLAGS} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} LD=${CMAKE_LINKER} AR=${CMAKE_AR} RANLIB=${CMAKE_RANLIB} LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/modules/zlib LDFLAGS=${CURL_LIB_LDFLAGS}
+  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/configure "CFLAGS=-Os -s -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto" CPPFLAGS=${CURL_LIB_CPPFLAGS} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} LD=${CMAKE_LINKER} AR=${CMAKE_AR} RANLIB=${CMAKE_RANLIB} LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/modules/zlib LDFLAGS=${CURL_LIB_LDFLAGS}
+                    --prefix=${CMAKE_BINARY_DIR}/modules/curl/
+                    --without-ssl
+                    --with-mbedtls=${CMAKE_BINARY_DIR}/modules/mbedtls
+                    --without-libpsl
+                    --without-libidn2
+                    --disable-ares
+                    --disable-cookies
+                    --disable-manual
+                    --disable-unix-sockets
+                    --disable-versioned-symbols
+                    --enable-hidden-symbols
+                    --without-libdin
+                    --without-librtmp
+                    --disable-ldap
+                    --disable-tftp
+                    --disable-dict
+#                    --disable-file
+#                    --disable-ftp
+                    --disable-ldaps
+                    --disable-thread
+                    --disable-dict
+                    --disable-sspi
+                    --disable-socketpair
+                    --disable-doh
+                    --disable-netrc
+                    --disable-dnsshuffle
+                    --disable-progress-meter
+                    --without-quiche                                                                                                                                                            --without-libssh2                                                                                                                                                           --without-nss                                                                                                                                                               --without-strerror
+                    --disable-pop3
+                    --disable-smtp
+                    --disable-telnet
+                    --disable-rtsp
+                    --disable-imap
+                    --disable-gopher
+                    --disable-verbose
+                    --disable-libcurl-option
+                    --without-nghttp2
+                    --without-zlib
+                    --with-zlib=${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib
+                    --host=${CURL_HOST}
+                    --disable-smb
+                    --disable-mqtt
+                    --disable-ntlm-wb
+                    --disable-shared
+                    --without-ca-bundle
+                    --without-ca-path
+#                    --with-ca-bundle=path/to/ca/bundle
+  PREFIX ${CMAKE_BINARY_DIR}/modules/curl/
+  BUILD_COMMAND make
+  BUILD_IN_SOURCE 1
+)
+add_dependencies(curl_lib mbedtls zlib)
+
+SET(CURL_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/curl/include)
+SET(CURL_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/curl/lib)
+
+add_library(curl STATIC IMPORTED)
+add_dependencies(lcurl curl_lib)
+set_target_properties(curl PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/modules/curl/lib/libcurl.a)
+
 if(WIN32)
         add_definitions( -D_CRT_SECURE_NO_WARNINGS )
 endif()
@@ -107,7 +173,7 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (eli  lua/src/onelua.c)
-target_link_libraries (eli lis_tty lfetch fetch mbed_compat lzip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
+target_link_libraries (eli lis_tty lcurl lzip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
 add_dependencies(eli zip)
 set_target_properties(eli PROPERTIES OUTPUT_NAME "eli") 
 
@@ -119,7 +185,7 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (elic  lua/src/onelua.c)
-target_link_libraries (elic lis_tty lfetch fetch mbed_compat lzip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra mbedx509 mbedtls mbedcrypto lhash zip zlib "-static")
+target_link_libraries (elic lis_tty lcurl lzip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
 add_dependencies(elic zip)
 set_target_properties(elic PROPERTIES OUTPUT_NAME "elic") 
 

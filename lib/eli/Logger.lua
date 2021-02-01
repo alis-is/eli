@@ -3,7 +3,8 @@ local encode_to_hjson = hjson.encode
 local encode_to_json = hjson.encode_to_json
 
 local is_tty = require "is_tty".is_stdout_tty()
-local util = require"eli.util"
+local _util = require"eli.util"
+local _exTable = require"eli.extensions.table"
 
 local RESET_COLOR = string.char(27) .. "[0m"
 
@@ -37,13 +38,16 @@ function Logger:new(options)
         options.noTime = false
     end
 
-    logger.__type = "ELI_LOGGER"
-    logger.__tostring = function() return "ELI_LOGGER" end
     logger.options = options
 
     setmetatable(logger, self)
+    self.__type = "ELI_LOGGER"
     self.__index = self
     return logger
+end
+
+function Logger:__tostring()
+    return "ELI_LOGGER"
 end
 
 local function get_log_color(level)
@@ -94,8 +98,8 @@ local function log_txt(data, colorful, color, noTime, includeFields)
 
     if includeFields then
 
-        if not util.is_array(includeFields) then
-            includeFields = util.filter_table(util.keys(data), function(_,v)
+        if not _util.is_array(includeFields) then
+            includeFields = _exTable.filter_table(_exTable.keys(data), function(_,v)
                 return v ~= 'msg' and v ~= 'module' and v ~= 'level'
             end)
         end

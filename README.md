@@ -3,7 +3,7 @@
 Contains libs and function necessary for basic server side scripting.
 
 Embedded libraries: 
-- [eli](https://github.com/cryon-io/eli-lib)
+- [eli](https://github.com/cryon-io/eli/tree/master/lib)
 - [eli.fs.extra](https://github.com/cryon-io/eli-fs-extra)
 - [eli.proc.extra](https://github.com/cryon-io/eli-proc-extra)
 - [eli.env.extra](https://github.com/cryon-io/eli-env-extra)
@@ -13,7 +13,7 @@ Embedded libraries:
 - [eli.extra.utils](https://github.com/cryon-io/eli-extra-utils)
 - [hjson ](https://github.com/cryi/hjson-lua)
 - [lustache](https://github.com/Olivine-Labs/lustache)
-- [lua-fetch](https://github.com/cryi/lua-fetch) + [libfetch mbedtls patch](https://github.com/cryi/libfetch-mbedtls-patch) + [libfetch from apktools](https://github.com/alpinelinux/apk-tools)
+- [lua-cURLv3](https://github.com/Lua-cURL/Lua-cURLv3)
 - [lzip](https://github.com/brimworks/lua-zip) + [libzip](https://github.com/nih-at/libzip) + [zlib](https://github.com/madler/zlib)
 - [mbedtls](https://github.com/ARMmbed/mbedtls)
 
