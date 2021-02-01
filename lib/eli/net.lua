@@ -157,7 +157,7 @@ function RestClient:new(hostOrId, parentOrOptions, options)
          shortcutRules = {},
          contentType = 'application/json',
          ['application/x-www-form-urlencoded'] = { encode = _encodeURIComponent },
-         ['text/plain'] = { encode = tostring }
+         ['text/plain'] = { encode = tostring },
          ['application/json'] = {
             encode = function(v)
                return _hjson.stringify_to_json(v, { invalidObjectsAsType = true })
