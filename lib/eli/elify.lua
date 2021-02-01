@@ -2,13 +2,24 @@
 local _elified = false
 local _overridenValues = {}
 
+local _metaTypeMap = {
+    [io.stderr] = "FILE"
+}
+
+local function _inject_meta_types()
+    for k, _ in pairs(_metaTypeMap) do
+        local _mt = getmetatable(k)
+        _mt.__type = "FILE"
+    end
+end
+
 local function _elify()
     if (_elified) then return end
     local _special = { os = true }
     local _exclude = { "eli%..*%.extra", "eli%.extensions%..*", "eli%.elify" }
     for k, v in pairs(package.preload) do
         if not k:match("eli%..*") then goto continue end
-        for _, _ex in ipairs(_exclude) do 
+        for _, _ex in ipairs(_exclude) do
             if k:match(_ex) then goto continue end
         end
         local _efk = k:match("eli%.(.*)")
@@ -18,20 +29,6 @@ local function _elify()
     end
     _overridenValues.os = os
     os = util.merge_tables(os, require("eli.os"))
-
-    _overridenValues.type = type
-    type = function(v)
-        local _t = _overridenValues.type(v)
-        if _t == "table" then
-            local _ttype = type(v.__type)
-            if _ttype == "string" then
-                return v.__type
-            elseif _ttype == "function" then
-                return v.__type()
-            end
-        end
-        return _t
-    end
 
     -- extensions
     for k, v in pairs(package.preload) do
@@ -43,6 +40,21 @@ local function _elify()
             _extension.globalize()
         end
         ::continue::
+    end
+
+    _overridenValues.type = type
+    type = function(v)
+        local _t = _overridenValues.type(v)
+        if _t == "table" or _t == "userdata" then
+            local _meta = getmetatable(v) or {}
+            local _ttype = _overridenValues.type(_meta.__type)
+            if _ttype == "string" then
+                return _meta.__type
+            elseif _ttype == "function" then
+                return _meta.__type()
+            end
+        end
+        return _t
     end
 
     _elified = true

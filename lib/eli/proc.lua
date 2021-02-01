@@ -1,4 +1,4 @@
-local util = require "eli.util"
+local _util = require "eli.util"
 local eprocLoaded, eproc = pcall(require, "eli.proc.extra")
 local _sx = require"eli.extensions.string"
 
@@ -12,7 +12,7 @@ local function _set_settings(param, value)
    if type(param) == "string" then
       settings[param] = value
    elseif type(param) == "table" then
-      settings = util.merge_tables(settings, param)
+      settings = _util.merge_tables(settings, param)
    end
 end
 
@@ -46,12 +46,15 @@ function ExecTmpFile:new(path)
    local _tmpFile = {}
    _tmpFile.path = path
    _tmpFile.__file = io.open(path)
-   _tmpFile.__type = "ELI_EXEC_TMP_FILE"
-   _tmpFile.__tostring = function() return "ELI_EXEC_TMP_FILE" end
 
    setmetatable(_tmpFile, self)
    self.__index = self
+   self.__type = "ELI_EXEC_TMP_FILE"
    return _tmpFile
+end
+
+function ExecTmpFile:__tostring()
+   return "ELI_EXEC_TMP_FILE"
 end
 
 function ExecTmpFile:read(mode)
@@ -92,7 +95,7 @@ local proc = {
 }
 
 if not eprocLoaded then
-   return util.generate_safe_functions(proc)
+   return _util.generate_safe_functions(proc)
 end
 
 local function _generate_exec_result(_proc)
@@ -134,4 +137,4 @@ end
 
 proc.spawn = _spawn
 
-return util.generate_safe_functions(proc)
+return _util.generate_safe_functions(proc)

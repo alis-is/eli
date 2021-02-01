@@ -2,9 +2,7 @@ local io = require "io"
 local _eliPath = require "eli.path"
 local dir = _eliPath.dir
 local combine = _eliPath.combine
-local util = require "eli.util"
-local generate_safe_functions = util.generate_safe_functions
-local merge_tables = util.merge_tables
+local _util = require "eli.util"
 local efsLoaded, efs = pcall(require, "eli.fs.extra")
 local hash = require "lmbed_hash"
 
@@ -47,6 +45,11 @@ local function copy_file(src, dst)
    srcf:close()
    dstf:close()
 end
+
+-- // TODO
+-- f = io.open(path)
+-- return not f:read(0) and f:seek("end") ~= 0
+-- it is dir
 
 local function mkdirp(dst)
    _check_efs_available("mkdirp")
@@ -102,8 +105,7 @@ local function move(src, dst)
 end
 
 local function exists(path)
-   _check_efs_available("exists")
-   if efs.file_type(path) then
+   if io.open(path) then
       return true
    else
       return false
@@ -197,6 +199,7 @@ local function _read_dir(path, options)
 end
 
 local function _chown(path, uid, gid, options)
+   _check_efs_available("chown")
    if type(options) ~= "table" then
       options = {}
    end
@@ -229,9 +232,9 @@ local fs = {
 }
 
 if efsLoaded then
-   local result = generate_safe_functions(merge_tables(fs, efs))
+   local result = _util.generate_safe_functions(_util.merge_tables(fs, efs))
    result.safe_iter_dir = nil -- not supported
    return result
 else
-   return generate_safe_functions(fs)
+   return _util.generate_safe_functions(fs)
 end

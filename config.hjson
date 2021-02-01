@@ -1,5 +1,5 @@
 {
-   version: 0.12.1
+   version: 0.13.0
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    inject_CA: true
@@ -12,7 +12,9 @@
       eli_stream_extra: "eli.stream.extra"
       eli_os_extra: "eli.os.extra"
       lzip: lzip
-      lfetch: lfetch
+      lcurl: lcurl
+      lcurl_safe: lcurl.safe
+     // lfetch: lfetch
       is_tty: is_tty
       lmbed_hash: lmbed_hash
    }
@@ -25,6 +27,10 @@
       {
          auto: true
          path: lua-modules/lustache/src
+      },
+      {
+         auto: true
+         path: modules/lcurl/src/lua
       },
       {
          auto: true
@@ -89,7 +95,7 @@
       {
          id: eli_proc_extra
          repository: cryon-io/eli-proc-extra
-         version: 0.2.0
+         version: 0.3.0
          destination: modules/eli-proc-extra
          omitRoot: true
       },
@@ -107,11 +113,25 @@
          destination: modules/eli-env-extra
          omitRoot: true
       },
-      {
+      /*{
          id: lfetch
          repository: cryi/lua-fetch
          version: 0.0.2
          destination: modules/lfetch
+         omitRoot: true
+      },*/
+      {
+         id: lcurl
+         repository: Lua-cURL/Lua-cURLv3
+         version: v0.3.12
+         destination: modules/lcurl
+         omitRoot: true
+         cmakelists: { source: "lcurl_CMakeLists.txt", destination: "modules/lcurl/CMakeLists.txt" }
+      },
+      {
+         id: curl
+         url: https://github.com/curl/curl/releases/download/curl-7_74_0/curl-7.74.0.zip
+         destination: modules/curl
          omitRoot: true
       },
       {
@@ -150,7 +170,7 @@
          destination: modules/apk-tools
          omitRoot: true
       },
-      {
+      /*{
          id: libfetch-mbedtls-patch
          repository: cryi/libfetch-mbedtls-patch
          version: 0.0.3
@@ -158,7 +178,7 @@
          omitRoot: true
          force: true
          clean: false
-      },
+      },*/
       {
          id: lustache
          repository: Olivine-Labs/lustache
@@ -169,7 +189,7 @@
       {
          id: hjson
          repository: cryi/hjson-lua
-         version: 0.1.2
+         version: 0.1.3
          destination: lua-modules/hjson
          omitRoot: true
       },

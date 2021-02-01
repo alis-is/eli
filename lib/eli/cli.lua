@@ -1,7 +1,7 @@
-local _eliUtil = require("eli.util")
+local _util = require("eli.util")
 
 local function _parse_args(args)
-    if not _eliUtil.is_array(args) then
+    if not _util.is_array(args) then
         args = arg
     end
     local _argList = {}
