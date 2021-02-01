@@ -126,5 +126,6 @@ return {
     keys = _keys,
     values = _values,
     filter = _filter,
-    is_array = _util.is_array
+    is_array = _util.is_array,
+    globalize = _globalize
 }
