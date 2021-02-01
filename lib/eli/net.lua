@@ -266,8 +266,8 @@ local function _get_request_url_n_options(client, pathOrOptions, options)
    if type(options) ~= "table" then
       options = {}
    end
-   local _url = #_path > 0 and _exString.join("/", client:get_url(), _path) or client:get_url()
-   if util.is_array(options.params) and #options.params > 1 then
+   local _url = #_path > 0 and _join_url(client:get_url(), _path) or client:get_url()
+   if _util.is_array(options.params) and #options.params > 1 then
       local _query = _exString.join("&", table.unpack(_exTable.map(options.params, encodeQueryParams)))
       if type(_query) == "string" then
          _url = _url .. '?' .. _query
