@@ -14,7 +14,7 @@ local function _encode_headers(headers)
    if type(headers) ~= "table" then return _result end
    if _util.is_array(headers) then return headers end
    for k, v in pairs(headers) do
-      local _sep = k[#k] == ":" and "" or ":"
+      local _sep = k:sub(#k, #k) == ":" and "" or ":"
       table.insert(_result, k .. _sep .. v)
    end
 end
@@ -167,10 +167,10 @@ function RestClient:new(hostOrId, parentOrOptions, options)
 end
 
 local function _join_url(p1, p2)
-   if p1[#p1] == "/" then
+   if p1:sub(#p1, #p1) == "/" then
       p1 = p1:sub(1, #p1 - 1)
    end
-   if p2[1] == "/" then
+   if p2:sub(1,1) == "/" then
       p2 = p2:sub(2)
    end
    return p1 .. "/" .. p2
@@ -275,7 +275,7 @@ local function _get_request_url_n_options(client, pathOrOptions, options)
          _query = encodeQueryParams(options.params)
       end
       if type(_query) == "string" and #_query > 0 then
-         if _url[#_url] == "/" then _url = _url:sub(1, #_url - 1) end
+         if _url:sub(#_url, #_url) == "/" then _url = _url:sub(1, #_url - 1) end
          _url = _url .. '?' .. _query
       end
    end

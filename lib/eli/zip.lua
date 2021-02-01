@@ -40,7 +40,7 @@ local function get_root_dir(zipArch)
       end
    end
 
-   if type(rootDir) == 'string' and #rootDir > 0 and rootDir[#rootDir] ~= separator then
+   if type(rootDir) == 'string' and #rootDir > 0 and rootDir:sub(#rootDir, #rootDir) ~= separator then
       rootDir = rootDir .. separator
    end
 
