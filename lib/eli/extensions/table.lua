@@ -102,7 +102,7 @@ local function _map(arr, fn)
     end
     local _result = {}
     for _, v in ipairs(arr) do
-        table.insert(arr, fn(v))
+        table.insert(_result, fn(v))
     end
     return _result
 end
