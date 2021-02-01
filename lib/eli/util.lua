@@ -1,31 +1,3 @@
-local function keys(t)
-   local _keys = {}
-   for k, _ in pairs(t) do
-      table.insert(_keys, k)
-   end
-   return _keys
-end
-
-local function values(t)
-   local vals = {}
-   for _, v in pairs(t) do
-      table.insert(vals, v)
-   end
-   return vals
-end
-
-local function _to_array(t)
-   local arr = {}
-   local _keys = {}
-   for k in pairs(t) do table.insert(_keys, k) end
-   table.sort(_keys)
-
-   for _, k in ipairs(_keys) do
-      table.insert(arr, {key = k, value = t[k]})
-   end
-   return arr
-end
-
 local function _is_array(t)
    if type(t) ~= "table" then
       return false
@@ -91,25 +63,6 @@ local function _escape_magic_characters(s)
       return
    end
    return (s:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"))
-end
-
-local function filter_table(t, _filter)
-   if type(_filter) ~= "function" then
-      return t
-   end
-   local isArray = _is_array(t)
-
-   local res = {}
-   for k, v in pairs(t) do
-      if _filter(k, v) then
-         if isArray then
-            table.insert(res, v)
-         else
-            res[k] = v
-         end
-      end
-   end
-   return res
 end
 
 local function generate_safe_functions(functions)
@@ -239,77 +192,15 @@ local function _equals(v, v2, deep)
   end
 end
 
-local function _base_get(obj, path)
-   if type(obj) ~= "table" then
-      return nil
-   end
-   if type(path) == "string" or type(path) == "number" then
-      return obj[path]
-   elseif _is_array(path) then
-      local _part = table.remove(path, 1)
-      local _index = _is_array(obj) and tonumber(_part) or _part
-      if #path == 0 then
-         return obj[_index]
-      end
-      return _base_get(obj[_part], path)
-   else
-      return nil
-   end
-end
-
-local function _get(obj, path, default)
-   local _result = _base_get(obj, path)
-   if _result == nil then
-      return default
-   end
-   return _result
-end
-
-local function _set(obj, path, value)
-   if type(obj) ~= "table" then
-      return obj
-   end
-   if type(path) == "string" or type(path) == "number" then
-      obj[path] = value
-   elseif _is_array(path) then
-      local _part = table.remove(path, 1)
-      local _index = _is_array(obj) and tonumber(_part) or _part
-      if #path == 0 then
-         obj[_index] = value
-      else
-         _set(obj[_part], path, value)
-      end
-   end
-   return obj
-end
-
-local function _map(arr, fn)
-   if not _is_array(arr) or type(fn) ~= "function" then
-      return arr
-   end
-   local _result = {}
-   for _,v in ipairs(arr) do
-      table.insert(arr, fn(v))
-   end
-   return _result
-end
-
 return {
-   keys = keys,
-   values = values,
-   to_array = _to_array,
    generate_safe_functions = generate_safe_functions,
    is_array = _is_array,
    escape_magic_characters = _escape_magic_characters,
-   filter_table = filter_table,
    merge_tables = merge_tables,
    print_table = print_table,
    global_log_factory = _global_log_factory,
    remove_preloaded_lib = _remove_preloaded_lib,
    random_string = _random_string,
    clone = _clone,
-   equals = _equals,
-   get = _get,
-   set = _set,
-   map = _map
+   equals = _equals
 }

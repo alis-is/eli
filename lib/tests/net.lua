@@ -45,7 +45,10 @@ end
 _test["RestClient get"] = function ()
     local RestClient = _eliNet.RestClient
     local _client = RestClient:new("https://raw.githubusercontent.com/")
-    
+    local _response = _client.get("cryon-io/eli/master/LICENSE")
+    local _result = _sha256sum(_s, true)
+    _test.assert(_expected == _result, "hashes do not match")
+
 end
 
 _test["RestClient post"] = function ()

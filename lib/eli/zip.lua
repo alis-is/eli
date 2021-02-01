@@ -2,8 +2,7 @@ local fs = require "eli.fs"
 local zip = require "lzip"
 local path = require "eli.path"
 local separator = require "eli.path".default_sep()
-local util = require "eli.util"
-local generate_safe_functions = util.generate_safe_functions
+local _util = require "eli.util"
 local _join = require"eli.extensions.string".join
 
 local function get_root_dir(zipArch)
@@ -394,7 +393,7 @@ local function _compress(source, target, options)
    _archive:close()
 end
 
-return generate_safe_functions(
+return _util.generate_safe_functions(
    {
       extract = extract,
       extract_file = extract_file,

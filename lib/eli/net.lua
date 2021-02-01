@@ -1,10 +1,9 @@
 local _curlLoaded , curl = pcall(require, "lcurl.safe")
 local io = require "io"
-local util = require "eli.util"
-local generate_safe_functions = util.generate_safe_functions
-local merge_tables = util.merge_tables
+local _util = require "eli.util"
 local _hjson = require"hjson"
 local _exString = require"eli.extensions.string"
+local _exTable = require"eli.extensions.table"
 
 if not _curlLoaded then
    return nil
@@ -13,7 +12,7 @@ end
 local function _encode_headers(headers)
    local _result = {}
    if type(headers) ~= "table" then return _result end
-   if util.is_array(headers) then return headers end
+   if _util.is_array(headers) then return headers end
    for k, v in pairs(headers) do
       local _sep = k[#k] == ":" and "" or ":"
       table.insert(_result, k .. _sep .. v)
@@ -31,7 +30,7 @@ local function _request(method, url, options, data)
       _write = options.write_function
    end
 
-   local _headers = util.merge_tables(options.headers or {}, {
+   local _headers = _util.merge_tables(options.headers or {}, {
       ['Content-Type'] = options.contentType
    })
 
@@ -60,8 +59,8 @@ local function _request(method, url, options, data)
 
    local _easy = curl.easy(_easyOpts)
 
-   local _mime = util.get(_headers, 'Content-Type')
-   local _encode = util.get(options, { _mime, "encode" })
+   local _mime = _exTable.get(_headers, 'Content-Type')
+   local _encode = _exTable.get(options, { _mime, "encode" })
    if type(_encode) == "function" then
       data = _encode(data)
    end
@@ -138,11 +137,11 @@ function RestClient:new(hostOrId, parentOrOptions, options)
       _restClient.__is_child = true
       _restClient.__parent = parentOrOptions
       _restClient.__id = hostOrId
-      _restClient.__options = util.merge_tables(options, util.clone(parentOrOptions.__options))
+      _restClient.__options = _util.merge_tables(options, _util.clone(parentOrOptions.__options))
    else
       options = parentOrOptions
       _restClient.__host = hostOrId
-      _restClient.__options = util.merge_tables(options, {
+      _restClient.__options = _util.merge_tables(options, {
          followRedirects = true,
          verifyPeer = true,
          trailing = '',
@@ -167,14 +166,23 @@ function RestClient:new(hostOrId, parentOrOptions, options)
    return _restClient
 end
 
+local function _join_url(p1, p2)
+   if p1[#p1] == "/" then
+      p1 = p1.sub(1, #p1 - 1)
+   end
+   if p2[1] == "/" then
+      p2 = p2.sub(2)
+   end
+   return p1 .. "/" .. p2
+end
+
 function RestClient:get_url()
    if not self.__is_child then
       return self.__host
    end
    local _url = self.__parent:get_url()
    if type(self.__id) == "string" then
-      local _sep = _url[#_url] == "/" and "" or "/"
-      _url = _url .. _sep .. self.__id
+      _url = _join_url(_url, self.__id)
    end
    return _url
 end
@@ -183,7 +191,7 @@ function RestClient:conf(options)
    if options == nil then
       return self.__options
    end
-   self.__options = util.merge_tables(options, self.__options)
+   self.__options = _util.merge_tables(options, self.__options)
    return self.__options
 end
 
@@ -201,12 +209,12 @@ function RestClient:res(resources, options)
          return self.__resources[name]
       end
 
-      local _result = RestClient:new(name, self, options)
+      local _result = RestClient:new(tostring(name), self, options)
       self.__resources = _result
       if _shortcut then
          self.__shortcuts[name] = _result
          self[name] = _result
-         for _, rule in ipairs(util.get(self, { "options", "shortcutRules" }, {})) do
+         for _, rule in ipairs(_exTable.get(self, { "options", "shortcutRules" }, {})) do
             if type(rule) == "function" then
                local _customShortcut = rule(name);
                if type(_customShortcut) == "string" then
@@ -219,26 +227,34 @@ function RestClient:res(resources, options)
       return _result
    end
 
-   if type(resources) == "string" then
+   if type(resources) == "string" or type(resources) == "number" then
       return makeResource(resources)
    end
 
-   if util.is_array(resources) then
-      return util.map(resources, makeResource)
+   if _util.is_array(resources) then
+      local _validForResource = _exTable.filter(resources, function(_, v)
+         return type(v) == "string" or type(resources) == "number"
+      end)
+      return _exTable.map(_validForResource, makeResource)
    end
 
    if type(resources) == "table" then
       local _result = {}
       for k, v in pairs(resources) do
+         if type(k) ~= "number" and type(k) ~= "string" then
+            goto continue
+         end
          local _resource = makeResource(k)
          if v then
             _resource.res(v)
          end
          _result[k] = _resource
+         ::continue::
       end
       return _result
    end
 end
+function RestClient:safe_res(resources, options) return pcall(self.res, self, resources, options) end
 
 local function _get_request_url_n_options(client, pathOrOptions, options)
    local _path = ""
@@ -252,43 +268,43 @@ local function _get_request_url_n_options(client, pathOrOptions, options)
    end
    local _url = #_path > 0 and _exString.join("/", client:get_url(), _path) or client:get_url()
    if util.is_array(options.params) and #options.params > 1 then
-      local _query = _exString.join("&", table.unpack(util.map(options.params, encodeQueryParams)))
+      local _query = _exString.join("&", table.unpack(_exTable.map(options.params, encodeQueryParams)))
       if type(_query) == "string" then
          _url = _url .. '?' .. _query
       end
    end
-   return _url, util.merge_tables(options, client.__options)
+   return _url, _util.merge_tables(options, client.__options)
 end
 
 function RestClient:get(pathOrOptions, options)
    local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
    return _request('GET', _url, _options)
 end
-function RestClient:safe_get(pathOrOptions, options) pcall(self.get, self, pathOrOptions, options) end
+function RestClient:safe_get(pathOrOptions, options) return pcall(self.get, self, pathOrOptions, options) end
 
 function RestClient:post(data, pathOrOptions, options)
    local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
    return _request('POST', _url, _options, data)
 end
-function RestClient:safe_post(data, pathOrOptions, options) pcall(self.post, self, data, pathOrOptions, options) end
+function RestClient:safe_post(data, pathOrOptions, options) return pcall(self.post, self, data, pathOrOptions, options) end
 
 function RestClient:put(data, pathOrOptions, options)
    local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
    return _request('PUT', _url, _options, data)
 end
-function RestClient:safe_put(data, pathOrOptions, options) pcall(self.put, self, data, pathOrOptions, options) end
+function RestClient:safe_put(data, pathOrOptions, options) return pcall(self.put, self, data, pathOrOptions, options) end
 
 function RestClient:patch(data, pathOrOptions, options)
    local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
    return _request('PATCH', _url, _options, data)
 end
-function RestClient:safe_patch(data, pathOrOptions, options) pcall(self.patch, self, data, pathOrOptions, options) end
+function RestClient:safe_patch(data, pathOrOptions, options) return pcall(self.patch, self, data, pathOrOptions, options) end
 
 function RestClient:delete(pathOrOptions, options)
    local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
    return _request('DELETE', _url, _options)
 end
-function RestClient:safe_delete(pathOrOptions, options) pcall(self.delete, self, pathOrOptions, options) end
+function RestClient:safe_delete(pathOrOptions, options) return pcall(self.delete, self, pathOrOptions, options) end
 
 local function _download(url, write_function, options)
    if type(options) ~= "table" then
@@ -366,7 +382,7 @@ local function download_string(url, options)
    end
 end
 
-return generate_safe_functions({
+return _util.generate_safe_functions({
    download_file = download_file,
    download_string = download_string,
    RestClient = RestClient

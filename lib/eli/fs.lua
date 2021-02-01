@@ -2,9 +2,7 @@ local io = require "io"
 local _eliPath = require "eli.path"
 local dir = _eliPath.dir
 local combine = _eliPath.combine
-local util = require "eli.util"
-local generate_safe_functions = util.generate_safe_functions
-local merge_tables = util.merge_tables
+local _util = require "eli.util"
 local efsLoaded, efs = pcall(require, "eli.fs.extra")
 local hash = require "lmbed_hash"
 
@@ -234,9 +232,9 @@ local fs = {
 }
 
 if efsLoaded then
-   local result = generate_safe_functions(merge_tables(fs, efs))
+   local result = _util.generate_safe_functions(_util.merge_tables(fs, efs))
    result.safe_iter_dir = nil -- not supported
    return result
 else
-   return generate_safe_functions(fs)
+   return _util.generate_safe_functions(fs)
 end

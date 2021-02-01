@@ -19,7 +19,7 @@ local function _elify()
     local _exclude = { "eli%..*%.extra", "eli%.extensions%..*", "eli%.elify" }
     for k, v in pairs(package.preload) do
         if not k:match("eli%..*") then goto continue end
-        for _, _ex in ipairs(_exclude) do 
+        for _, _ex in ipairs(_exclude) do
             if k:match(_ex) then goto continue end
         end
         local _efk = k:match("eli%.(.*)")

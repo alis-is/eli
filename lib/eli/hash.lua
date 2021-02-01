@@ -1,6 +1,5 @@
 local hash = require "lmbed_hash"
 local _util = require"eli.util"
-local _generate_safe_functions = _util.generate_safe_functions
 
 local Sha256 = {}
 Sha256.__index = Sha256
@@ -42,7 +41,7 @@ function Sha512:finish(hex)
     return hash.sha512_finish(self.ctx, hex)
 end
 
-return _generate_safe_functions(
+return _util.generate_safe_functions(
     {
         Sha256 = Sha256,
         Sha512 = Sha512,
