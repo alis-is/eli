@@ -95,6 +95,13 @@ _test["RestClient put"] = function ()
     _data = _hjson.parse(_response.data)
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+
+    _client = RestClient:new("https://httpbin.org/put")
+    _ok, _response = _client:safe_put(io.open("assets/put.txt"), { params = { "test=aaa", "test2=bbb" } })
+    _test.assert(_ok, "request failed")
+    _data = _hjson.parse(_response.data)
+    _test.assert(_data.data == "simple", "Failed to verify result")
+    _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 end
 
 _test["RestClient patch"] = function ()
@@ -128,11 +135,28 @@ _test["RestClient delete"] = function ()
 end
 
 _test["RestClient conf"] = function ()
+    local _client = RestClient:new("https://httpbin.org/", {contentType = "text/plain"})
+    local _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post", { params = { test = "aaa", test2 = "bbb" } })
+    _test.assert(_ok, "request failed")
+    local _data = _hjson.parse(_response.data)
+    _test.assert(_data.json == nil, "Failed to verify result")
+    _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
+    _client:conf({ contentType = 'application/json' })
+    _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, { params = { "test=aaa", "test2=bbb" } })
+    _test.assert(_ok, "request failed")
+    _data = _hjson.parse(_response.data)
+    _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
+    _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 end
 
-_test["RestClient get_url"] = function ()
-
+_test["RestClient get_url and res"] = function ()
+    local _client = RestClient:new("https://httpbin.org/", {contentType = "text/plain"})
+    _test.assert(_client:get_url() == "https://httpbin.org/")
+    _client = _client:res("test")
+    _test.assert(_client:get_url() == "https://httpbin.org/test")
+    _client = _client:res("test2/test3")
+    _test.assert(_client:get_url() == "https://httpbin.org/test/test2/test3")
 end
 
 if not TEST then
