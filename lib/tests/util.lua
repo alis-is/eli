@@ -106,6 +106,7 @@ _test["global_log_factory (GLOBAL_LOGGER == 'ELI_LOGGER')"] = function ()
         end,
         __type = "ELI_LOGGER"
     }
+    setmetatable(GLOBAL_LOGGER, GLOBAL_LOGGER)
     local _debug = _eliUtil.global_log_factory("test/util", "debug")
     _test.assert(pcall(_debug, "test"))
     _test.assert(_called)
