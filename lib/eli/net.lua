@@ -314,7 +314,7 @@ function RestClient:safe_patch(data, pathOrOptions, options) return pcall(self.p
 
 function RestClient:delete(pathOrOptions, options)
    local _url, _options = _get_request_url_n_options(self, pathOrOptions, options)
-   return _request('DELETE', _url, _options)
+   return _request('DELETE', _url, _options, _options.data)
 end
 function RestClient:safe_delete(pathOrOptions, options) return pcall(self.delete, self, pathOrOptions, options) end
 
