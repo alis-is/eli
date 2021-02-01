@@ -142,7 +142,7 @@ _test["RestClient conf"] = function ()
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
     _client:conf({ contentType = 'application/json' })
-    _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, { params = { "test=aaa", "test2=bbb" } })
+    _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post", { params = { "test=aaa", "test2=bbb" } })
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
