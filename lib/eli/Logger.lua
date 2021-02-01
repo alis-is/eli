@@ -99,7 +99,7 @@ local function log_txt(data, colorful, color, noTime, includeFields)
     if includeFields then
 
         if not _util.is_array(includeFields) then
-            includeFields = _exTable.filter_table(_exTable.keys(data), function(_,v)
+            includeFields = _exTable.filter(_exTable.keys(data), function(_,v)
                 return v ~= 'msg' and v ~= 'module' and v ~= 'level'
             end)
         end
