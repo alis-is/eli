@@ -115,7 +115,7 @@ end
 local function encodeQueryParams(data)
    local _result = "";
    for k,v in pairs(data) do
-      _result = _result .. _encodeURIComponent(k) .. "=" .. _encodeURIComponent(v) .. "&"
+      _result = _result .. _encodeURIComponent(tostring(k)) .. "=" .. _encodeURIComponent(tostring(v)) .. "&"
    end
    return _result:sub(1, #_result - 1);
 end
@@ -267,9 +267,14 @@ local function _get_request_url_n_options(client, pathOrOptions, options)
       options = {}
    end
    local _url = #_path > 0 and _join_url(client:get_url(), _path) or client:get_url()
-   if _util.is_array(options.params) and #options.params > 1 then
-      local _query = _exString.join("&", table.unpack(_exTable.map(options.params, encodeQueryParams)))
-      if type(_query) == "string" then
+   if type(options.params) == "table" then
+      local _query
+      if _util.is_array(options.params) and #options.params > 1 then
+         _query = _exString.join("&", table.unpack(_exTable.map(options.params, tostring)))
+      else
+         _query = encodeQueryParams(options.params)
+      end
+      if type(_query) == "string" and #_query > 0 then
          _url = _url .. '?' .. _query
       end
    end

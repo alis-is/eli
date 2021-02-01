@@ -1,6 +1,7 @@
 local _test = TEST or require 'u-test'
 local _ok, _eliNet = pcall(require, "eli.net")
 local _sha256sum = require "lmbed_hash".sha256sum
+local _hjson = require"hjson"
 
 if not _ok then 
     _test["eli.net available"] = function ()
@@ -50,6 +51,18 @@ _test["RestClient get"] = function ()
     _test.assert(_ok, "request failed")
     local _result = _sha256sum(_response.data, true)
     _test.assert(_expected == _result, "hashes do not match")
+
+    _client = RestClient:new("https://httpbin.org/")
+    _ok, _response = _client:safe_get("get", { params = { test = "aaa", test2 = "bbb" } })
+    _test.assert(_ok, "request failed")
+    local _data = _hjson.parse(_response.data)
+    _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+
+    _client = RestClient:new("https://httpbin.org/get")
+    _ok, _response = _client:safe_get({ params = { "test=aaa", "test2=bbb" } })
+    _test.assert(_ok, "request failed")
+    _data = _hjson.parse(_response.data)
+    _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 end
 
 _test["RestClient post"] = function ()
