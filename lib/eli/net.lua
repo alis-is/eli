@@ -156,7 +156,7 @@ function RestClient:new(hostOrId, parentOrOptions, options)
          shortcut = true,
          shortcutRules = {},
          contentType = 'application/json',
-         ['application/x-www-form-urlencoded'] = { encode = _encodeURIComponent },,
+         ['application/x-www-form-urlencoded'] = { encode = _encodeURIComponent },
          ['text/plain'] = { encode = tostring }
          ['application/json'] = {
             encode = function(v)
