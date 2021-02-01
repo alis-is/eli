@@ -115,7 +115,7 @@ local function _globalize()
     table.keys = _keys
     tabke.values = _values
     table.filter = _filter
-    table.is_array = util.is_array
+    table.is_array = _util.is_array
 end
 
 return {
@@ -126,5 +126,5 @@ return {
     keys = _keys,
     values = _values,
     filter = _filter,
-    is_array = util.is_array
+    is_array = _util.is_array
 }
