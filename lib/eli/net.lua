@@ -60,12 +60,6 @@ local function _request(method, url, options, data)
 
    local _easy = curl.easy(_easyOpts)
 
-   local _mime = _exTable.get(_headers, 'Content-Type')
-   local _encode = _exTable.get(options, { _mime, "encode" })
-   if type(_encode) == "function" then
-      data = _encode(data)
-   end
-
    if getmetatable(data) == getmetatable(curl.form()) then
       _easy:setopt_httppost(data)
    elseif getmetatable(data) == getmetatable(_easy:mime()) then
@@ -74,6 +68,11 @@ local function _request(method, url, options, data)
       _easy:setopt{ upload = true }
       _easy:setopt_readfunction(data.read, data)
    else
+      local _mime = _exTable.get(_headers, 'Content-Type')
+      local _encode = _exTable.get(options, { _mime, "encode" })
+      if type(_encode) == "function" then
+         data = _encode(data)
+      end
       _easy:setopt{ postfields = data }
    end
 
@@ -159,9 +158,9 @@ function RestClient:new(hostOrId, parentOrOptions, options)
       })
    end
 
-   _restClient.__type = "ELI_RESTCLIENT"
    _restClient.__tostring = function() return "ELI_RESTCLIENT" end
    setmetatable(_restClient, self)
+   self.__type = "ELI_RESTCLIENT"
    self.__index = function(t, k)
       local _result = rawget(self, k)
       if _result == nil and type(k) == "string" and not k:match"^__.*" then
@@ -170,6 +169,10 @@ function RestClient:new(hostOrId, parentOrOptions, options)
       return _result
    end
    return _restClient
+end
+
+function RestClient:__tostring()
+   return "ELI_RESTCLIENT"
 end
 
 local function _join_url(p1, p2)
@@ -220,7 +223,7 @@ function RestClient:res(resources, options)
       if _shortcut then
          self.__shortcuts[name] = _result
          self[name] = _result
-         for _, rule in ipairs(_exTable.get(self, { "options", "shortcutRules" }, {})) do
+         for _, rule in ipairs(_exTable.get(self, { "__options", "shortcutRules" }, {})) do
             if type(rule) == "function" then
                local _customShortcut = rule(name);
                if type(_customShortcut) == "string" then

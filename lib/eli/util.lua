@@ -95,7 +95,7 @@ end
 
 local function _global_log_factory(module, ...)
    local _result = {}
-   if (type(GLOBAL_LOGGER) ~= "table" and type(GLOBAL_LOGGER) ~= "ELI_LOGGER") or GLOBAL_LOGGER.__type ~= "ELI_LOGGER" then
+   if (type(GLOBAL_LOGGER) ~= "table" and type(GLOBAL_LOGGER) ~= "ELI_LOGGER") or getmetatable(GLOBAL_LOGGER).__type ~= "ELI_LOGGER" then
       GLOBAL_LOGGER = (require"eli.Logger"):new()
    end
 

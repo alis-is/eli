@@ -46,12 +46,15 @@ function ExecTmpFile:new(path)
    local _tmpFile = {}
    _tmpFile.path = path
    _tmpFile.__file = io.open(path)
-   _tmpFile.__type = "ELI_EXEC_TMP_FILE"
-   _tmpFile.__tostring = function() return "ELI_EXEC_TMP_FILE" end
 
    setmetatable(_tmpFile, self)
    self.__index = self
+   self.__type = "ELI_EXEC_TMP_FILE"
    return _tmpFile
+end
+
+function ExecTmpFile:__tostring()
+   return "ELI_EXEC_TMP_FILE"
 end
 
 function ExecTmpFile:read(mode)

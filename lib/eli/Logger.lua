@@ -38,13 +38,16 @@ function Logger:new(options)
         options.noTime = false
     end
 
-    logger.__type = "ELI_LOGGER"
-    logger.__tostring = function() return "ELI_LOGGER" end
     logger.options = options
 
     setmetatable(logger, self)
+    self.__type = "ELI_LOGGER"
     self.__index = self
     return logger
+end
+
+function Logger:__tostring()
+    return "ELI_LOGGER"
 end
 
 local function get_log_color(level)
