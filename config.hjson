@@ -1,5 +1,5 @@
 {
-   version: 0.13.0
+   version: 0.14.0
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    inject_CA: true
@@ -12,7 +12,7 @@
       eli_stream_extra: "eli.stream.extra"
       eli_os_extra: "eli.os.extra"
       lzip: lzip
-      // lz: lz
+      zlib: lzlib
       lcurl: lcurl
       lcurl_safe: lcurl.safe
       is_tty: is_tty
@@ -133,7 +133,15 @@
          version: v0.2.0
          destination: modules/lzip
          omitRoot: true
-//         cmakelists: { source: "lzip_CMakeLists.txt", destination: "modules/lzip/CMakeLists.txt" }
+         cmakelists: { source: "lzip_CMakeLists.txt", destination: "modules/lzip/CMakeLists.txt" }
+      },
+      {
+         id: lzlib
+         repository: brimworks/lua-zlib
+         version: v1.2
+         destination: modules/lzlib
+         omitRoot: true
+         cmakelists: { source: "lzlib_CMakeLists.txt", destination: "modules/lzlib/CMakeLists.txt" }
       },
       { 
          id: mbedtls

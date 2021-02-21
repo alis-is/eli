@@ -28,6 +28,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-proc-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-os-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-env-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lcurl/)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lzlib/)
 
 ExternalProject_Add(
   zlib_lib
@@ -52,6 +53,10 @@ add_custom_command(TARGET zlib_lib POST_BUILD
 
 SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib)
 SET(ZLIB_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib)
+SET(LIBZIP_INCLUDE_DIR ${ZLIB_INCLUDE_DIR})
+SET(LUA_ZIP_BUILD_SHARED OFF)
+SET(LUA_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua/src/)
+
 SET(ENABLE_ZLIB_SUPPORT ON CACHE BOOL "")
 add_library(zlib STATIC IMPORTED)
 set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib/libz.a)
@@ -80,10 +85,10 @@ ExternalProject_Add(
                            "-DCMAKE_AR:STRING=${CMAKE_AR}"
                            "-DCMAKE_ARRANLIB:STRING=${CMAKE_RANLIB}"
                            "-DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}"
-                           "-DMBEDTLS_INCLUDE_DIR:STRING=${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/include"
-                           "-DMBEDTLS_LIBRARIES:STRING=${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library"
-                           "-DZLIBINCLUDEDIR:STRING=${ZLIB_INCLUDE_DIR}"
-                           "-DZLIBLIBPATH:STRING=${ZLIB_LIB_DIR}"
+                           "-DMbedTLS_INCLUDE_DIR:STRING=${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/include"
+                           "-DMbedTLS_LIBRARY:STRING=${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library"
+                           "-DZLIB_INCLUDE_DIR:STRING=${ZLIB_INCLUDE_DIR}"
+                           "-DZLIB_LIBRARY:STRING=${ZLIB_LIB_DIR}"
                            "-DCMAKE_RC_COMPILER:STRING=${CMAKE_RC_COMPILER}"
   BUILD_ALWAYS ON
 )
@@ -95,7 +100,7 @@ add_dependencies(zip zip_lib zlib)
 
 set(LUA_ZIP_BUILD_SHARED OFF CACHE BOOL "")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lzip/)
-add_dependencies(lua-zip zip)
+add_dependencies(lua_zip zip)
 
 set(CURL_LIB_CPPFLAGS "-I${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/include -I${CMAKE_CURRENT_BINARY_DIR}/modules/zlib -I${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib")
 set(CURL_LIB_LDFLAGS "-L${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library")
@@ -173,8 +178,7 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (eli  lua/src/onelua.c)
-target_link_libraries (eli lis_tty lcurl lua-zip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
-add_dependencies(eli zip)
+target_link_libraries (eli lis_tty lcurl lua_zip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlib "-static") 
 set_target_properties(eli PROPERTIES OUTPUT_NAME "eli") 
 
 if(UNIX)
@@ -185,8 +189,7 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (elic  lua/src/onelua.c)
-target_link_libraries (elic lis_tty lcurl lua-zip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
-add_dependencies(elic zip)
+target_link_libraries (elic lis_tty lcurl lua_zip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlib "-static") 
 set_target_properties(elic PROPERTIES OUTPUT_NAME "elic") 
 
 
