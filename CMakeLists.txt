@@ -95,7 +95,7 @@ add_dependencies(zip zip_lib zlib)
 
 set(LUA_ZIP_BUILD_SHARED OFF CACHE BOOL "")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lzip/)
-add_dependencies(lzip zip)
+add_dependencies(lua-zip zip)
 
 set(CURL_LIB_CPPFLAGS "-I${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/include -I${CMAKE_CURRENT_BINARY_DIR}/modules/zlib -I${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib")
 set(CURL_LIB_LDFLAGS "-L${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library")
@@ -173,7 +173,7 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (eli  lua/src/onelua.c)
-target_link_libraries (eli lis_tty lcurl lzip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
+target_link_libraries (eli lis_tty lcurl lua-zip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
 add_dependencies(eli zip)
 set_target_properties(eli PROPERTIES OUTPUT_NAME "eli") 
 
@@ -185,7 +185,7 @@ endif()
 
 link_directories (${LUA_BINARY_DIR})
 add_executable (elic  lua/src/onelua.c)
-target_link_libraries (elic lis_tty lcurl lzip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
+target_link_libraries (elic lis_tty lcurl lua-zip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip zlib "-static") 
 add_dependencies(elic zip)
 set_target_properties(elic PROPERTIES OUTPUT_NAME "elic") 
 

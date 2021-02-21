@@ -12,9 +12,9 @@
       eli_stream_extra: "eli.stream.extra"
       eli_os_extra: "eli.os.extra"
       lzip: lzip
+      // lz: lz
       lcurl: lcurl
       lcurl_safe: lcurl.safe
-     // lfetch: lfetch
       is_tty: is_tty
       lmbed_hash: lmbed_hash
    }
@@ -113,13 +113,6 @@
          destination: modules/eli-env-extra
          omitRoot: true
       },
-      /*{
-         id: lfetch
-         repository: cryi/lua-fetch
-         version: 0.0.2
-         destination: modules/lfetch
-         omitRoot: true
-      },*/
       {
          id: lcurl
          repository: Lua-cURL/Lua-cURLv3
@@ -140,7 +133,7 @@
          version: v0.2.0
          destination: modules/lzip
          omitRoot: true
-         cmakelists: { source: "lzip_CMakeLists.txt", destination: "modules/lzip/CMakeLists.txt" }
+//         cmakelists: { source: "lzip_CMakeLists.txt", destination: "modules/lzip/CMakeLists.txt" }
       },
       { 
          id: mbedtls
@@ -159,26 +152,10 @@
       {
          id: libzip
          repository: nih-at/libzip
-         version: rel-1-5-2
+         version: v1.7.3
          destination: modules/libzip
          omitRoot: true
       },
-      {
-         id: apk-tools
-         repository: alpinelinux/apk-tools
-         version: v2.10.5
-         destination: modules/apk-tools
-         omitRoot: true
-      },
-      /*{
-         id: libfetch-mbedtls-patch
-         repository: cryi/libfetch-mbedtls-patch
-         version: 0.0.3
-         destination: modules/apk-tools/libfetch
-         omitRoot: true
-         force: true
-         clean: false
-      },*/
       {
          id: lustache
          repository: Olivine-Labs/lustache
