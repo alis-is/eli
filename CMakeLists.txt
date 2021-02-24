@@ -55,7 +55,6 @@ set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_D
 # MBEDTLS
 SET(ENABLE_ZLIB_SUPPORT ON CACHE BOOL "")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/mbedtls/ EXCLUDE_FROM_ALL)
-add_dependencies(mbedtls zlib)
 
 # LIBZIP
 SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib)
@@ -90,7 +89,7 @@ ExternalProject_Add(
                            "-DCMAKE_RC_COMPILER:STRING=${CMAKE_RC_COMPILER}"
   BUILD_ALWAYS ON
 )
-add_dependencies(zip_lib mbedtls zlib zlib_lib)
+add_dependencies(zip_lib zlib zlib_lib mbedtls)
 add_library(zip STATIC IMPORTED)
 add_dependencies(zip zip_lib zlib)
 set_target_properties(zip PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/modules/libzip/lib/libzip.a)
