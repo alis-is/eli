@@ -90,8 +90,8 @@ ExternalProject_Add(
   BUILD_ALWAYS ON
 )
 add_dependencies(zip_lib mbedtls zlib zlib_lib)
-add_dependencies(zip zip_lib zlib)
 add_library(zip STATIC IMPORTED)
+add_dependencies(zip zip_lib zlib)
 set_target_properties(zip PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/modules/libzip/lib/libzip.a)
 
 # LUA-ZIP
