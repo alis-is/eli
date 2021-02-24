@@ -16,6 +16,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lua/src/
                 ${CMAKE_BINARY_DIR}/modules/curl/include
                 )
 
+# MBEDTLS
+SET(ENABLE_ZLIB_SUPPORT ON CACHE BOOL "")
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/mbedtls/ EXCLUDE_FROM_ALL)
+
 # subprojects                
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lua_is_tty/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lua_mbed_hash/)
@@ -51,10 +55,6 @@ add_custom_command(TARGET zlib_lib POST_BUILD
 )
 add_library(zlib STATIC IMPORTED)
 set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib/libz.a)
-
-# MBEDTLS
-SET(ENABLE_ZLIB_SUPPORT ON CACHE BOOL "")
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/mbedtls/ EXCLUDE_FROM_ALL)
 
 # LIBZIP
 SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib)
