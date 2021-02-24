@@ -29,10 +29,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-env-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lcurl/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lzlib/)
 
-# MBEDTLS
-SET(ENABLE_ZLIB_SUPPORT ON CACHE BOOL "")
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/mbedtls/ EXCLUDE_FROM_ALL)
-
 # ZLIB
 ExternalProject_Add(
   zlib_lib
@@ -55,6 +51,11 @@ add_custom_command(TARGET zlib_lib POST_BUILD
 )
 add_library(zlib STATIC IMPORTED)
 set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib/libz.a)
+
+# MBEDTLS
+SET(ENABLE_ZLIB_SUPPORT ON CACHE BOOL "")
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/mbedtls/ EXCLUDE_FROM_ALL)
+add_dependencies(mbedtls zlib)
 
 # LIBZIP
 SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib)
