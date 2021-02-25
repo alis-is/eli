@@ -73,6 +73,7 @@ ExternalProject_Add(
                            "-DENABLE_OPENSSL:BOOL=OFF"
                            "-DENABLE_WINDOWS_CRYPTO:BOOL=OFF"
                            "-DENABLE_BZIP2:BOOL=OFF"
+                           "-DENABLE_LZMA:BOOL=OFF"
                            "-DBUILD_TOOLS:BOOL=OFF"
                            "-DBUILD_REGRESS:BOOL=OFF"
                            "-DBUILD_EXAMPLES:BOOL=OFF"
@@ -89,6 +90,7 @@ ExternalProject_Add(
                            "-DZLIB_INCLUDE_DIR:STRING=${ZLIB_INCLUDE_DIR}"
                            "-DZLIB_LIBRARY:STRING=${ZLIB_LIBRARY}"
                            "-DCMAKE_RC_COMPILER:STRING=${CMAKE_RC_COMPILER}"
+                           "-DCMAKE_POLICY_DEFAULT_CMP0063:STRING=NEW"
   BUILD_ALWAYS ON
 )
 add_dependencies(zip_lib zlib zlib_lib mbedtls)
