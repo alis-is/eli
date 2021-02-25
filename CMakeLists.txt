@@ -55,7 +55,7 @@ ExternalProject_Add(
   BUILD_ALWAYS ON
 )
 add_custom_command(TARGET zlib_lib POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${ZLIB_INCLUDE_DIR}/*.h ${ZLIB_INCLUDE_DIR}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib/*.h ${ZLIB_INCLUDE_DIR}
 )
 add_library(zlib STATIC IMPORTED)
 set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${ZLIB_LIBRARY})
