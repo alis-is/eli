@@ -16,6 +16,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lua/src/
                 ${CMAKE_BINARY_DIR}/modules/curl/include
                 )
 
+# ZLIB PATHS
+SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib)
+SET(ZLIB_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib/libz.a)             
+
 # MBEDTLS
 SET(ENABLE_ZLIB_SUPPORT ON CACHE BOOL "")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/mbedtls/ EXCLUDE_FROM_ALL)
@@ -57,8 +61,6 @@ add_library(zlib STATIC IMPORTED)
 set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib/libz.a)
 
 # LIBZIP
-SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib)
-SET(ZLIB_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib)
 ExternalProject_Add(
   zip_lib
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip/
@@ -85,7 +87,7 @@ ExternalProject_Add(
                            "-DMbedTLS_INCLUDE_DIR:STRING=${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/include"
                            "-DMbedTLS_LIBRARY:STRING=${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library"
                            "-DZLIB_INCLUDE_DIR:STRING=${ZLIB_INCLUDE_DIR}"
-                           "-DZLIB_LIBRARY:STRING=${ZLIB_LIB_DIR}"
+                           "-DZLIB_LIBRARY:STRING=${ZLIB_LIBRARY}"
                            "-DCMAKE_RC_COMPILER:STRING=${CMAKE_RC_COMPILER}"
   BUILD_ALWAYS ON
 )
