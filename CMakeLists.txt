@@ -8,17 +8,17 @@ SET(CMAKE_EXE_LINKER_FLAGS "-static -s")
 
 include(ExternalProject)
 
+# INCLUDE PATHS & DIRS
+SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib)
+SET(ZLIB_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib/libz.a)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lua/src/
-                ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib
+                ${ZLIB_INCLUDE_DIR}
                 ${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip/lib
                 ${CMAKE_BINARY_DIR}/modules/libzip
                 ${CMAKE_BINARY_DIR}/modules/mbedtls/include
                 ${CMAKE_BINARY_DIR}/modules/curl/include
-                )
-
-# ZLIB PATHS
-SET(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib)
-SET(ZLIB_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib/libz.a)             
+                )       
 
 # MBEDTLS
 SET(ENABLE_ZLIB_SUPPORT ON CACHE BOOL "")
@@ -43,7 +43,7 @@ ExternalProject_Add(
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib/
   UPDATE_COMMAND ""
   INSTALL_COMMAND ""
-  BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib
+  BINARY_DIR ${ZLIB_INCLUDE_DIR}
   BUILD_ALWAYS ON
   CMAKE_CACHE_ARGS         "-DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}"
                            "-DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}"
@@ -55,10 +55,10 @@ ExternalProject_Add(
   BUILD_ALWAYS ON
 )
 add_custom_command(TARGET zlib_lib POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib/*.h ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib
+    COMMAND ${CMAKE_COMMAND} -E copy ${ZLIB_INCLUDE_DIR}/*.h ${ZLIB_INCLUDE_DIR}
 )
 add_library(zlib STATIC IMPORTED)
-set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/modules/zlib/libz.a)
+set_target_properties(zlib PROPERTIES IMPORTED_LOCATION ${ZLIB_LIBRARY})
 
 # LIBZIP
 ExternalProject_Add(
@@ -104,12 +104,12 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lzip/)
 add_dependencies(lua_zip zip)
 
 # LIBCURL
-set(CURL_LIB_CPPFLAGS "-I${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/include -I${CMAKE_CURRENT_BINARY_DIR}/modules/zlib -I${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib")
+set(CURL_LIB_CPPFLAGS "-I${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/include -I${ZLIB_INCLUDE_DIR}")
 set(CURL_LIB_LDFLAGS "-L${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library")
 ExternalProject_Add(
   curl_lib
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/
-  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/configure "CFLAGS=-Os -s -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto" CPPFLAGS=${CURL_LIB_CPPFLAGS} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} LD=${CMAKE_LINKER} AR=${CMAKE_AR} RANLIB=${CMAKE_RANLIB} LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/modules/zlib LDFLAGS=${CURL_LIB_LDFLAGS}
+  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/configure "CFLAGS=-Os -s -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto" CPPFLAGS=${CURL_LIB_CPPFLAGS} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} LD=${CMAKE_LINKER} AR=${CMAKE_AR} RANLIB=${CMAKE_RANLIB} LD_LIBRARY_PATH=${ZLIB_INCLUDE_DIR} LDFLAGS=${CURL_LIB_LDFLAGS}
                     --prefix=${CMAKE_BINARY_DIR}/modules/curl/
                     --without-ssl
                     --with-mbedtls=${CMAKE_BINARY_DIR}/modules/mbedtls
@@ -148,7 +148,7 @@ ExternalProject_Add(
                     --disable-libcurl-option
                     --without-nghttp2
                     --without-zlib
-                    --with-zlib=${CMAKE_CURRENT_SOURCE_DIR}/modules/zlib
+                    --with-zlib=${ZLIB_INCLUDE_DIR}
                     --host=${CURL_HOST}
                     --disable-smb
                     --disable-mqtt
