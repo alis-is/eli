@@ -34,6 +34,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-pipe-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-proc-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-os-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-env-extra/)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-tar/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lcurl/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lzlib/)
 
@@ -179,7 +180,7 @@ endif()
 # 1. eli interpreter
 link_directories (${LUA_BINARY_DIR})
 add_executable (eli lua/src/onelua.c)
-target_link_libraries (eli lis_tty lcurl lua_zip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlib "-static") 
+target_link_libraries (eli lis_tty lcurl lua_zip eli_tar eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlib "-static") 
 set_target_properties(eli PROPERTIES OUTPUT_NAME "eli") 
 
 if(UNIX)
@@ -189,7 +190,7 @@ endif()
 # 2. eli compiler
 link_directories (${LUA_BINARY_DIR})
 add_executable (elic lua/src/onelua.c)
-target_link_libraries (elic lis_tty lcurl lua_zip eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlib "-static") 
+target_link_libraries (elic lis_tty lcurl lua_zip eli_tar eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_extra_utils eli_os_extra eli_env_extra curl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlib "-static") 
 set_target_properties(elic PROPERTIES OUTPUT_NAME "elic") 
 
 if(UNIX)

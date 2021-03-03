@@ -11,6 +11,7 @@
       eli_pipe_extra: "eli.pipe.extra"
       eli_stream_extra: "eli.stream.extra"
       eli_os_extra: "eli.os.extra"
+      eli_tar: "eli.tar"
       lzip: lzip
       zlib: lzlib
       lcurl: lcurl
@@ -111,6 +112,13 @@
          repository: cryon-io/eli-env-extra
          version: 0.1.0
          destination: modules/eli-env-extra
+         omitRoot: true
+      },
+      {
+         id: eli_tar
+         repository: cryon-io/eli-tar
+         version: 0.0.1
+         destination: modules/eli-tar
          omitRoot: true
       },
       {
