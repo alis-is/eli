@@ -13,7 +13,7 @@
       eli_os_extra: "eli.os.extra"
       ltar: "ltar"
       lzip: lzip
-      zlib: lzlib
+      zlib: lz
       lcurl: lcurl
       lcurl_safe: lcurl.safe
       is_tty: is_tty
