@@ -11,7 +11,7 @@
       eli_pipe_extra: "eli.pipe.extra"
       eli_stream_extra: "eli.stream.extra"
       eli_os_extra: "eli.os.extra"
-      ltar: "tar"
+      ltar: "ltar"
       lzip: lzip
       zlib: lzlib
       lcurl: lcurl

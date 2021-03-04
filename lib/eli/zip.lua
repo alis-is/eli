@@ -147,6 +147,10 @@ local function extract(source, destination, options)
    zipArch:close()
 end
 
+local function extract_tar_gz(source, file, destination, options)
+
+end
+
 local function extract_file(source, file, destination, options)
    if type(destination) == "table" and options == nil then
       options = destination
@@ -154,7 +158,7 @@ local function extract_file(source, file, destination, options)
    end
 
    if fs.EFS then
-      assert(fs.file_type(destination) ~= "directory", "Destination is a directory: " .. destination)
+      assert(fs.file_type(destination) ~= "directory", "Destination is not a directory: " .. destination)
    end
 
    local mkdirp = fs.EFS and fs.mkdirp
