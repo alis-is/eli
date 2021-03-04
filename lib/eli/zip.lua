@@ -148,7 +148,26 @@ local function extract(source, destination, options)
 end
 
 local function extract_tar_gz(source, file, destination, options)
+   local lz = require"lz"
 
+   local f = io.open"allparts.gz"
+   local dest = io.tmpfile()
+   
+   local inflate = lz.inflate()
+   local shift = 0
+   while true do
+      x = f:read(4096) -- we read in 4K chunks
+      if not x then break end
+      local inflated, eof, bytes_in, bytes_out = inflate(x)
+      if eof then -- we got end of gzip stream we return to bytes_in pos in case there are multiple stream embedded
+         f:seek("set", shift + bytes_in)
+         shift = shift + bytes_in
+         inflate = lz.inflate()
+         dest:write(inflated)
+      end
+   end
+   dest:seek("set")
+   print(dest:read("a"))
 end
 
 local function extract_file(source, file, destination, options)
