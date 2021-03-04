@@ -34,7 +34,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-pipe-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-proc-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-os-extra/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-env-extra/)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-tar/)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/tar/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lcurl/)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/lzlib/)
 

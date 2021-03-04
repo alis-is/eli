@@ -11,7 +11,7 @@
       eli_pipe_extra: "eli.pipe.extra"
       eli_stream_extra: "eli.stream.extra"
       eli_os_extra: "eli.os.extra"
-      eli_tar: "eli.tar"
+      ltar: "tar"
       lzip: lzip
       zlib: lzlib
       lcurl: lcurl
@@ -115,10 +115,10 @@
          omitRoot: true
       },
       {
-         id: eli_tar
-         repository: cryon-io/eli-tar
+         id: lua_tar_extract_native
+         repository: cryon-io/lua-tar-extract-native
          version: 0.0.1
-         destination: modules/eli-tar
+         destination: modules/tar
          omitRoot: true
       },
       {
