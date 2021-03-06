@@ -100,7 +100,7 @@ end
 local function _extract_file(source, file, destination, options)
    if type(destination) == "table" and options == nil then
       options = destination
-      destination = _path.dir(file)
+      destination = file
    end
    if type(options) ~= "table" then
       options = {}
@@ -110,6 +110,10 @@ local function _extract_file(source, file, destination, options)
       return path == file
    end
 
+   _options.transform_path = function (path)
+      return path == file and destination or path
+   end
+   destination = _path.dir(destination)
    return _extract(source, destination, options)
 end
 
