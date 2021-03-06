@@ -113,8 +113,7 @@ local function _extract_file(source, file, destination, options)
    _options.transform_path = function (path)
       return path == file and destination or path
    end
-   destination = _path.dir(destination)
-   return _extract(source, destination, options)
+   return _extract(source, _path.dir(destination), options)
 end
 
 return {

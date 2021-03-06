@@ -120,8 +120,7 @@ local function extract_file(source, file, destination, options)
    _options.transform_path = function (path)
       return path == file and destination or path
    end
-   destination = _path.dir(destination)
-   return extract(source, destination, options)
+   return extract(source, _path.dir(destination), options)
 end
 
 local function extract_string(source, file, options)
