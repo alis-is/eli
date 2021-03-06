@@ -1,5 +1,5 @@
 local _fs = require "eli.fs"
-local _tar = require "tar"
+local _tar = require "ltar"
 local _path = require "eli.path"
 local _tableExt = require "eli.extensions.table"
 local _internalUtil = require "eli.internals.util"
