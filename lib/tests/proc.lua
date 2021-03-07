@@ -126,7 +126,7 @@ _test["spawn (stdio=ignore stdin)"] = function()
 end
 
 _test["spawn (file as stdin)"] = function()
-    local _stdinFile = io.open("test.script", "r");
+    local _stdinFile = io.open("assets/test.script", "r");
     local _result = _eliProc.spawn("sh", {}, {wait = true, stdio = { stdin = _stdinFile }})
     _test.assert(_result.exitcode == 0 and _result.stdoutStream:read("a") == "13354\n")
 end
@@ -135,7 +135,7 @@ _test["spawn (stdin/stdout/stderr as path)"] = function()
     local _result = _eliProc.spawn("sh", {}, {
         wait = true,
         stdio = {
-            stdin = "test.script",
+            stdin = "assets/test.script",
             stdout = "tmp/stdout.log",
             stderr = "tmp/stderr.log"
         }
