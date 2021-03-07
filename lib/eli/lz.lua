@@ -21,7 +21,7 @@ local function _extract(source, destination, options)
     local _df = _open_file(destination, "w")
     assert(_df, "lz: Failed to open destination file " .. tostring(source) .. "!")
 
-    local _chunkSize = type(options.chunkSize) ~= "number" and options.chunkSize or 2 ^ 13 -- 8K
+    local _chunkSize = type(options.chunkSize) == "number" and options.chunkSize or 2 ^ 13 -- 8K
 
     local inflate = _zlib.inflate()
     local shift = 0
