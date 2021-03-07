@@ -70,7 +70,7 @@ local function _extract(source, destination, options)
       local _targetPath = _path.filename(_entryPath)
       if type(_transform_path) == "function" then -- if supplied transform with transform functions
          _targetPath = _transform_path(_entryPath:sub(_il), destination)
-      elseif type(_mkdirp) == "function" then --mkdir supported we can use path as is :)
+      elseif type(_mkdirp) == "function" and type(destination) == "string" then --mkdir supported we can use path as is :)
          _targetPath = _path.combine(destination, _entryPath:sub(_il))
       end
 
