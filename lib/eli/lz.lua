@@ -47,9 +47,9 @@ local function _extract_from_string(data)
     if type(data) ~= "string" then
         error("lz: Unsupported compressed data type: " .. type(data) .. "!")
     end
-    local shift = 0
+    local shift = 1
     local result = ""
-    while (shift ~= #data) do
+    while (shift < #data) do
         local inflate = lz.inflate()
         local inflated, eof, bytes_in, _ = inflate(data:sub(shift))
         assert(eof, "lz: Compressed stream is not complete!")
