@@ -1,4 +1,4 @@
-local lz = require "lz"
+local _zlib = require "zlib"
 local _util = require "eli.util"
 
 local function _extract(source, destination, options)
@@ -23,7 +23,7 @@ local function _extract(source, destination, options)
 
     local _chunkSize = type(options.chunkSize) ~= "number" and options.chunkSize or 2 ^ 13 -- 8K
 
-    local inflate = lz.inflate()
+    local inflate = _zlib.inflate()
     local shift = 0
     while true do
         local _data = _sf:read(_chunkSize)
@@ -34,7 +34,7 @@ local function _extract(source, destination, options)
         if eof then -- we got end of gzip stream we return to bytes_in pos in case there are multiple stream embedded
             _sf:seek("set", shift + bytes_in)
             shift = shift + bytes_in
-            inflate = lz.inflate()
+            inflate = _zlib.inflate()
             _write(_df, inflated)
         end
     end
@@ -50,7 +50,7 @@ local function _extract_from_string(data)
     local shift = 1
     local result = ""
     while (shift < #data) do
-        local inflate = lz.inflate()
+        local inflate = _zlib.inflate()
         local inflated, eof, bytes_in, _ = inflate(data:sub(shift))
         assert(eof, "lz: Compressed stream is not complete!")
         shift = shift + bytes_in
