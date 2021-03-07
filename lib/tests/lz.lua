@@ -24,7 +24,7 @@ end
 ]]
 _test["extract"] = function()
     _eliFs.remove("tmp/test.tar")
-    local _ok, _error = _eliLz.safe_extract("assets/test.tar.gz", "tmp")
+    local _ok, _error = _eliLz.safe_extract("assets/test.tar.gz", "tmp/test.tar")
     _test.assert(_ok, _error)
     local _ok, _hash = _eliFs.safe_hash_file("tmp/test.tar", {hex = true})
     _test.assert(_ok, _hash)
