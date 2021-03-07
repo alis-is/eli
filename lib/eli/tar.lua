@@ -1,19 +1,15 @@
 local _fs = require "eli.fs"
 local _tar = require "ltar"
 local _path = require "eli.path"
-local _tableExt = require "eli.extensions.table"
 local _internalUtil = require "eli.internals.util"
 local _util = require "eli.util"
 
 local function _get_root_dir(entries)
-   return _internalUtil.get_root_dir(
-      _tableExt.map(
-         entries,
-         function(entry)
-            return entry:path()
-         end
-      )
-   )
+   local _paths = {}
+   for _, _entry in ipairs(entries) do
+      table.insert(_paths, _entry:path())
+   end
+   return _internalUtil.get_root_dir(_paths)
 end
 
 local function _extract(source, destination, options)

@@ -2,26 +2,16 @@ local fs = require "eli.fs"
 local zip = require "lzip"
 local _path = require "eli.path"
 local _util = require "eli.util"
-
-local _tableExt = require "eli.extensions.table"
 local _internalUtil = require "eli.internals.util"
 
-local function get_root_dir(zipArch)
+local function _get_root_dir(zipArch)
    -- check whether we have all files in same dir
-   local _entries = {}
+   local _paths = {}
    for i = 1, #zipArch do
-      local stat = zipArch:stat(i)
-      table.insert(_entries, stat)
+      local _stat = zipArch:stat(i)
+      table.insert(_paths, _stat.name)
    end
-
-   return _internalUtil.get_root_dir(
-      _tableExt.map(
-         _entries,
-         function(entry)
-            return entry.name
-         end
-      )
-   )
+   return _internalUtil.get_root_dir(_paths)
 end
 
 local function extract(source, destination, options)
@@ -60,7 +50,7 @@ local function extract(source, destination, options)
    local zipArch, err = zip.open(source, _openFlags)
    assert(zipArch ~= nil, err)
 
-   local ignorePath = flattenRootDir and get_root_dir(zipArch) or ""
+   local ignorePath = flattenRootDir and _get_root_dir(zipArch) or ""
    local il = #ignorePath + 1 -- ignore length
 
    for i = 1, #zipArch do
@@ -182,7 +172,7 @@ local function get_files(source, options)
    local zipArch, err = zip.open(source, _openFlags)
    assert(zipArch ~= nil, err)
 
-   local ignorePath = flattenRootDir and get_root_dir(zipArch) or ""
+   local ignorePath = flattenRootDir and _get_root_dir(zipArch) or ""
    local il = #ignorePath + 1 -- ignore length
 
    local files = {}
