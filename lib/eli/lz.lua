@@ -23,19 +23,21 @@ local function _extract(source, destination, options)
 
     local _chunkSize = type(options.chunkSize) == "number" and options.chunkSize or 2 ^ 13 -- 8K
 
-    local inflate = _zlib.inflate()
-    local shift = 0
+    local _inflate = _zlib.inflate()
+    local _shift = 0
     while true do
         local _data = _sf:read(_chunkSize)
         if not _data then
             break
         end
-        local inflated, eof, bytes_in, _ = inflate(_data)
+        local _inflated, eof, bytes_in, _ = _inflate(_data)
+        if type(_inflated) == "string" then
+            _write(_df, _inflated)
+        end
         if eof then -- we got end of gzip stream we return to bytes_in pos in case there are multiple stream embedded
-            _sf:seek("set", shift + bytes_in)
-            shift = shift + bytes_in
-            inflate = _zlib.inflate()
-            _write(_df, inflated)
+            _sf:seek("set", _shift + bytes_in)
+            _shift = _shift + bytes_in
+            _inflate = _zlib.inflate()
         end
     end
     _sf:close()
