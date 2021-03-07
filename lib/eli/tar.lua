@@ -3,6 +3,7 @@ local _tar = require "ltar"
 local _path = require "eli.path"
 local _tableExt = require "eli.extensions.table"
 local _internalUtil = require "eli.internals.util"
+local _util = require "eli.util"
 
 local function _get_root_dir(entries)
    return _internalUtil.get_root_dir(
@@ -16,27 +17,38 @@ local function _get_root_dir(entries)
 end
 
 local function _extract(source, destination, options)
-   if _fs.EFS then
-      assert(_fs.file_type(destination) == "directory", "Destination not found or is not a directory: " .. destination)
-   end
-
-   local _mkdirp = _fs.EFS and _fs.mkdirp or function()
-      end
-   local _chmod = _fs.EFS and _fs.chmod or function()
-      end
-
    if type(options) ~= "table" then
       options = {}
    end
-   local _flattenRootDir = options.flattenRootDir or false
-   local _transform_path = options.transform_path or nil
-   local _externalChmod = type(options.chmod) == "function"
-   _chmod = type(options.chmod) == "function" and options.chmod or _chmod
-   _mkdirp = type(options.mkdirp) == "function" and options.mkdirp or _mkdirp
-   local _filter = type(options.filter) == "function" and options.filter or function()
-      return true
+
+   if _fs.EFS and not options.skipDestinationCheck then
+      assert(_fs.file_type(destination) == "directory", "Destination not found or is not a directory: " .. destination)
    end
-   local _chunkSize = options.chunkSize or 2 ^ 13 -- 8K
+
+   local _flattenRootDir = options.flattenRootDir or false
+   local _externalChmod = type(options.chmod) == "function"
+   -- optional functions
+   local _mkdirp = _fs.EFS and _fs.mkdirp or function()
+      end
+   _mkdirp = type(options.mkdirp) == "function" and options.mkdirp or _mkdirp
+   local _chmod = _fs.EFS and _fs.chmod or function()
+      end
+   _chmod = type(options.chmod) == "function" and options.chmod or _chmod
+
+   local _transform_path = type(options.transform_path) == "function" and options.transform_path
+   local _filter = type(options.filter) == "function" and options.filter or function()
+         return true
+      end
+   local _open_file = type(options.open_file) == "function" and options.open_file or function(path, mode)
+         return io.open(path, mode)
+      end
+   local _write = type(options.write) == "function" and options.write or function(file, data)
+         return file:write(data)
+      end
+   local _close_file = type(options.close_file) == "function" and options.close_file or function(file)
+         return file:close()
+      end
+   local _chunkSize = type(options.chunkSize) ~= "number" and options.chunkSize or 2 ^ 13 -- 8K
 
    local _tarEntries = _tar.open(source)
    assert(_tarEntries, "lz: Failed to open source file " .. tostring(source) .. "!")
@@ -68,7 +80,7 @@ local function _extract(source, destination, options)
       else
          _mkdirp(_path.dir(_targetPath))
 
-         local _f, _error = io.open(_targetPath, "w+b")
+         local _f, _error = _open_file(_targetPath, "w+b")
          assert(_f, "Failed to open file: " .. _targetPath .. " because of: " .. (_error or ""))
 
          while true do
@@ -76,9 +88,9 @@ local function _extract(source, destination, options)
             if _chunk == nil then
                break
             end
-            _f:write(_chunk)
+            _write(_f, _chunk)
          end
-         _f:close()
+         _close_file(_f)
 
          local _mode = _entry:mode()
          if _externalChmod then -- we got supplied chmod
@@ -102,21 +114,54 @@ local function _extract_file(source, file, destination, options)
       options = destination
       destination = file
    end
-   if type(options) ~= "table" then
-      options = {}
-   end
-   local _options = options
-   _options.filter = function(path)
-      return path == file
-   end
+   local _options =
+      _util.merge_tables(
+      type(options) == "table" and options or {},
+      {
+         transform_path = function(path)
+            return path == file and destination or path
+         end,
+         filter = function(path)
+            return path == file
+         end
+      },
+      true
+   )
+   return _extract(source, _path.dir(destination), _options)
+end
 
-   _options.transform_path = function (path)
-      return path == file and destination or path
-   end
-   return _extract(source, _path.dir(destination), options)
+local function _extract_string(source, file, options)
+   local _result = ""
+   local _options =
+      _util.merge_tables(
+      type(options) == "table" and options or {},
+      {
+         open_file = function()
+            return _result
+         end,
+         write = function(_, data)
+            _result = _result .. data
+         end,
+         close_file = function()
+         end,
+         skipDestinationCheck = true, -- no destination dir
+         filter = function(path)
+            return path == file
+         end,
+         mkdirp = function()
+         end, -- we do not want to create
+         chmod = function()
+         end
+      },
+      true
+   )
+
+   _extract(source, nil, _options)
+   return _result
 end
 
 return {
    extract = _extract,
-   extract_file = _extract_file
+   extract_file = _extract_file,
+   extract_string = _extract_string
 }
