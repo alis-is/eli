@@ -51,6 +51,6 @@ _test["extract_string"] = function ()
     _test.assert(_hash == _hash2, "hashes dont match")
 end
 
-if not TEST then 
+if not TEST then
     _test.summary()
 end

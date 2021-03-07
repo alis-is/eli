@@ -160,8 +160,8 @@ local function _extract_string(source, file, options)
    return _result
 end
 
-return {
+return _util.generate_safe_functions({
    extract = _extract,
    extract_file = _extract_file,
    extract_string = _extract_string
-}
+})
