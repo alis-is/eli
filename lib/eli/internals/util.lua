@@ -10,16 +10,15 @@ local function _get_root_dir(paths)
             table.insert(_rootDirSegments, _segment)
          end
       else
-         if not string.find(_path, "(.-)" .. _separator) then
-            return "" -- found file in root, no usable root dir
-         end
-         local j = 1
+         local j = 0
          for _segment in string.gmatch(_path, "(.-)" .. _separator) do
-            if _segment ~= _rootDirSegments[j] then
-               _rootDirSegments = table.move(_rootDirSegments, 1, j - 1, 1, {})
+            if _segment ~= _rootDirSegments[j + 1] then
                break
             end
             j = j + 1
+         end
+         if j < #_rootDirSegments then
+            _rootDirSegments = table.move(_rootDirSegments, 1, j, 1, {})
          end
       end
 
@@ -27,7 +26,7 @@ local function _get_root_dir(paths)
          break
       end
    end
-   local _rootDir = _join("/", table.unpack(_rootDirSegments))
+   local _rootDir = _join(package.config:sub(1,1), table.unpack(_rootDirSegments))
    if type(_rootDir) == "string" and #_rootDir > 0 and _rootDir:sub(#_rootDir, #_rootDir) ~= _separator then
       _rootDir = _rootDir .. _separator
    end
