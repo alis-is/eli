@@ -15,6 +15,8 @@ require"elios"
 require"extensions.string"
 require"extensions.table"
 
+require"internals.util"
+
 --[[
     NOTE:
     elify tests has to be run at last
