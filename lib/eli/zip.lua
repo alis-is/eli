@@ -14,6 +14,34 @@ local function _get_root_dir(zipArch)
    return _internalUtil.get_root_dir(_paths)
 end
 
+---@class ExtractOptions
+---#DES 'ExtractOptions.skipDestinationCheck'
+---@field skipDestinationCheck nil|boolean
+---#DES 'ExtractOptions.flattenRootDir'
+---@field flattenRootDir nil|boolean
+---#DES 'ExtractOptions.chmod'
+---@field chmod nil|fun(path: string, attributes: integer)
+---#DES 'ExtractOptions.openFlags'
+---@field openFlags nil|integer
+---#DES 'ExtractOptions.mkdirp'
+---@field mkdirp nil|fun(path: string)
+---#DES 'ExtractOptions.transform_path'
+---@field transform_path nil|fun(path: string): string
+---#DES 'ExtractOptions.filter'
+---@field filter nil|fun(name: string): boolean
+---#DES 'ExtractOptions.open_file'
+---@field open_file nil|fun(path: string, mode: string): file*
+---#DES 'ExtractOptions.write'
+---@field write nil|fun(path: string, data: string)
+---#DES 'ExtractOptions.close_file'
+---@field close_file nil|fun(f: file*)
+
+---#DES 'zip.extract'
+---
+---Extracts data from source into destination folder
+---@param source string
+---@param destination string
+---@param options ExtractOptions
 local function extract(source, destination, options)
    if type(options) ~= "table" then
       options = {}
@@ -26,23 +54,34 @@ local function extract(source, destination, options)
    local _externalChmod = type(options.chmod) == "function"
    local _openFlags = type(options.openFlags) == "number" and options.openFlags or zip.CHECKCONS
    -- optional functions
+
+   ---@type fun(path: string)
    local _mkdirp = fs.EFS and fs.mkdirp or function()
       end
    _mkdirp = type(options.mkdirp) == "function" and options.mkdirp or _mkdirp
+
+   ---@type fun(path: string, attributes: integer)
    local _chmod = fs.EFS and fs.chmod or function()
       end
    _chmod = type(options.chmod) == "function" and options.chmod or _chmod
 
+   ---@type fun(path: string): string
    local _transform_path = type(options.transform_path) == "function" and options.transform_path
+
+   ---@type fun(name: string): boolean
    local _filter = type(options.filter) == "function" and options.filter or function()
          return true
       end
+
+   ---@type fun(path: string, mode: string): file*
    local _open_file = type(options.open_file) == "function" and options.open_file or function(path, mode)
          return io.open(path, mode)
       end
+   ---@type fun(path: string, data: string)
    local _write = type(options.write) == "function" and options.write or function(file, data)
          return file:write(data)
       end
+   ---@type fun(f: file*)
    local _close_file = type(options.close_file) == "function" and options.close_file or function(file)
          return file:close()
       end
@@ -108,6 +147,13 @@ local function extract(source, destination, options)
    zipArch:close()
 end
 
+---#DES 'zip.extract_file'
+---
+---Extracts single file from source archive into destination
+---@param source string
+---@param file string
+---@param destination string
+---@param options ExtractOptions
 local function extract_file(source, file, destination, options)
    if type(destination) == "table" and options == nil then
       options = destination
@@ -131,6 +177,13 @@ local function extract_file(source, file, destination, options)
    return extract(source, _path.dir(destination), _options)
 end
 
+---#DES 'zip.extract_string'
+---
+---Extracts single file from source archive into string
+---@param source string
+---@param file string
+---@param options ExtractOptions
+---@return string
 local function extract_string(source, file, options)
    local _result = ""
    local _options =
@@ -161,6 +214,22 @@ local function extract_string(source, file, options)
    return _result
 end
 
+---@class GetFilesOptions
+---#DES 'GetFilesOptions.flattenRootDir'
+---@field flattenRootDir nil|boolean
+---#DES 'GetFilesOptions.chmod'
+---@field chmod nil|fun(path: string, attributes: integer)
+---#DES 'GetFilesOptions.transform_path'
+---@field transform_path nil|fun(path: string): string
+---#DES 'GetFilesOptions.openFlags'
+---@field openFlags nil|integer
+
+---#DES 'zip.extract_string'
+---
+---Extracts single file from source archive into string
+---@param source string
+---@param options GetFilesOptions
+---@return string[]
 local function get_files(source, options)
    if type(options) ~= "table" then
       options = {}
@@ -195,6 +264,13 @@ local function get_files(source, options)
 end
 
 -- content is either file path or string
+---#DES 'zip.add_to_archive'
+---
+---Opens zip archive and returns it
+---@param archive userdata
+---@param path string
+---@param type '"file"' | '"string"' | '"directory"'
+---@param content string
 local function _add_to_archive(archive, path, type, content)
    if type == "directory" then
       archive:add_dir(path)
@@ -207,6 +283,12 @@ local function _add_to_archive(archive, path, type, content)
    end
 end
 
+---#DES 'zip.open_archive'
+---
+---Opens zip archive and returns it
+---@param path string
+---@param checkcons boolean
+---@return userdata
 local function _open_archive(path, checkcons)
    local _result, _error
    if checkcons then
@@ -217,12 +299,31 @@ local function _open_archive(path, checkcons)
    assert(_result, _error)
 end
 
+---#DES 'zip.new_archive'
+---
+---Creates zip archive file and returns it
+---@param path string
+---@return userdata
 local function _new_archive(path)
    local _result, _error = zip.open(path, zip.OR(zip.CREATE, zip.EXCL))
    assert(_result, _error)
    return _result
 end
 
+---@class CompressOptions
+---#DES 'CompressOptions.overwrite'
+---@field overwrite nil|boolean
+---#DES 'CompressOptions.preserveFullPath'
+---@field preserveFullPath nil|boolean
+---#DES 'CompressOptions.recurse'
+---@field recurse nil|boolean
+
+---#DES 'zip.compress'
+---
+---Copresses directory into zip archive
+---@param source string
+---@param target string
+---@param options CompressOptions
 local function _compress(source, target, options)
    if type(options) ~= "table" then
       options = {}

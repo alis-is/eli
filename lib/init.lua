@@ -50,10 +50,24 @@ local function eli_init()
       end
       APP_ROOT = path.dir(APP_ROOT_SCRIPT)
    end
-   ELI_LIB_VERSION = "0.13.0"
+   ELI_LIB_VERSION = "0.14.0"
+
+   local _elify = true
+   for i, v in ipairs(arg) do
+      if v == "--lua-env" then
+         _elify = false
+         table.remove(arg, i)
+         break
+      end
+   end
+   if _elify then
+      require("eli.elify").elify()
+   else -- if not elified initial we make elify global
+      elify = require("eli.elify").elify
+   end
 end
+
 
 eli_init()
 -- cleanup init
 eli_init = nil
-elify = require("eli.elify").elify
