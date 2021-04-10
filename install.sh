@@ -4,7 +4,8 @@ LATEST=$(curl -sL https://api.github.com/repos/cryon-io/eli/releases/latest | gr
 
 TMP_NAME="/tmp/$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"
 
-wget "https://github.com/cryon-io/eli/releases/download/$LATEST/eli-unix-$(uname -p)" -O "$TMP_NAME" &&
+PLATFORM=$(uname -m)
+wget "https://github.com/cryon-io/eli/releases/download/$LATEST/eli-unix-$PLATFORM" -O "$TMP_NAME" &&
     mv "$TMP_NAME" /usr/sbin/eli &&
     chmod +x /usr/sbin/eli &&
-    echo "eli $LATEST for $(uname -p) successfuly installed."
+    echo "eli $LATEST for $PLATFORM successfuly installed."
