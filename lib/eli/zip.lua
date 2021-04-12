@@ -14,7 +14,7 @@ local function _get_root_dir(zipArch)
    return _internalUtil.get_root_dir(_paths)
 end
 
----@class ExtractOptions
+---@class ZipExtractOptions
 ---#DES 'ExtractOptions.skipDestinationCheck'
 ---@field skipDestinationCheck nil|boolean
 ---#DES 'ExtractOptions.flattenRootDir'
@@ -41,7 +41,7 @@ end
 ---Extracts data from source into destination folder
 ---@param source string
 ---@param destination string
----@param options ExtractOptions
+---@param options ZipExtractOptions
 local function extract(source, destination, options)
    if type(options) ~= "table" then
       options = {}
@@ -153,7 +153,7 @@ end
 ---@param source string
 ---@param file string
 ---@param destination string
----@param options ExtractOptions
+---@param options ZipExtractOptions
 local function extract_file(source, file, destination, options)
    if type(destination) == "table" and options == nil then
       options = destination
@@ -182,7 +182,7 @@ end
 ---Extracts single file from source archive into string
 ---@param source string
 ---@param file string
----@param options ExtractOptions
+---@param options ZipExtractOptions
 ---@return string
 local function extract_string(source, file, options)
    local _result = ""

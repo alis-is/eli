@@ -21,27 +21,49 @@ local function _generate_meta(libPath)
     if not _ok then return "" end
 
     for _, _field in ipairs(_fields) do
+
         local _toMatch = "---[ ]?#DES '" .. _libName .. "." .. _field ..
                              "'.-\n%s*"
-        local _docsStartPos, _docsEndPos = _code:find(_toMatch)
+        local _fieldType = type(_lib[_field])
+        local _isSafeFn = false
+        if _fieldType == "function" and _field:find("safe_") == 1 then
+            _isSafeFn = true
 
+            _toMatch = "---[ ]?#DES '" .. _libName .. "." ..
+                           _field:match("safe_(.*)") .. "'.-\n%s*"
+        end
+
+        local _subDocs = ""
+        local _docsStartPos, _docsEndPos = _code:find(_toMatch)
         if _docsStartPos == nil then goto continue end
         while true do
             local _start, _end = _code:find("---.-\n", _docsEndPos)
             if _start == nil or _start ~= _docsEndPos + 1 then break end
             _docsEndPos = _end
         end
-        _generatedDoc = _generatedDoc .. _code:sub(_docsStartPos, _docsEndPos)
+        _subDocs = _subDocs .. _code:sub(_docsStartPos, _docsEndPos)
 
-        local _fieldType = type(_lib[_field])
         if _fieldType == "function" then
+            if _isSafeFn then
+                _subDocs = _subDocs:gsub(
+                               "#DES '" .. _libName .. "%." ..
+                                   _field:match("safe_(.*)") .. "'",
+                               _libName .. "." .. _field)
+                if _subDocs:find("---[ ]?@return") then
+                    _subDocs = _subDocs:gsub("---[ ]?@return",
+                                             "---@return boolean,")
+                else
+                    _subDocs = _subDocs .. "---@return boolean\n"
+                end
+            end
             local _params = _code:match("function.-%((.-)%)", _docsEndPos)
-            _generatedDoc = _generatedDoc .. "function " .. _libName .. "." ..
-                                _field .. "(" .. _params .. ") end\n"
+            _subDocs = _subDocs .. "function " .. _libName .. "." .. _field ..
+                           "(" .. _params .. ") end\n"
         else
 
         end
-        _generatedDoc = _generatedDoc .. "\n"
+
+        _generatedDoc = _generatedDoc .. _subDocs .. "\n"
         ::continue::
     end
     return _generatedDoc
