@@ -1,10 +1,22 @@
 local _zlib = require "zlib"
 local _util = require "eli.util"
 
----comment
+---@class LzExtractOptions
+---#DES 'ExtractOptions.chunkSize'
+---@field chunkSize nil|integer
+---#DES 'ExtractOptions.open_file'
+---@field open_file nil|fun(path: string, mode: string): file*
+---#DES 'ExtractOptions.write'
+---@field write nil|fun(path: string, data: string)
+---#DES 'ExtractOptions.close_file'
+---@field close_file nil|fun(f: file*)
+
+---#DES 'lz.extract'
+---
+---Extracts z compressed stream from source into destination
 ---@param source string
 ---@param destination string
----@param options ZipExtractOptions
+---@param options LzExtractOptions
 local function _extract(source, destination, options)
     local _sf = io.open(source)
     assert(_sf, "lz: Failed to open source file " .. tostring(source) .. "!")
@@ -45,7 +57,11 @@ local function _extract(source, destination, options)
     _close_file(_df)
 end
 
--- decodes entries stream (requires gz stream to be complete)
+---#DES 'lz.extract_from_string'
+---
+---Extracts z compressed stream from binary like string variable
+---@param data string
+---@return string
 local function _extract_from_string(data)
     if type(data) ~= "string" then
         error("lz: Unsupported compressed data type: " .. type(data) .. "!")
@@ -62,10 +78,11 @@ local function _extract_from_string(data)
     return result
 end
 
---- #DES lz.extract_string
+---#DES lz.extract_string
+---
 --- extracts string from z compressed archive from path source
 ---@param source string
----@param options any
+---@param options LzExtractOptions
 ---@return string
 local function _extract_string(source, options)
     local _result = ""

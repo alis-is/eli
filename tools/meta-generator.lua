@@ -18,20 +18,18 @@ local function _generate_meta(libPath)
     -- // TODO: merge from C modules ?
     if not _ok then return "" end
 
+    local _fnCache = {}
     for _, _field in ipairs(_fields) do
-
-        local _toMatch = "%-%-%-[ ]?#DES '" .. _libName .. "." .. _field ..
-                             "'.-\n%s*"
         local _fieldType = type(_lib[_field])
-        local _isSafeFn = false
         if _fieldType == "function" and _field:find("safe_") == 1 then
-            _isSafeFn = true
-
-            _toMatch = "---[ ]?#DES '" .. _libName .. "." ..
-                           _field:match("safe_(.*)") .. "'.-\n%s*"
+            goto continue
         end
 
+        local _toMatch = "%-%-%-[ ]?#DES '?" .. _libName .. "." .. _field ..
+                             "'?.-\n%s*"
+
         local _docsStartPos, _docsEndPos = _code:find(_toMatch)
+        if _libName == "lz" then print(_field, _toMatch) end
         if _docsStartPos == nil then goto continue end
         while true do
             local _start, _end = _code:find("%-%-%-.-\n", _docsEndPos)
@@ -41,19 +39,8 @@ local function _generate_meta(libPath)
         local _subDocs = _code:sub(_docsStartPos, _docsEndPos)
 
         if _fieldType == "function" then
-            if _isSafeFn then
-                _subDocs = _subDocs:gsub(
-                               "#DES '" .. _libName .. "%." ..
-                                   _field:match("safe_(.*)") .. "'",
-                               _libName .. "." .. _field)
-                if _subDocs:find("---[ ]?@return") then
-                    _subDocs = _subDocs:gsub("---[ ]?@return",
-                                             "---@return boolean,")
-                else
-                    _subDocs = _subDocs .. "---@return boolean\n"
-                end
-            end
             local _params = _code:match("function.-%((.-)%)", _docsEndPos)
+            _fnCache[_field] = {docs = _subDocs, params = _params}
             _subDocs = _subDocs .. "function " .. _libName .. "." .. _field ..
                            "(" .. _params .. ") end\n"
         else
@@ -64,11 +51,37 @@ local function _generate_meta(libPath)
         _generatedDoc = _generatedDoc .. _subDocs .. "\n"
         ::continue::
     end
+    -- collect safe functions
+    for _, _field in ipairs(_fields) do
+        local _fieldType = type(_lib[_field])
+        if _fieldType ~= "function" or _field:find("safe_") ~= 1 then
+            goto continue
+        end
+        local docs = _fnCache[_field:match("safe_(.*)")]
+
+        if docs == nil then goto continue end
+        local _subDocs = docs.docs;
+        _subDocs = _subDocs:gsub("#DES '?" .. _libName .. "%." ..
+                                     _field:match("safe_(.*)") .. "'?",
+                                 "#DES '" .. _libName .. "." .. _field .. "'")
+        if _subDocs:find("---[ ]?@return") then
+            _subDocs = _subDocs:gsub("---[ ]?@return", "---@return boolean,")
+        else
+            _subDocs = _subDocs .. "---@return boolean\n"
+        end
+        _subDocs =
+            _subDocs .. "function " .. _libName .. "." .. _field .. "(" ..
+                docs.params .. ") end\n"
+
+        _generatedDoc = _generatedDoc .. _subDocs .. "\n"
+        ::continue::
+    end
     -- collect classes 
     local _additionalDefinitions = ""
     local _addionalEnd = 0
     while true do
-        local _classStart, _classEnd = _code:find("%-%-%-[ ]?@class.-\n", _addionalEnd)
+        local _classStart, _classEnd = _code:find("%-%-%-[ ]?@class.-\n",
+                                                  _addionalEnd)
         if _classStart == nil then break end
 
         while true do
@@ -77,7 +90,8 @@ local function _generate_meta(libPath)
             _classEnd = _end
         end
 
-        _additionalDefinitions = _additionalDefinitions .. _code:sub(_classStart, _classEnd) .. "\n"
+        _additionalDefinitions = _additionalDefinitions ..
+                                     _code:sub(_classStart, _classEnd) .. "\n"
 
         _addionalEnd = _classEnd
     end
