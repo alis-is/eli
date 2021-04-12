@@ -130,10 +130,27 @@ local function _compare_version(v1, v2)
     return _compare_prerelase(v1.prerelease, v2.prerelease)
 end
 
+---#DES 'ver.parse_semver'
+---@deprecated
+---Parses version string and returns table with major, minor, path, prerelease 
+---and metadata values
+---@param ver string
+---@return table
+local function _parse_semver_old(...) _parse_semver(...) end
+
+---#DES 'ver.compare_version'
+---@deprecated
+---If the semver v1 is newer than v2, returns 1. If the semver v2 is newer than v1,
+---returns -1. If v1 equals v2, returns 0;
+---@param v1 string
+---@param v2 string
+---@return integer
+local function _compare_version_old(...) _compare_version(...) end
+
 return generate_safe_functions({
     -- deprecated
-    parse_semver = _parse_semver,
-    compare_version = _compare_version,
+    parse_semver = _parse_semver_old,
+    compare_version = _compare_version_old,
     -- new
     parse = _parse_semver,
     compare = _compare_version
