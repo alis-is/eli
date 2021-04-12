@@ -10,8 +10,6 @@ local function _generate_meta(libPath)
     for k, _ in pairs(_lib) do table.insert(_fields, k) end
     table.sort(_fields)
 
-    local _cache = {}
-
     local _generatedDoc = ""
     --- @type string
     local _ok, _code = fs.safe_read_file(
@@ -22,7 +20,7 @@ local function _generate_meta(libPath)
 
     for _, _field in ipairs(_fields) do
 
-        local _toMatch = "---[ ]?#DES '" .. _libName .. "." .. _field ..
+        local _toMatch = "%-%-%-[ ]?#DES '" .. _libName .. "." .. _field ..
                              "'.-\n%s*"
         local _fieldType = type(_lib[_field])
         local _isSafeFn = false
@@ -33,15 +31,14 @@ local function _generate_meta(libPath)
                            _field:match("safe_(.*)") .. "'.-\n%s*"
         end
 
-        local _subDocs = ""
         local _docsStartPos, _docsEndPos = _code:find(_toMatch)
         if _docsStartPos == nil then goto continue end
         while true do
-            local _start, _end = _code:find("---.-\n", _docsEndPos)
+            local _start, _end = _code:find("%-%-%-.-\n", _docsEndPos)
             if _start == nil or _start ~= _docsEndPos + 1 then break end
             _docsEndPos = _end
         end
-        _subDocs = _subDocs .. _code:sub(_docsStartPos, _docsEndPos)
+        local _subDocs = _code:sub(_docsStartPos, _docsEndPos)
 
         if _fieldType == "function" then
             if _isSafeFn then
@@ -63,10 +60,28 @@ local function _generate_meta(libPath)
 
         end
 
+        _code = _code:sub(0, _docsStartPos - 1) .. _code:sub(_docsEndPos + 1)
         _generatedDoc = _generatedDoc .. _subDocs .. "\n"
         ::continue::
     end
-    return _generatedDoc
+    -- collect classes 
+    local _additionalDefinitions = ""
+    local _addionalEnd = 0
+    while true do
+        local _classStart, _classEnd = _code:find("%-%-%-[ ]?@class.-\n", _addionalEnd)
+        if _classStart == nil then break end
+
+        while true do
+            local _start, _end = _code:find("%-%-%-.-\n", _classEnd)
+            if _start == nil or _start ~= _classEnd + 1 then break end
+            _classEnd = _end
+        end
+
+        _additionalDefinitions = _additionalDefinitions .. _code:sub(_classStart, _classEnd) .. "\n"
+
+        _addionalEnd = _classEnd
+    end
+    return _additionalDefinitions .. "\n" .. _generatedDoc
 end
 
 fs.mkdir(".meta")
