@@ -4,7 +4,17 @@ local _eenvLoaded, _eenv = pcall(require, "eli.env.extra")
 local _util = require"eli.util"
 
 local _env = {
+    ---#DES env.get_env
+    ---Returns the value of the process environment variable `varname`.
+    ---
+    ---[View documents](command:extension.lua.doc?["en-us/54/manual.html/pdf-os.getenv"])
+    ---
+    ---@param varname string
+    ---@return string
     get_env = _os.getenv,
+    ---#DES env.EENV
+    ---
+    ---@type boolean
     EENV = _eenvLoaded
 }
 

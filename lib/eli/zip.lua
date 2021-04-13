@@ -15,25 +15,25 @@ local function _get_root_dir(zipArch)
 end
 
 ---@class ZipExtractOptions
----#DES 'ExtractOptions.skipDestinationCheck'
+---#DES 'ZipExtractOptions.skipDestinationCheck'
 ---@field skipDestinationCheck nil|boolean
----#DES 'ExtractOptions.flattenRootDir'
+---#DES 'ZipExtractOptions.flattenRootDir'
 ---@field flattenRootDir nil|boolean
----#DES 'ExtractOptions.chmod'
+---#DES 'ZipExtractOptions.chmod'
 ---@field chmod nil|fun(path: string, attributes: integer)
----#DES 'ExtractOptions.openFlags'
+---#DES 'ZipExtractOptions.openFlags'
 ---@field openFlags nil|integer
----#DES 'ExtractOptions.mkdirp'
+---#DES 'ZipExtractOptions.mkdirp'
 ---@field mkdirp nil|fun(path: string)
----#DES 'ExtractOptions.transform_path'
+---#DES 'ZipExtractOptions.transform_path'
 ---@field transform_path nil|fun(path: string): string
----#DES 'ExtractOptions.filter'
+---#DES 'ZipExtractOptions.filter'
 ---@field filter nil|fun(name: string): boolean
----#DES 'ExtractOptions.open_file'
+---#DES 'ZipExtractOptions.open_file'
 ---@field open_file nil|fun(path: string, mode: string): file*
----#DES 'ExtractOptions.write'
+---#DES 'ZipExtractOptions.write'
 ---@field write nil|fun(path: string, data: string)
----#DES 'ExtractOptions.close_file'
+---#DES 'ZipExtractOptions.close_file'
 ---@field close_file nil|fun(f: file*)
 
 ---#DES 'zip.extract'
@@ -282,6 +282,8 @@ local function _add_to_archive(archive, path, type, content)
       error("Unsupported data type for compression...")
    end
 end
+
+-- // TODO: add zip archive class
 
 ---#DES 'zip.open_archive'
 ---

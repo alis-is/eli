@@ -95,14 +95,39 @@ local function _generate_safe_functions(fnTable)
    return _merge_tables(fnTable, res)
 end
 
+---comment
+---@param t table
+---@param prefix string|nil
+local function _internal_print_table_deep(t, prefix)
+   if type(t) ~= "table" then
+      return
+   end
+   if prefix == nil then prefix = "\t" end
+   for k, v in pairs(t) do
+      if type(v) == "table" then
+         print(k .. ":")
+         _internal_print_table_deep(v, prefix .. "\t")
+      else
+         print(prefix, k, v)
+      end
+   end
+end
+
 ---#DES 'util.print_table'
 ---@param t table
-local function _print_table(t)
+---@param deep boolean
+local function _print_table(t, deep)
    if type(t) ~= "table" then
       return
    end
    for k, v in pairs(t) do
-      print(k, v)
+      if deep and type(v) == "table" then
+         print(k .. ":")
+         _internal_print_table_deep(v)
+      else
+         print(k, v)
+      end
+
    end
 end
 
@@ -198,8 +223,10 @@ local function _internal_clone(v, cache, deep)
 end
 
 ---#DES 'util.clone'
----@param v any
+---@generic T
+---@param v T
 ---@param deep boolean
+---@return T
 local function _clone(v, deep)
    return _internal_clone(v, {}, deep)
 end

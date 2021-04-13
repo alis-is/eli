@@ -70,6 +70,23 @@ _test["mkdirp"] = function ()
     _test.assert(_ok and _exists, (_exists or "not exists"))
 end
 
+_test["create_dir"] = function ()
+    local _ok, _error = _eliFs.safe_create_dir("tmp/test-dir")
+    _test.assert(_ok, _error)
+    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir")
+    _test.assert(_exists, (_exists or "not exists"))
+
+    local _ok = _eliFs.safe_create_dir("tmp/test-dir/test/test")
+    _test.assert(_ok)
+    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir/test/test")
+    _test.assert(_ok and not _exists, (_exists or "exists"))
+
+    local _ok = _eliFs.safe_create_dir("tmp/test-dir/test/test", true)
+    _test.assert(_ok)
+    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir/test/test")
+    _test.assert(_ok and _exists, (_exists or "not exists"))
+end
+
 _test["remove (file)"] = function ()
     local _ok, _file1 = _eliFs.safe_remove("tmp/test.file2")
     _test.assert(_ok, _file1)

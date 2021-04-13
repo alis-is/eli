@@ -1,21 +1,15 @@
-# Docs
-* [ ] cli
-* [ ] elify
-* [ ] env
-* [ ] fs
-* [ ] hash
-* [ ] Logger
-* [x] lz
-* [ ] net
-* [ ] os
-* [ ] path
-* [ ] proc
-* [ ] tar
-* [x] util
-* [x] ver
-* [x] zip
-* [ ] extensions.string
-* [ ] extensions.table
+# Extra docs
+[ ] extra.proc
+[ ] extra.env
+[ ] extra.stream
+[ ] extra.pipe
+[ ] extra.fs
+
+# External docs
+[ ] hjson
+[ ] lzip - ZipArchive
+[ ] is_tty 
+
 
 # Eli
 * [x] logs 

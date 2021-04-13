@@ -15,6 +15,11 @@ local function win(pl) --check if pl (or current platform) is Windows
 	return pl == 'win'
 end
 
+---@alias platform nil|'"unix"'|'"win"'
+
+---#DES 'path.default_sep'
+---@param pl platform
+---@return '"\\"'| '"/"'
 function path.default_sep(pl)
 	return win(pl) and '\\' or '/'
 end
@@ -128,6 +133,12 @@ local function isabs(type, p, win)
 		return true, isroot, true
 	end
 end
+
+---#DES 'path.isabs'
+---
+---@param s string
+---@param pl platform
+---@return boolean
 function path.isabs(s, pl)
 	local type, p = path.parse(s, pl)
 	return isabs(type, p, win(pl))
@@ -234,14 +245,24 @@ function path.long(s, pl, long)
 	return s
 end
 
---get the last path component of a path.
---if the path ends in a separator then the empty string is returned.
+---#DES 'path.default_sep'
+---
+---get the last path component of a path.
+---if the path ends in a separator then the empty string is returned.
+---@param s string
+---@param pl platform
+---@return string
 function path.file(s, pl)
 	local _, p = path.parse(s, pl)
 	return p:match(win(pl) and '[^\\/]*$' or '[^/]*$')
 end
 
---get the filename without extension and the extension from a path.
+---#DES 'path.nameext'
+---
+---get the filename without extension and the extension from a path.
+---@param s string
+---@param pl platform
+---@return string
 function path.nameext(s, pl)
 	local patt = win(pl) and '^(.-)%.([^%.\\/]*)$' or '^(.-)%.([^%./]*)$'
 	local file = path.file(s, pl)
@@ -252,12 +273,23 @@ function path.nameext(s, pl)
 	return name, ext
 end
 
+---#DES 'path.ext'
+---
+---get the filename without extension and the extension from a path.
+---@param s string
+---@param pl platform
+---@return string
 function path.ext(s, pl)
 	return (select(2, path.nameext(s, pl)))
 end
 
---get a path without basename and separator. if the path ends with
---a separator then the whole path without the separator is returned.
+---#DES 'path.dir'
+---
+---get a path without basename and separator. if the path ends with
+---a separator then the whole path without the separator is returned.
+---@param s string
+---@param pl platform
+---@return string
 function path.dir(s, pl)
 	local type, p, drive = path.parse(s, pl)
 	if p == '' or p == '.' then --current dir has no dir
@@ -432,6 +464,15 @@ local function combinable(type1, type2)
 		return type1 == 'abs' or type1 == 'abs_long'
 	end
 end
+
+---#DES 'path.combine'
+---
+---@param s1 string
+---@param s2 string
+---@param pl platform
+---@param sep string
+---@param default_sep string
+---@return string
 function path.combine(s1, s2, pl, sep, default_sep)
 	local type1, p1, drive1 = path.parse(s1, pl)
 	local type2, p2, drive2 = path.parse(s2, pl)
@@ -467,8 +508,16 @@ end
 --transform a relative path into an absolute path given a base dir.
 path.abs = path.combine
 
---transform an absolute path into a relative path which is relative to `pwd`.
---the ending separator is preserved.
+---#DES 'path.rel'
+---
+---transform an absolute path into a relative path which is relative to `pwd`.
+---the ending separator is preserved.
+---@param s string
+---@param pwd string
+---@param pl platform
+---@param sep string
+---@param default_sep string
+---@return string
 function path.rel(s, pwd, pl, sep, default_sep)
 	local prefix = path.commonpath(s, pwd, pl)
 	if not prefix then return nil end
@@ -488,9 +537,16 @@ function path.rel(s, pwd, pl, sep, default_sep)
 	return path.format(type, p3, drive, pl)
 end
 
---validate/make-valid a filename
---NOTE: repl can be a function(match, err) -> repl_str.
---NOTE: if repl isn't itself escaped then duplicate filenames can result.
+---#DES 'path.filename'
+---
+---validate/make-valid a filename
+---NOTE: repl can be a function(match, err) -> repl_str.
+---NOTE: if repl isn't itself escaped then duplicate filenames can result.
+---@param s string
+---@param pl platform
+---@param repl fun(match: string, err: string): string
+---@param break_on_err string
+---@return string
 function path.filename(s, pl, repl, break_on_err)
 	local win = win(pl)
 

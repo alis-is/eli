@@ -2,6 +2,9 @@ local _eosLoaded, _eos = pcall(require, "eli.os.extra")
 local _util = require "eli.util"
 
 local eos = {
+    ---#DES os.EOS
+    ---
+    ---@type boolean
     EOS = _eosLoaded
 }
 

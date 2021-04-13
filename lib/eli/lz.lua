@@ -2,13 +2,13 @@ local _zlib = require "zlib"
 local _util = require "eli.util"
 
 ---@class LzExtractOptions
----#DES 'ExtractOptions.chunkSize'
+---#DES 'LzExtractOptions.chunkSize'
 ---@field chunkSize nil|integer
----#DES 'ExtractOptions.open_file'
+---#DES 'LzExtractOptions.open_file'
 ---@field open_file nil|fun(path: string, mode: string): file*
----#DES 'ExtractOptions.write'
+---#DES 'LzExtractOptions.write'
 ---@field write nil|fun(path: string, data: string)
----#DES 'ExtractOptions.close_file'
+---#DES 'LzExtractOptions.close_file'
 ---@field close_file nil|fun(f: file*)
 
 ---#DES 'lz.extract'

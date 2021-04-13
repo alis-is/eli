@@ -1,8 +1,203 @@
 elify()
+local _exclude = {"eli.internals.util"}
+------------------------------ REMOVE
+
+local function _internal_print_table_deep(t, prefix)
+    if type(t) ~= "table" then return end
+    if prefix == nil then prefix = "\t" end
+    for k, v in pairs(t) do
+        if type(v) == "table" then
+            print(k .. ":")
+            _internal_print_table_deep(v, prefix .. "\t")
+        else
+            print(prefix, k, v)
+        end
+    end
+end
+
+---#DES 'util.print_table'
+---@param t table
+---@param deep boolean
+function util.print_table(t, deep)
+    if type(t) ~= "table" then return end
+    for k, v in pairs(t) do
+        if deep and type(v) == "table" then
+            print(k .. ":")
+            _internal_print_table_deep(v)
+        else
+            print(k, v)
+        end
+
+    end
+end
+
+------------------------------ REMOVE
+
+---comment
+---@param code string
+---@param libName string
+---@return string, number, string
+local function _get_next_doc_block(code, libName, position)
+    local _blockContent = ""
+    local _blockStart, _blockEnd = code:find("%s-%-%-%-.-\n[^%S\n]*", position)
+    if _blockStart == nil then return nil end
+    _blockContent = _blockContent ..
+                        code:sub(_blockStart, _blockEnd):match "^%s*(.-)%s*$" ..
+                        "\n"
+
+    -- extension libs are overriding existing libs so we need to remove extensions part
+    if libName:match("extensions%.([%w_]*)") then
+        libName = libName:match("extensions%.([%w_]*)")
+    end
+    local _field = code:sub(_blockStart, _blockEnd):match(
+                       "%-%-%-[ ]?#DES '?" .. libName .. ".([%w_:]+)'?.-\n%s*")
+    -- lib level class export
+    if _field == nil and
+        code:sub(_blockStart, _blockEnd):match(
+            "%-%-%-[ ]?#DES '?" .. libName .. "'?.-\n%s*") then
+        _field = libName
+    end
+    while true do
+        local _start, _end = code:find("%-%-%-.-\n[^%S\n]*", _blockEnd)
+        if _start == nil or _start ~= _blockEnd + 1 then break end
+        _blockContent = _blockContent ..
+                            code:sub(_start, _end):match "^%s*(.-)%s*$" .. "\n"
+        _blockEnd = _end
+    end
+    return _blockContent, _blockEnd, _field
+end
+
+---@alias DocBlockKind
+---| "independent"'
+---| '"field"'
+---| '"function"'
+---| '"class"'
+---| '"safe_function"'
+
+---@class DocBlock
+---@field kind DocBlockKind
+---@field name string
+---@field content string
+---@field fieldType type
+---@field blockEnd number
+---@field isPublic boolean
+---@field libFieldSeparator '"."'|'":"'
+---@field value any
+
+---comment
+---@param code string
+---@param libName string
+---@param docBlock DocBlock
+---@return string
+local function _collect_function(code, libName, docBlock)
+    local _start = code:find("function.-%((.-)%)", docBlock.blockEnd)
+    -- extension libs are overriding existing libs so we need to remove extensions part
+    if libName:match("extensions%.([%w_]*)") then
+        libName = libName:match("extensions%.([%w_]*)")
+    end
+    local _functionDef = "function " .. libName .. docBlock.libFieldSeparator ..
+                             docBlock.name
+    if _start ~= docBlock.blockEnd + 1 then
+        local _start =
+            code:find("local%s-function.-%((.-)%)", docBlock.blockEnd)
+        if _start ~= docBlock.blockEnd + 1 then
+            local _params = {}
+            for _paramName in string.gmatch(docBlock.content,
+                                            "%-%-%-[ ]?@param%s+(%w*)%s+%w*%s*\n") do
+                table.insert(_params, _paramName)
+            end
+            return docBlock.content .. _functionDef .. "(" ..
+                       string.join_strings(", ", table.unpack(_params)) ..
+                       ") end\n"
+        end
+    end
+    local _params = code:match("function.-%((.-)%)", docBlock.blockEnd)
+    return docBlock.content .. _functionDef .. "(" .. _params .. ") end\n"
+end
+
+---collects safe function
+---@param code string
+---@param libName string
+---@param docBlock DocBlock
+---@return string
+local function _collect_safe_function(code, libName, docBlock)
+    local _content = _collect_function(code, libName, docBlock)
+    _content = _content:gsub("#DES '?" .. libName .. "%." ..
+                                 docBlock.name:match("safe_(.*)") .. "'?",
+                             "#DES '" .. libName .. "." .. docBlock.name .. "'")
+    -- fix content for save function
+    if _content:find("---[ ]?@return") then
+        _content = _content:gsub("---[ ]?@return", "---@return boolean,")
+    else
+        local _, _end = _get_next_doc_block(_content, libName)
+        _content = _content:sub(1, _end) .. "---@return boolean\n" ..
+                       _content:sub(_end + 1)
+    end
+    return _content
+end
+
+---comment
+---@param _ string
+---@param libName string
+---@param docBlock DocBlock
+---@return string
+local function _collect_class(_, libName, docBlock)
+    if docBlock.isPublic then
+        if docBlock.name == libName and
+            docBlock.content:match("%-%-%-[ ]?#DES '?" .. libName .. "'?%s-\n") then
+            return docBlock.content .. libName .. " = {}\n"
+        end
+        return docBlock.content .. libName .. "." .. docBlock.name .. " = {}\n"
+    else
+        return docBlock.content .. "\n"
+    end
+end
+
+---comment
+---@param _ string
+---@param libName string
+---@param docBlock DocBlock
+---@return string
+local function _collect_field(_, libName, docBlock)
+    local _defaultValues = {
+        ["nil"] = "nil",
+        ["string"] = '""',
+        ["boolean"] = "false",
+        ["table"] = '{}',
+        ["number"] = '0',
+        ["thread"] = "nil",
+        ["userdata"] = "nil"
+    }
+    local _type = docBlock.fieldType
+    if _type == "nil" then
+        _type = docBlock.content:match("%-%-%-[ ]?@type%s+(%w+)")
+    end
+    if docBlock.fieldType == "boolean" then
+        _defaultValues["boolean"] = tostring(docBlock.value == true)
+    end
+
+    if docBlock.isPublic then
+        return docBlock.content .. libName .. "." .. docBlock.name .. " = " ..
+                   _defaultValues[_type] .. "\n"
+    else
+        return docBlock.content .. "\n"
+    end
+end
+
+---@type table<string, fun(code: string, libName: string, docBlock: DocBlock): string>
+local _collectors = {
+    ["independent"] = function(_, _, docBlock) return docBlock.content end,
+    ["function"] = _collect_function,
+    ["safe_function"] = _collect_safe_function,
+    ["class"] = _collect_class,
+    ["field"] = _collect_field
+}
+
 ---comment
 ---@param libPath string
 local function _generate_meta(libPath)
     local _libName = libPath:match("eli%.(.*)")
+    ---@type table
     local _lib = require(libPath)
 
     if type(_lib) ~= "table" then return "" end
@@ -18,90 +213,92 @@ local function _generate_meta(libPath)
     -- // TODO: merge from C modules ?
     if not _ok then return "" end
 
-    local _fnCache = {}
-    for _, _field in ipairs(_fields) do
-        local _fieldType = type(_lib[_field])
-        if _fieldType == "function" and _field:find("safe_") == 1 then
-            goto continue
-        end
+    ---@type DocBlock[]
+    local _docsBlocks = {}
+    local _blockEnds = 0
 
-        local _toMatch = "%-%-%-[ ]?#DES '?" .. _libName .. "." .. _field ..
-                             "'?.-\n%s*"
-
-        local _docsStartPos, _docsEndPos = _code:find(_toMatch)
-        if _libName == "lz" then print(_field, _toMatch) end
-        if _docsStartPos == nil then goto continue end
-        while true do
-            local _start, _end = _code:find("%-%-%-.-\n", _docsEndPos)
-            if _start == nil or _start ~= _docsEndPos + 1 then break end
-            _docsEndPos = _end
-        end
-        local _subDocs = _code:sub(_docsStartPos, _docsEndPos)
-
-        if _fieldType == "function" then
-            local _params = _code:match("function.-%((.-)%)", _docsEndPos)
-            _fnCache[_field] = {docs = _subDocs, params = _params}
-            _subDocs = _subDocs .. "function " .. _libName .. "." .. _field ..
-                           "(" .. _params .. ") end\n"
-        else
-
-        end
-
-        _code = _code:sub(0, _docsStartPos - 1) .. _code:sub(_docsEndPos + 1)
-        _generatedDoc = _generatedDoc .. _subDocs .. "\n"
-        ::continue::
-    end
-    -- collect safe functions
-    for _, _field in ipairs(_fields) do
-        local _fieldType = type(_lib[_field])
-        if _fieldType ~= "function" or _field:find("safe_") ~= 1 then
-            goto continue
-        end
-        local docs = _fnCache[_field:match("safe_(.*)")]
-
-        if docs == nil then goto continue end
-        local _subDocs = docs.docs;
-        _subDocs = _subDocs:gsub("#DES '?" .. _libName .. "%." ..
-                                     _field:match("safe_(.*)") .. "'?",
-                                 "#DES '" .. _libName .. "." .. _field .. "'")
-        if _subDocs:find("---[ ]?@return") then
-            _subDocs = _subDocs:gsub("---[ ]?@return", "---@return boolean,")
-        else
-            _subDocs = _subDocs .. "---@return boolean\n"
-        end
-        _subDocs =
-            _subDocs .. "function " .. _libName .. "." .. _field .. "(" ..
-                docs.params .. ") end\n"
-
-        _generatedDoc = _generatedDoc .. _subDocs .. "\n"
-        ::continue::
-    end
-    -- collect classes 
-    local _additionalDefinitions = ""
-    local _addionalEnd = 0
     while true do
-        local _classStart, _classEnd = _code:find("%-%-%-[ ]?@class.-\n",
-                                                  _addionalEnd)
-        if _classStart == nil then break end
-
-        while true do
-            local _start, _end = _code:find("%-%-%-.-\n", _classEnd)
-            if _start == nil or _start ~= _classEnd + 1 then break end
-            _classEnd = _end
+        local _docBlock, _field
+        _docBlock, _blockEnds, _field = _get_next_doc_block(_code, _libName,
+                                                            _blockEnds)
+        if _docBlock == nil then break end
+        if _field == nil then -- dangling
+            if _docBlock:match("@class") or _docBlock:match("@alias") then -- only classes and aliases are allowed into danglings
+                table.insert(_docsBlocks, {
+                    name = _field,
+                    kind = "independent",
+                    content = _docBlock,
+                    blockEnd = _blockEnds
+                })
+            end
+            goto continue
         end
 
-        _additionalDefinitions = _additionalDefinitions ..
-                                     _code:sub(_classStart, _classEnd) .. "\n"
-
-        _addionalEnd = _classEnd
+        if _docBlock:match("@class") then
+            table.insert(_docsBlocks, {
+                name = _field,
+                kind = "class",
+                content = _docBlock,
+                blockEnd = _blockEnds,
+                isPublic = _lib[_field] ~= nil or _libName == _field
+            })
+        else
+            local _fieldType = type(_lib[_field])
+            table.insert(_docsBlocks, {
+                name = _field,
+                kind = _fieldType == "function" and "function" or "field",
+                fieldType = _fieldType,
+                content = _docBlock,
+                blockEnd = _blockEnds,
+                isPublic = _lib[_field] ~= nil,
+                value = _lib[_field],
+                libFieldSeparator = _docBlock:match(
+                    "%-%-%-[ ]?#DES '?" .. _libName .. "(.)[%w_:]+'?.-\n%s*") or
+                    "."
+            })
+        end
+        ::continue::
     end
-    return _additionalDefinitions .. "\n" .. _generatedDoc
+    -- post process blocks:
+    -- check and correct class functions
+    for _, v in ipairs(_docsBlocks) do
+        if v.kind == "field" then
+            local _className, _fieldName =
+                v.name:match("(%w+)%s*[:%.]%s*([%w_]+)")
+            if _lib[_className] ~= nil and type(_lib[_className][_fieldName]) ==
+                "function" then v.kind = "function" end
+        end
+    end
+
+    for _, v in ipairs(_docsBlocks) do
+        local _collector = _collectors[v.kind]
+        if _collector ~= nil then
+            _generatedDoc = _generatedDoc .. _collector(_code, _libName, v) ..
+                                "\n"
+            if v.kind == "function" and not v.name:match("^safe_") then
+                local _safeFnName = "safe_" .. v.name
+                if type(_lib[_safeFnName]) == "function" then
+                    local _saveV = util.clone(v, true)
+                    _saveV.name = _safeFnName
+                    _generatedDoc = _generatedDoc ..
+                                        _collectors["safe_function"](_code,
+                                                                     _libName,
+                                                                     _saveV) ..
+                                        "\n"
+                end
+            end
+        end
+    end
+    return _generatedDoc
 end
 
-fs.mkdir(".meta")
 for k, v in pairs(package.preload) do
     if not k:match("eli%..*") then goto continue end
+    for _, _excluded in ipairs(_exclude) do
+        if k:match(_excluded) then goto continue end
+    end
     local _docs = _generate_meta(k)
     fs.write_file(".meta/" .. k:match("eli%.(.*)") .. ".lua", _docs)
     ::continue::
 end
+
