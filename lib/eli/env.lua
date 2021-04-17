@@ -19,7 +19,7 @@ local _env = {
 }
 
 if not _eenvLoaded then
-    return _util.generate_safe_functions(_env)
+    return _env
 end
 
-return _util.generate_safe_functions(_util.merge_tables(_env, _eenv))
+return _util.merge_tables(_env, _eenv)

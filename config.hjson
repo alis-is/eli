@@ -38,7 +38,59 @@
          path: lib
          ignore: [ "init.lua", ".*test.*" ]
       } 
-   ]
+   ],
+   inject_docs: [
+      { 
+         source: lua-modules/hjson
+         files: [
+            { 
+               lib: hjson
+               name: hjson.lua
+               isGlobal: false
+               destination: "hjson/hjson.lua"
+            }
+         ] 
+      },
+      { 
+         source: modules/lua_is_tty
+         files: [
+            { 
+               lib: is_tty
+               name: src/is_tty.c
+               isGlobal: false
+               destination: "is_tty/is_tty.lua"
+            }
+         ] 
+      },
+      { 
+         source: modules/eli-env-extra
+         files: [
+            { 
+               lib: eli.env
+               name: src/lenv.c
+               isGlobal: true,
+               destination: "env.extra.lua"
+            }
+         ] 
+      },
+      { 
+         source: modules/eli-os-extra
+         files: [
+            { 
+               lib: eli.os
+               name: src/los.c
+               isGlobal: true,
+               destination: "os.extra.lua"
+            },
+            { 
+               lib: eli.os
+               name: src/lcwd.c
+               isGlobal: true,
+               destination: "os.extra-cwd.lua"
+            }
+         ] 
+      }
+   ],
    init: [
       lib/init.lua
    ]
@@ -54,7 +106,7 @@
       {
          id: is_tty
          repository: cryon-io/lua_is_tty
-         version: 0.1.1
+         version: 0.1.2
          destination: modules/lua_is_tty
          omitRoot: true
       },
@@ -103,14 +155,14 @@
       {
          id: eli_os_extra
          repository: cryon-io/eli-os-extra
-         version: 0.0.2
+         version: 0.0.3
          destination: modules/eli-os-extra
          omitRoot: true
       },
       {
          id: eli_env_extra
          repository: cryon-io/eli-env-extra
-         version: 0.1.0
+         version: 0.1.1
          destination: modules/eli-env-extra
          omitRoot: true
       },
@@ -182,7 +234,7 @@
       {
          id: hjson
          repository: cryi/hjson-lua
-         version: 0.1.3
+         version: 0.1.3-1
          destination: lua-modules/hjson
          omitRoot: true
       },

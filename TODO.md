@@ -1,15 +1,9 @@
-# Extra docs
+# Additional Extra docs & External docs (non essential)
 [ ] extra.proc
-[ ] extra.env
 [ ] extra.stream
 [ ] extra.pipe
-[ ] extra.fs
-
-# External docs
-[ ] hjson
+[ ] extra.fs - filetype
 [ ] lzip - ZipArchive
-[ ] is_tty 
-
 
 # Eli
 * [x] logs 
