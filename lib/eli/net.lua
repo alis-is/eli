@@ -170,8 +170,7 @@ function RestClient:new(hostOrId, parentOrOptions, options)
 
     if options == nil then options = {} end
 
-    if type(parentOrOptions) == "table" and tostring(parentOrOptions) ==
-        "ELI_REST_CLIENT" then
+    if type(parentOrOptions) == "ELI_REST_CLIENT" then
         ---@type RestClient
         local _parent = parentOrOptions
         _restClient.__is_child = true
@@ -272,7 +271,7 @@ function RestClient:res(resources, options)
     local function makeResource(name)
         if self.__resources[name] then return self.__resources[name] end
 
-        local _result = RestClient:new(tostring(name), self, options)
+        local _result = RestClient:new(tostring(name), self)
         self.__resources = _result
         if _shortcut then
             self.__shortcuts[name] = _result
