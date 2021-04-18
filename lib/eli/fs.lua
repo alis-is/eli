@@ -67,10 +67,10 @@ end
 ---@param scopeName string
 local function _internal_mkdir(path, mkdir, scopeName)
    local _mkdir = type(mkdir) == "function" and mkdir
-   if _mkdir == nil and efsLoaded then 
+   if type(_mkdir) ~= "function" and efsLoaded then
       _mkdir = efs.mkdir
    end
-   if _mkdir == nil then 
+   if type(_mkdir) ~= "function" then
       -- we do not have any mkdir avaialble
       -- we can siletntly ifnore this if dir already exists
       local f = io.open(path)
