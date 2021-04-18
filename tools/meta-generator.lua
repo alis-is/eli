@@ -257,7 +257,7 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
     for _, v in ipairs(_docsBlocks) do
         local _collector = _collectors[v.kind]
         if _collector ~= nil then
-            _generatedDoc = _generatedDoc .. _collector(_code, _libName, v) ..
+            _generatedDoc = _generatedDoc .. _collector(_code, _libName, v, isGlobal) ..
                                 "\n"
             if v.kind == "function" and not v.name:match("^safe_") then
                 local _safeFnName = "safe_" .. v.name
