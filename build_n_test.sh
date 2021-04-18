@@ -12,9 +12,10 @@ test_build() {
     "$ROOT/build/$1-linux-musl-cross/eli" all.lua && \
     echo cp "$ROOT/build/$1-linux-musl-cross/eli" "release/eli-unix-$1" && \
     cp "$ROOT/build/$1-linux-musl-cross/eli" "$ROOT/release/eli-unix-$1"
-    if [ -f "release/eli-unix-$1" ]; then
-       "release/eli-unix-$1" "tools/meta-generator.lua"
-       cd "$ROOT/.meta"
+    if [ -f "$ROOT/release/eli-unix-$1" ]; then
+       cd "$ROOT" && \
+       "$ROOT/release/eli-unix-$1" "$ROOT/tools/meta-generator.lua"
+       cd "$ROOT/.meta" && \
        zip release/meta.zip -r *
     fi
     cd "$ROOT"
