@@ -16,7 +16,7 @@ test_build() {
        cd "$ROOT" && \
        "$ROOT/release/eli-unix-$1" "$ROOT/tools/meta-generator.lua"
        cd "$ROOT/.meta" && \
-       zip release/meta.zip -r *
+       zip "$ROOTrelease/meta.zip" -r *
     fi
     cd "$ROOT"
 }
