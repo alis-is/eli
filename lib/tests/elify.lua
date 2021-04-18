@@ -1,24 +1,6 @@
 local _test = TEST or require "u-test"
 local _eliUtil = require"eli.util"
 
-_test["elify available"] = function()
-    _test.assert(type(elify) == "function")
-end
-
-if type(elify) ~= "function" then
-    if not TEST then
-        _test.summary()
-        print "elify not detected. Can not continue in elify tests..."
-        os.exit()
-    else
-        print "elify not detected. Can not continue in elify tests..."
-        return
-    end
-end
-
-local _origType = type
-elify()
-
 _test["is_elified"] = function()
     _test.assert(require"eli.elify".is_elified() == true)
 end
@@ -81,7 +63,7 @@ end
 _test["get_overriden_values"] = function()
     local _overriden = require"eli.elify".get_overriden_values()
     _test.assert(_overriden.os == require"os")
-    _test.assert(_overriden.type == _origType)
+    _test.assert(_overriden.type ~= type)
 end
 
 _test["extensions.string"] = function()
