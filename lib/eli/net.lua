@@ -170,7 +170,7 @@ function RestClient:new(hostOrId, parentOrOptions, options)
 
     if options == nil then options = {} end
 
-    if type(parentOrOptions) == "ELI_REST_CLIENT" then
+    if tostring(parentOrOptions) == "ELI_REST_CLIENT" then
         ---@type RestClient
         local _parent = parentOrOptions
         _restClient.__is_child = true
