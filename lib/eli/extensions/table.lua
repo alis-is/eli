@@ -1,5 +1,11 @@
 local _util = require "eli.util"
 
+---#DES 'table.keys'
+---
+---Returns table keys
+---@generic T
+---@param t table<T, any>
+---@return T[]
 local function _keys(t)
     local _keyList = {}
     for k, _ in pairs(t) do
@@ -8,6 +14,12 @@ local function _keys(t)
     return _keyList
 end
 
+---#DES 'table.values'
+---
+---Returns table values
+---@generic T
+---@param t table<any, T>
+---@return T[]
 local function _values(t)
     local _vals = {}
     for _, v in pairs(t) do
@@ -16,6 +28,16 @@ local function _values(t)
     return _vals
 end
 
+---@class KeyValuePair
+---@field key any
+---@field value any
+
+---#DES 'table.to_array'
+---
+---Converts table to array of {key, value} pairs
+---@generic K, V
+---@param t table<K, V>
+---@return KeyValuePair --{key: K, value: V}[]
 local function _to_array(t)
     if _util.is_array(t) then
         return t
@@ -51,6 +73,13 @@ local function _base_get(obj, path)
     end
 end
 
+---#DES 'table.get'
+---
+---Selects value from path from table or default if result is nil
+---@param obj table
+---@param path string
+---@param default any
+---@return any
 local function _get(obj, path, default)
     local _result = _base_get(obj, path)
     if _result == nil then
@@ -59,6 +88,14 @@ local function _get(obj, path, default)
     return _result
 end
 
+---#DES 'table.set'
+---
+---Sets value in path of table to value
+---@generic T: table
+---@param obj T
+---@param path string
+---@param value any
+---@return T
 local function _set(obj, path, value)
     if type(obj) ~= "table" then
         return obj
@@ -77,15 +114,22 @@ local function _set(obj, path, value)
     return obj
 end
 
-local function _filter(t, _filterFn)
-    if type(_filterFn) ~= "function" then
+---#DES 'table.filter'
+---
+---Returns elements for which filter function returns true from table t
+---@generic T
+---@param t table<string, T>|T[]
+---@param filterFn fun(element: T): boolean
+---@return T
+local function _filter(t, filterFn)
+    if type(filterFn) ~= "function" then
         return t
     end
     local isArray = _util.is_array(t)
 
     local res = {}
     for k, v in pairs(t) do
-        if _filterFn(k, v) then
+        if filterFn(k, v) then
             if isArray then
                 table.insert(res, v)
             else
@@ -96,13 +140,20 @@ local function _filter(t, _filterFn)
     return res
 end
 
-local function _map(arr, fn)
-    if not _util.is_array(arr) or type(fn) ~= "function" then
+---#DES 'table.map'
+---
+---maps array like table elemenets to corresponding values returned by mapFn
+---@generic T
+---@param arr T[]
+---@param mapFn fun(element: T): any
+---@return T
+local function _map(arr, mapFn)
+    if not _util.is_array(arr) or type(mapFn) ~= "function" then
         return arr
     end
     local _result = {}
     for _, v in ipairs(arr) do
-        table.insert(_result, fn(v))
+        table.insert(_result, mapFn(v))
     end
     return _result
 end

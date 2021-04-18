@@ -32,7 +32,7 @@ _test["semver_compare"] = function() -- from: http://semver.org/spec/v2.0.0.html
     }
 
     for _, v in ipairs(_testCases) do
-        _test.assert(_eliVer.compare_version(v[1], v[2]) == v[3])
+        _test.assert(_eliVer.compare(v[1], v[2]) == v[3])
     end
 end
 
@@ -62,7 +62,7 @@ _test["semver_compare_full"] = function()
     }
 
     for _, v in ipairs(_testCases) do
-        _test.assert(_eliVer.compare_version(v[1], v[2]) == v[3])
+        _test.assert(_eliVer.compare(v[1], v[2]) == v[3])
     end
 end
 
@@ -78,7 +78,7 @@ _test["semver_compare_spec"] = function() -- from: http://semver.org/spec/v2.0.0
     }
 
     for _, v in ipairs(_testCases) do
-        _test.assert(_eliVer.compare_version(v[1], v[2]) == v[3])
+        _test.assert(_eliVer.compare(v[1], v[2]) == v[3])
     end
 end
 

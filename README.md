@@ -35,7 +35,7 @@ Build requirements:
 Steps:
 1. `git clone https://github.com/cryon-io/eli && cd eli`
 2. `docker build -t elibuild .`
-3. `docker run -v $(pwd):"/root/luabuild" -v "$(pwd)/toolchains:/opt/cross" -e TOOLCHAINS='x86_64-linux-musl-cross;i686-linux-musl-cross' elibuild`
+3. `docker run -v $(pwd):"/root/luabuild" -v "$(pwd)/toolchains:/opt/cross" -e TOOLCHAINS='x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross' elibuild`
 4. Built binaries `eli` and `elic` will be created in build directory and per `<toolchain>` subdirectories
 
 *Note: You can choose build toolchain you like from https://musl.cc/ and set its name in TOOLCHAINS*

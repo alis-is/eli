@@ -1,5 +1,22 @@
 local _util = require("eli.util")
 
+---@class CliArg
+---#DES 'CliArg.type'
+---@field type "option"|"parameter"
+---#DES 'CliArg.value'
+---@field value string|boolean
+---#DES 'CliArg.id'
+---@field id string
+---#DES 'CliArg.arg'
+---
+---the cli argument this CliArg was created from
+---@field arg string
+
+---#DES cli.parse_args
+---
+---Parses array of arguments
+---@param args string[]
+---@return CliArg[]
 local function _parse_args(args)
     if not _util.is_array(args) then
         args = arg
