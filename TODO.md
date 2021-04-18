@@ -1,3 +1,10 @@
+# Additional Extra docs & External docs (non essential)
+[ ] extra.proc
+[ ] extra.stream
+[ ] extra.pipe
+[ ] extra.fs - filetype
+[ ] lzip - ZipArchive
+
 # Eli
 * [x] logs 
 * [x] support for init scripts
@@ -10,7 +17,7 @@
 # Build 
 * [x] toolchain configurable
 * [x] replace curl with libfetch (requires testing)
-* [ ] mount and use toolchain dir during build (toolchain caching)
+* [x] mount and use toolchain dir during build (toolchain caching)
 * [ ] optional use of cache during build
 
 ## CMakeLists 

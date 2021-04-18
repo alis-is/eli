@@ -11,8 +11,12 @@ local function _is_array(t)
    end
    return true
 end
-
-local function merge_tables(t1, t2, overwrite)
+---#DES 'util.merge_tables'
+---@param t1 table
+---@param t2 table
+---@param overwrite boolean
+---@return table
+local function _merge_tables(t1, t2, overwrite)
    if t1 == nil then
       return t2
    end
@@ -27,7 +31,7 @@ local function merge_tables(t1, t2, overwrite)
             for i = 1, #t2, 1 do
                local v2 = t2[i]
                if type(v2.id) == "string" and v2.id == v.id then
-                  v = merge_tables(v, v2, overwrite)
+                  v = _merge_tables(v, v2, overwrite)
                   table.remove(t2, i)
                   break
                end
@@ -47,7 +51,7 @@ local function merge_tables(t1, t2, overwrite)
       for k, v2 in pairs(t2) do
          local v1 = _result[k]
          if type(v1) == "table" and type(v2) == "table" then
-            _result[k] = merge_tables(v1, v2, overwrite)
+            _result[k] = _merge_tables(v1, v2, overwrite)
          elseif type(v1) == "nil" then
             _result[k] = v2
          elseif overwrite then
@@ -58,6 +62,9 @@ local function merge_tables(t1, t2, overwrite)
    return _result
 end
 
+---#DES 'util.escape_magic_characters'
+---@param s string
+---@return string
 local function _escape_magic_characters(s)
    if type(s) ~= "string" then
       return
@@ -65,34 +72,67 @@ local function _escape_magic_characters(s)
    return (s:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"))
 end
 
-local function generate_safe_functions(functions)
-   if type(functions) ~= "table" then
-      return functions
+---#DES 'util.generate_safe_functions'
+---@generic T : table<string, function>
+---@param fnTable T
+---@return T
+local function _generate_safe_functions(fnTable)
+   if type(fnTable) ~= "table" then
+      return fnTable
    end
-   if _is_array(functions) then
-      return functions -- safe function can be generated only on dictionary
+   if _is_array(fnTable) then
+      return fnTable -- safe function can be generated only on dictionary
    end
    local res = {}
 
-   for k, v in pairs(functions) do
+   for k, v in pairs(fnTable) do
       if type(v) == "function" and not k:match("^safe_") then
          res["safe_" .. k] = function(...)
             return pcall(v, ...)
          end
       end
    end
-   return merge_tables(functions, res)
+   return _merge_tables(fnTable, res)
 end
 
-local function print_table(t)
+---comment
+---@param t table
+---@param prefix string|nil
+local function _internal_print_table_deep(t, prefix)
+   if type(t) ~= "table" then
+      return
+   end
+   if prefix == nil then prefix = "\t" end
+   for k, v in pairs(t) do
+      if type(v) == "table" then
+         print(k .. ":")
+         _internal_print_table_deep(v, prefix .. "\t")
+      else
+         print(prefix, k, v)
+      end
+   end
+end
+
+---#DES 'util.print_table'
+---@param t table
+---@param deep boolean
+local function _print_table(t, deep)
    if type(t) ~= "table" then
       return
    end
    for k, v in pairs(t) do
-      print(k, v)
+      if deep and type(v) == "table" then
+         print(k .. ":")
+         _internal_print_table_deep(v)
+      else
+         print(k, v)
+      end
+
    end
 end
 
+---#DES 'util.global_log_factory'
+---@param module string
 local function _global_log_factory(module, ...)
    local _result = {}
    if (type(GLOBAL_LOGGER) ~= "table" and type(GLOBAL_LOGGER) ~= "ELI_LOGGER") or getmetatable(GLOBAL_LOGGER).__type ~= "ELI_LOGGER" then
@@ -114,6 +154,8 @@ local function _global_log_factory(module, ...)
    return table.unpack(_result)
 end
 
+--- //TODO: Remove
+---#DES 'util.remove_preloaded_lib'
 -- this is provides ability to load not packaged eli from cwd
 -- for debug purposes
 local function _remove_preloaded_lib()
@@ -130,6 +172,9 @@ local function _remove_preloaded_lib()
    print("eli.* packages unloaded.")
 end
 
+---#DES 'util.random_string'
+---@param length number
+---@param charset table
 local function _random_string(length, charset)
    if type(charset) ~= "table" then
       charset = {}
@@ -150,6 +195,10 @@ local function _random_string(length, charset)
    return _random_string(length - 1) .. charset[math.random(1, #charset)]
 end
 
+---#DES 'util._internal_clone'
+---@param v any
+---@param cache table
+---@param deep boolean
 local function _internal_clone(v, cache, deep)
    if type(deep) == "number" then deep = deep - 1 end
    local _go_deeper = deep == true or (type(deep) == 'number' and deep >= 0)
@@ -173,10 +222,19 @@ local function _internal_clone(v, cache, deep)
    end
 end
 
+---#DES 'util.clone'
+---@generic T
+---@param v T
+---@param deep boolean
+---@return T
 local function _clone(v, deep)
    return _internal_clone(v, {}, deep)
 end
 
+---#DES 'util.equals'
+---@param v any
+---@param v2 any
+---@param deep boolean
 local function _equals(v, v2, deep)
    if type(deep) == "number" then deep = deep - 1 end
    local _go_deeper = deep == true or (type(deep) == 'number' and deep >= 0)
@@ -193,11 +251,11 @@ local function _equals(v, v2, deep)
 end
 
 return {
-   generate_safe_functions = generate_safe_functions,
+   generate_safe_functions = _generate_safe_functions,
    is_array = _is_array,
    escape_magic_characters = _escape_magic_characters,
-   merge_tables = merge_tables,
-   print_table = print_table,
+   merge_tables = _merge_tables,
+   print_table = _print_table,
    global_log_factory = _global_log_factory,
    remove_preloaded_lib = _remove_preloaded_lib,
    random_string = _random_string,

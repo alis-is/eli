@@ -8,9 +8,34 @@ local _exTable = require"eli.extensions.table"
 
 local RESET_COLOR = string.char(27) .. "[0m"
 
+---@alias LogLevel '"trace"'|'"debug"'|'"info"'|'"success"'|'"warn"'|'"error"'
+---@alias LogLevelInt '-2'|'-1'|'0'|'0'|'1'|'2'
+
+---@class LogMessage
+---@field level LogLevel
+---@field msg string
+---@field module nil|string
+
+
+---@class EliLoggerOptions
+---@field format '"auto"'|'"standard"'|'"json"'
+---@field colorful boolean
+---@field level LogLevel
+---@field includeFields boolean
+---@field noTime boolean
+
+---#DES 'Logger'
+---@class Logger
+---@field options EliLoggerOptions
+---@field __type '"ELI_LOGGER"'
 local Logger = {}
 Logger.__index = Logger
 
+---#DES 'Logger:new'
+---
+---@param self Logger
+---@param options EliLoggerOptions
+---@return Logger
 function Logger:new(options)
     local logger = {}
     if options == nil then
@@ -46,10 +71,16 @@ function Logger:new(options)
     return logger
 end
 
-function Logger:__tostring()
+---#DES 'Logger.__tostring'
+---
+---@return string
+function Logger.__tostring()
     return "ELI_LOGGER"
 end
 
+---returns color based on log level
+---@param level LogLevel
+---@return string
 local function get_log_color(level)
     if level == "success" then
         return string.char(27) .. "[32m"
@@ -77,13 +108,23 @@ local _levelValueMap = {
     ["trace"] = -2,
 }
 
-local function _level_value(lvl)
-    if type(lvl) ~= 'string' then return 0 end
-    local _lvl = _levelValueMap[lvl]
+---returns integer equivalent of log level
+---@param level LogLevel
+---@return LogLevelInt
+local function _level_value(level)
+    if type(level) ~= 'string' then return 0 end
+    local _lvl = _levelValueMap[level]
     if (type(_lvl) == nil) then return 0 end
     return _lvl
 end
 
+---prints log
+---comment
+---@param data LogMessage
+---@param colorful boolean
+---@param color string
+---@param noTime boolean
+---@param includeFields boolean
 local function log_txt(data, colorful, color, noTime, includeFields)
     local module = ""
     if data.module ~= nil and data.module ~= "" then
@@ -121,6 +162,8 @@ local function log_txt(data, colorful, color, noTime, includeFields)
     end
 end
 
+---prints log in json format
+---@param data table
 local function log_json(data)
     data.timestamp = os.time(os.date("!*t"))
     print(encode_to_json(data, {indent = false, skipkeys = true}))
@@ -133,12 +176,18 @@ local function wrap_msg(msg)
     return msg
 end
 
-function Logger:log(msg, lvl)
+---#DES 'Logger:log'
+---
+---Logs message with specified level
+---@param self Logger
+---@param msg LogMessage
+---@param level LogLevel
+function Logger:log(msg, level)
     msg = wrap_msg(msg)
-    if lvl ~= nil then
-        msg.level = lvl
+    if level ~= nil then
+        msg.level = level
     end
-    if _level_value(self.options.level) > _level_value(lvl) then
+    if _level_value(self.options.level) > _level_value(level) then
         return
     end
 
@@ -150,26 +199,50 @@ function Logger:log(msg, lvl)
     end
 end
 
+---#DES 'Logger:success'
+---
+---@param self Logger
+---@param msg LogMessage
 function Logger:success(msg)
     self:log(msg, "success")
 end
 
+---#DES 'Logger:debug'
+---
+---@param self Logger
+---@param msg LogMessage
 function Logger:debug(msg)
     self:log(msg, "debug")
 end
 
+---#DES 'Logger:trace'
+---
+---@param self Logger
+---@param msg LogMessage
 function Logger:trace(msg)
     self:log(msg, "trace")
 end
 
+---#DES 'Logger:info'
+---
+---@param self Logger
+---@param msg LogMessage
 function Logger:info(msg)
     self:log(msg, "info")
 end
 
+---#DES 'Logger:warn'
+---
+---@param self Logger
+---@param msg LogMessage
 function Logger:warn(msg)
     self:log(msg, "warn")
 end
 
+---#DES 'Logger:error'
+---
+---@param self Logger
+---@param msg LogMessage
 function Logger:error(msg)
     self:log(msg, "error")
 end

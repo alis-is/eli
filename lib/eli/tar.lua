@@ -12,6 +12,34 @@ local function _get_root_dir(entries)
    return _internalUtil.get_root_dir(_paths)
 end
 
+---@class TarExtractOptions
+---#DES 'TarExtractOptions.skipDestinationCheck'
+---@field skipDestinationCheck nil|boolean
+---#DES 'TarExtractOptions.flattenRootDir'
+---@field flattenRootDir nil|boolean
+---#DES 'TarExtractOptions.chmod'
+---@field chmod nil|fun(path: string, attributes: integer)
+---#DES 'TarExtractOptions.mkdirp'
+---@field mkdirp nil|fun(path: string)
+---#DES 'TarExtractOptions.transform_path'
+---@field transform_path nil|fun(path: string): string
+---#DES 'TarExtractOptions.filter'
+---@field filter nil|fun(name: string): boolean
+---#DES 'TarExtractOptions.open_file'
+---@field open_file nil|fun(path: string, mode: string): file*
+---#DES 'TarExtractOptions.write'
+---@field write nil|fun(path: string, data: string)
+---#DES 'TarExtractOptions.close_file'
+---@field close_file nil|fun(f: file*)
+---#DES 'TarExtractOptions.close_file'
+---@field chunkSize nil|number
+
+---#DES 'tar.extract'
+---
+---Extracts data from source into destination folder
+---@param source string
+---@param destination string
+---@param options TarExtractOptions
 local function _extract(source, destination, options)
    if type(options) ~= "table" then
       options = {}
@@ -105,6 +133,13 @@ local function _extract(source, destination, options)
    _tarEntries.archive:close()
 end
 
+---#DES 'tar.extract_file'
+---
+---Extracts single file from source archive into destination
+---@param source string
+---@param file string
+---@param destination string
+---@param options TarExtractOptions
 local function _extract_file(source, file, destination, options)
    if type(destination) == "table" and options == nil then
       options = destination
@@ -126,6 +161,13 @@ local function _extract_file(source, file, destination, options)
    return _extract(source, _path.dir(destination), _options)
 end
 
+---#DES 'tar.extract_string'
+---
+---Extracts single file from source archive into string
+---@param source string
+---@param file string
+---@param options TarExtractOptions
+---@return string
 local function _extract_string(source, file, options)
    local _result = ""
    local _options =

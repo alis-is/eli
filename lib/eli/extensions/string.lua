@@ -1,8 +1,18 @@
+---#DES string.trim
+---
+---@param s string
+---@return string
 local function _trim(s)
     if type(s) ~= 'string' then return s end
     return s:match "^()%s*$" and "" or s:match "^%s*(.*%S)"
 end
 
+---#DES string.split
+---
+---@param s string
+---@param sep string
+---@param trim boolean
+---@return string[]
 local function _split(s, sep, trim)
     if type(s) ~= 'string' then return s end
     if sep == nil then
@@ -18,6 +28,11 @@ local function _split(s, sep, trim)
     return _result
 end
 
+---#DES string.join
+---
+---@param separator string
+---@vararg string
+---@return string
 local function _join(separator, ...)
     local _result = ""
     if type(separator) ~= "string" then
@@ -33,7 +48,12 @@ local function _join(separator, ...)
     return _result
 end
 
--- joins only strings, ignoring other values
+---#DES string.join_strings
+---
+---joins only strings, ignoring other values
+---@param separator string
+---@vararg string
+---@return string
 local function _join_strings(separator, ...)
     local _tmp = {}
     for _, v in ipairs(table.pack(...)) do

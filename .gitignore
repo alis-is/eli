@@ -6,3 +6,4 @@ tools/luasrcdiet
 .CACHE
 lib/tests/tmp/*
 !lib/tests/tmp/.gitkeep
+.meta

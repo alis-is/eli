@@ -1,4 +1,4 @@
---[[ // TODO consider implications of mergin proc with os and fs with io ]]
+--[[ // TODO consider implications of merging proc with os and fs with io ]]
 local _elified = false
 local _overridenValues = {}
 
