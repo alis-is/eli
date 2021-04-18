@@ -170,7 +170,7 @@ function RestClient:new(hostOrId, parentOrOptions, options)
 
     if options == nil then options = {} end
 
-    if tostring(parentOrOptions) == "ELI_REST_CLIENT" then
+    if tostring(parentOrOptions):match("ELI_REST_CLIENT") then
         ---@type RestClient
         local _parent = parentOrOptions
         _restClient.__is_child = true
@@ -204,7 +204,6 @@ function RestClient:new(hostOrId, parentOrOptions, options)
         })
     end
 
-    _restClient.__tostring = function() return "ELI_REST_CLIENT" end
     setmetatable(_restClient, self)
     self.__type = "ELI_REST_CLIENT"
     self.__index = function(t, k)
@@ -221,7 +220,7 @@ end
 ---
 ---@param self RestClient
 ---@return string
-function RestClient:__tostring() return "ELI_REST_CLIENT " .. self.__host end
+function RestClient:__tostring() return "ELI_REST_CLIENT " .. (self.__host or self.__id or "unknown host or id") end
 
 ---Merges two parts of URL
 ---@param p1 string
