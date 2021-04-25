@@ -105,7 +105,7 @@ local function _internal_print_table_deep(t, prefix)
    if prefix == nil then prefix = "\t" end
    for k, v in pairs(t) do
       if type(v) == "table" then
-         print(k .. ":")
+         print(prefix .. k .. ":")
          _internal_print_table_deep(v, prefix .. "\t")
       else
          print(prefix, k, v)
