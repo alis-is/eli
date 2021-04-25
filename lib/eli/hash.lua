@@ -65,11 +65,13 @@ return _util.generate_safe_functions({
     ---#DES hash.sha256sum
     ---
     ---@param data string
+    ---@param hex boolean
     ---@return string
     sha256sum = hash.sha256sum,
     ---#DES hash.sha512sum
     ---
     ---@param data string
+    ---@param hex boolean
     ---@return string
     sha512sum = hash.sha512sum
 })

@@ -269,11 +269,18 @@ end
 ---@field returnFullPaths boolean
 ---@field asDirEntries boolean
 
+---@class DirEntry
+---@field name string
+---@field type string
+---@field fullpath string
+---@field __type '"ELI_DIRENTRY"'
+
 ---#DES 'fs.read_dir'
 ---
 ---Reads directory and returns dir entire or paths based on options
 ---@param path string
 ---@param options FsReadDirOptions
+---@return string[]|DirEntry[]
 local function _read_dir(path, options)
    _check_efs_available("read_dir")
    if type(options) ~= "table" then

@@ -106,28 +106,31 @@ local function _compare_version(v1, v2)
             return -1
         end
     end
+
+    local _v1
     if type(v1) == "string" then
-        v1 = _parse_semver(v1)
+        _v1 = _parse_semver(v1)
     end
+    local _v2
     if type(v2) == "string" then
-        v2 = _parse_semver(v2)
+        _v2 = _parse_semver(v2)
     end
-    assert(type(v1) == "table", "Invalid v1 version!")
-    assert(type(v2) == "table", "Invalid v1 version!")
+    assert(type(_v1) == "table", "Invalid v1 version!")
+    assert(type(_v2) == "table", "Invalid v2 version!")
 
-    if v1.major ~= v2.major then
-        return v1.major > v2.major and 1 or -1
-    end
-
-    if v1.minor ~= v2.minor then
-        return v1.minor > v2.minor and 1 or -1
+    if _v1.major ~= _v2.major then
+        return _v1.major > _v2.major and 1 or -1
     end
 
-    if v1.patch ~= v2.patch then
-        return v1.patch > v2.patch and 1 or -1
+    if _v1.minor ~= _v2.minor then
+        return _v1.minor > _v2.minor and 1 or -1
     end
 
-    return _compare_prerelase(v1.prerelease, v2.prerelease)
+    if _v1.patch ~= _v2.patch then
+        return _v1.patch > _v2.patch and 1 or -1
+    end
+
+    return _compare_prerelase(_v1.prerelease, _v2.prerelease)
 end
 
 ---#DES 'ver.parse_semver'
