@@ -198,7 +198,7 @@ end
 ---@field type '"sha256"'| '"sha512"'
 ---@field hex boolean
 
----#DES 'fs.exists'
+---#DES 'fs.hash_file'
 ---
 ---Hashes file in specified path
 ---@param path string
