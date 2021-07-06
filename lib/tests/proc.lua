@@ -136,8 +136,8 @@ _test["spawn (stdin/stdout/stderr as path)"] = function()
         wait = true,
         stdio = {
             stdin = "assets/test.script",
-            stdout = "tmp/stdout.log",
-            stderr = "tmp/stderr.log"
+            stdout = "/tmp/stdout.log",
+            stderr = "/tmp/stderr.log"
         }
     })
     _test.assert(_result.exitcode == 0 and _result.stdoutStream:read("a") == "13354\n")
