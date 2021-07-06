@@ -1,5 +1,5 @@
 {
-   version: 0.15.1
+   version: 0.15.2
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    inject_CA: true
@@ -98,7 +98,7 @@
       {
          id: lua
          repository: lua/lua
-         version: v5.4.2
+         version: v5.4.3
          destination: lua/src
          omitRoot: true
          cmakelists: { source: "lua_CMakeLists.txt", destination: "lua/CMakeLists.txt" } 
