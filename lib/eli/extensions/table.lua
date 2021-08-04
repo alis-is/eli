@@ -77,7 +77,7 @@ end
 ---
 ---Selects value from path from table or default if result is nil
 ---@param obj table
----@param path string
+---@param path string|string[]
 ---@param default any
 ---@return any
 local function _get(obj, path, default)
@@ -177,6 +177,9 @@ return {
     keys = _keys,
     values = _values,
     filter = _filter,
+	---#DES 'util.is_array'
+	---@param t table
+	---@return boolean
     is_array = _util.is_array,
     globalize = _globalize
 }

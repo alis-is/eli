@@ -139,7 +139,7 @@ end
 ---and metadata values
 ---@param ver string
 ---@return table
-local function _parse_semver_old(...) _parse_semver(...) end
+local function _parse_semver_old(...) return _parse_semver(...) end
 
 ---#DES 'ver.compare_version'
 ---@deprecated
@@ -148,7 +148,7 @@ local function _parse_semver_old(...) _parse_semver(...) end
 ---@param v1 string
 ---@param v2 string
 ---@return integer
-local function _compare_version_old(...) _compare_version(...) end
+local function _compare_version_old(...) return _compare_version(...) end
 
 return generate_safe_functions({
     -- deprecated
