@@ -67,7 +67,7 @@ end
 ---@return string
 local function _escape_magic_characters(s)
    if type(s) ~= "string" then
-      return
+      return s
    end
    return (s:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"))
 end
