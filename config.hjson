@@ -183,7 +183,7 @@
       },
       {
          id: curl
-         url: https://github.com/curl/curl/releases/download/curl-7_74_0/curl-7.74.0.zip
+         url: https://github.com/curl/curl/releases/download/curl-7_78_0/curl-7.78.0.zip
          destination: modules/curl
          omitRoot: true
       },
@@ -206,7 +206,7 @@
       { 
          id: mbedtls
          repository: ARMmbed/mbedtls  
-         version: mbedtls-2.25.0
+         version: mbedtls-2.27.0
          destination: modules/mbedtls
          omitRoot: true
       },
@@ -220,7 +220,7 @@
       {
          id: libzip
          repository: nih-at/libzip
-         version: v1.7.3
+         version: v1.8.0
          destination: modules/libzip
          omitRoot: true
       },
