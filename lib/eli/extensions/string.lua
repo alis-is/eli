@@ -40,9 +40,9 @@ local function _join(separator, ...)
     end
     for _, v in ipairs(table.pack(...)) do
         if #_result == 0 then
-            _result = v
+            _result = tostring(v)
         else
-            _result = _result .. separator .. v
+            _result = _result .. separator .. tostring(v)
         end
     end
     return _result
