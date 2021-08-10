@@ -26,7 +26,7 @@ _test["join"] = function()
     local _result = _exString.join(", ", "test", "join", "string")
     _test.assert(_result == "test, join, string")
     local _ok, _result = pcall(_exString.join, ", ", "test", {"join"}, "string")
-    _test.assert(not _ok)
+    _test.assert(_ok and _result:match("test, table:"))
 end
 
 _test["join_strings"] = function()
