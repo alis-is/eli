@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TMP_NAME="/tmp/$(tr -dc 'a-zA-Z0-9' < /dev/urandom | fold -w 32 | head -n 1)"
+TMP_NAME="/tmp/$(head -n 1 -c 32 /dev/urandom | tr -dc 'a-zA-Z0-9'| fold -w 32)"
 
 if which curl > /dev/null; then
     set -- curl -L --progress-bar -o "$TMP_NAME"
