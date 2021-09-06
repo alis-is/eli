@@ -9,7 +9,10 @@ local function _get_root_dir(zipArch)
    local _paths = {}
    for i = 1, #zipArch do
       local _stat = zipArch:stat(i)
-      table.insert(_paths, _stat.name)
+      if type(_stat.name) == "string" and not _stat.name:match("/$") then
+         print(_stat.name)
+         table.insert(_paths, _stat.name)
+      end
    end
    return _internalUtil.get_root_dir(_paths)
 end
