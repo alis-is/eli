@@ -50,7 +50,7 @@ local function eli_init()
       end
       APP_ROOT = path.dir(APP_ROOT_SCRIPT)
    end
-   ELI_LIB_VERSION = "0.14.0"
+   ELI_LIB_VERSION = "0.16.1"
 
    local _elify = true
    for i, v in ipairs(arg) do

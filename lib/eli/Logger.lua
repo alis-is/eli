@@ -165,7 +165,7 @@ end
 ---prints log in json format
 ---@param data table
 local function log_json(data)
-    data.timestamp = os.time(os.date("!*t"))
+    data.timestamp = os.time()
     print(encode_to_json(data, {indent = false, skipkeys = true}))
 end
 
