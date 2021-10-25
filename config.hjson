@@ -1,5 +1,5 @@
 {
-   version: 0.16.2
+   version: 0.17.0
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    inject_CA: true
