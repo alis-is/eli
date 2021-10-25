@@ -173,7 +173,7 @@ _test["read_dir & iter_dir"] = function()
 end
 
 local function _external_lock(file)
-    return os.execute(arg[-1] .. " -e 'x, err = fs.lock_file(\"" .. file.. "\",\"w\"); if x == true then exit 0 end; os.exit(err == \"Resource temporarily unavailable\" and 11 or 12)'")
+    return os.execute(arg[-1] .. " -e 'x, err = fs.lock_file(\"" .. file.. "\",\"w\"); if x == true then os.exit(0); end; os.exit(err == \"Resource temporarily unavailable\" and 11 or 12)'")
 end
 
 _test["lock_file"] = function()
