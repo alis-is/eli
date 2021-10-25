@@ -350,6 +350,39 @@ function fs.chown(path, uid, gid, options)
 	return true
 end
 
+---@class EliFileLock
+---@field __type '"ELI_FILE_LOCK"'
+---@field __file file*
+---@field __start number
+---@field __len number
+local EliFileLock = {}
+EliFileLock.__index = EliFileLock
+
+---comment
+---@param file file*
+---@param start integer
+---@param len integer
+---@return EliFileLock
+function EliFileLock:new(file, start, len)
+    local _tmpFileLock = {}
+    _tmpFileLock.__file = file
+    _tmpFileLock.__start = start
+    _tmpFileLock.__len = len
+
+    setmetatable(_tmpFileLock, self)
+    self.__index = self
+    self.__type = "ELI_FILE_LOCK"
+    return _tmpFileLock
+end
+
+function EliFileLock:unlock()
+    fs.unlock_file(self)
+end
+
+function EliFileLock:free()
+    self:unlock()
+end
+
 ---#DES 'fs.lock_file'
 ---
 ---Locks access to file
@@ -357,7 +390,7 @@ end
 ---@param mode '"r"'|'"w"'
 ---@param start integer
 ---@param len integer
----@return boolean|nil, string
+---@return EliFileLock|nil, string
 function fs.lock_file(pathOrFile, mode, start, len)
     _check_efs_available('lock_file')
 
@@ -368,31 +401,33 @@ function fs.lock_file(pathOrFile, mode, start, len)
     if type(pathOrFile) == "string" then
         local _f, _error = io.open(pathOrFile, mode)
         if _f == nil then return _error end
-        local _ok, _error efs.lock_file(_f, mode, start, len)
-        if _ok then return _f end
+        local _ok, _error = efs.lock_file(_f, mode, start, len)
+        if _ok then return EliFileLock:new(_f, start, len) end
         return _ok, _error
     else
-        return efs.lock_file(pathOrFile, mode, start, len)
+        local _ok, _error = efs.lock_file(pathOrFile, mode, start, len)
+        if _ok then return EliFileLock:new(pathOrFile, start, len) end
+        return _ok, _error
     end
 end
 
 ---#DES 'fs.unlock_file'
 ---
 ---Unlocks access to file
----@param pathOrFile string|file*
----@param start integer
----@param len integer
+---@param pathOrFileLock string|EliFileLock
+---@param start integer|nil
+---@param len integer|nil
 ---@return boolean|nil, string
-function fs.unlock_file(pathOrFile, start, len)
+function fs.unlock_file(pathOrFileLock, start, len)
     _check_efs_available('unlock_file')
 
     if type(start) ~= 'number' then start = 0 end
     if type(len) ~= 'number' then len = 0 end
 
-    if type(pathOrFile) == "string" then
-        return efs.unlock_file(io.open(pathOrFile, "r"), start, len)
+    if type(pathOrFileLock) == "string" then
+        return efs.unlock_file(io.open(pathOrFileLock, "r"), start, len)
     else
-        return efs.unlock_file(pathOrFile, start, len)
+        return efs.unlock_file(pathOrFileLock.__file, pathOrFileLock.__start, pathOrFileLock.__len)
     end
 end
 
