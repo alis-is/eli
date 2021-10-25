@@ -25,7 +25,7 @@ Predefined variables:
 
 ### Install latest binary release (currently unix only)
 
-`wget -q https://raw.githubusercontent.com/cryon-io/eli/master/install.sh -O /tmp/install.sh && sh /tmp/install.sh`
+`wget -q https://raw.githubusercontent.com/alis-is/eli/master/install.sh -O /tmp/install.sh && sh /tmp/install.sh`
 
 ### Build eli
 
@@ -33,7 +33,7 @@ Build requirements:
 - docker or podman
 
 Steps:
-1. `git clone https://github.com/cryon-io/eli && cd eli`
+1. `git clone https://github.com/alis-is/eli && cd eli`
 2. `docker build -t elibuild .`
 3. `docker run -v $(pwd):"/root/luabuild" -v "$(pwd)/toolchains:/opt/cross" -e TOOLCHAINS='x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross' elibuild`
 4. Built binaries `eli` and `elic` will be created in build directory and per `<toolchain>` subdirectories
