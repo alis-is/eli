@@ -361,11 +361,14 @@ end
 function fs.lock_file(pathOrFile, mode, start, len)
     _check_efs_available('lock_file')
 
+    if type(mode) ~= 'string' then mode = "w" end
     if type(start) ~= 'number' then start = 0 end
     if type(len) ~= 'number' then len = 0 end
 
     if type(pathOrFile) == "string" then
-        return efs.lock_file(io.open(pathOrFile, mode), mode, start, len)
+        local _f, _error = io.open(pathOrFile, mode)
+        if _f == nil then return _error end
+        return efs.lock_file(_f, mode, start, len)
     else
         return efs.lock_file(pathOrFile, mode, start, len)
     end
