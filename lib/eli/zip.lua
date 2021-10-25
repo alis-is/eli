@@ -1,5 +1,5 @@
 local fs = require "eli.fs"
-local zip = require "lzip"
+local _lzip = require "lzip"
 local _path = require "eli.path"
 local _util = require "eli.util"
 local _internalUtil = require "eli.internals.util"
@@ -57,7 +57,7 @@ function zip.extract(source, destination, options)
 
    local flattenRootDir = options.flattenRootDir or false
    local _externalChmod = type(options.chmod) == "function"
-   local _openFlags = type(options.openFlags) == "number" and options.openFlags or zip.CHECKCONS
+   local _openFlags = type(options.openFlags) == "number" and options.openFlags or _lzip.CHECKCONS
    -- optional functions
 
    ---@type fun(path: string)
@@ -91,7 +91,7 @@ function zip.extract(source, destination, options)
          return file:close()
       end
 
-   local zipArch, err = zip.open(source, _openFlags)
+   local zipArch, err = _lzip.open(source, _openFlags)
    assert(zipArch ~= nil, err)
 
    local ignorePath = flattenRootDir and _get_root_dir(zipArch) or ""
@@ -241,9 +241,9 @@ function zip.get_files(source, options)
    end
    local flattenRootDir = options.flattenRootDir or false
    local _transform_path = options.transform_path or nil
-   local _openFlags = type(options.openFlags) == "number" and options.openFlags or zip.CHECKCONS
+   local _openFlags = type(options.openFlags) == "number" and options.openFlags or _lzip.CHECKCONS
 
-   local zipArch, err = zip.open(source, _openFlags)
+   local zipArch, err = _lzip.open(source, _openFlags)
    assert(zipArch ~= nil, err)
 
    local ignorePath = flattenRootDir and _get_root_dir(zipArch) or ""
@@ -299,9 +299,9 @@ end
 function zip.open_archive(path, checkcons)
    local _result, _error
    if checkcons then
-      _result, _error = zip.open(path, zip.CHECKCONS)
+      _result, _error = _lzip.open(path, _lzip.CHECKCONS)
    else
-      _result, _error = zip.open(path)
+      _result, _error = _lzip.open(path)
    end
    assert(_result, _error)
 end
@@ -312,7 +312,7 @@ end
 ---@param path string
 ---@return userdata
 function zip.new_archive(path)
-   local _result, _error = zip.open(path, zip.OR(zip.CREATE, zip.EXCL))
+   local _result, _error = _lzip.open(path, _lzip.OR(_lzip.CREATE, _lzip.EXCL))
    assert(_result, _error)
    return _result
 end
@@ -355,7 +355,7 @@ function zip.compress(source, target, options)
       _skipLength = #source - #_targetName + 1
    end
 
-   local _archive = zip.new_archive(target)
+   local _archive = _lzip.new_archive(target)
    if fs.file_type(source) == "file" then
       zip.add_to_archive(_archive, source:sub(_skipLength), "file", source)
       _archive:close()
