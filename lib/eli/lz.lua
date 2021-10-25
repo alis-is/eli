@@ -1,6 +1,8 @@
 local _zlib = require "zlib"
 local _util = require "eli.util"
 
+local lz = {}
+
 ---@class LzExtractOptions
 ---#DES 'LzExtractOptions.chunkSize'
 ---@field chunkSize nil|integer
@@ -17,7 +19,7 @@ local _util = require "eli.util"
 ---@param source string
 ---@param destination string
 ---@param options LzExtractOptions
-local function _extract(source, destination, options)
+function lz.extract(source, destination, options)
     local _sf = io.open(source)
     assert(_sf, "lz: Failed to open source file " .. tostring(source) .. "!")
 
@@ -62,7 +64,7 @@ end
 ---Extracts z compressed stream from binary like string variable
 ---@param data string
 ---@return string
-local function _extract_from_string(data)
+function lz.extract_from_string(data)
     if type(data) ~= "string" then
         error("lz: Unsupported compressed data type: " .. type(data) .. "!")
     end
@@ -84,7 +86,7 @@ end
 ---@param source string
 ---@param options LzExtractOptions
 ---@return string
-local function _extract_string(source, options)
+function lz.extract_string(source, options)
     local _result = ""
     local _options = _util.merge_tables(type(options) == "table" and options or
                                             {}, {
@@ -93,12 +95,8 @@ local function _extract_string(source, options)
         close_file = function() end
     }, true)
 
-    _extract(source, nil, _options)
+    lz.extract(source, nil, _options)
     return _result
 end
 
-return _util.generate_safe_functions({
-    extract = _extract,
-    extract_string = _extract_string,
-    extract_from_string = _extract_from_string
-})
+return _util.generate_safe_functions(lz)

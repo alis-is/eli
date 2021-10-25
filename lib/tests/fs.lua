@@ -172,18 +172,47 @@ _test["read_dir & iter_dir"] = function()
     _test.assert(#_dirEntries == count)
 end
 
+local function _external_lock(file)
+    local _ok, _, _code = os.execute(arg[-1] .. " -e 'x, err = fs.lock_file(\"" .. file.. "\",\"w\"); if type(x) == \"ELI_FILE_LOCK\" then os.exit(0); end; os.exit(err == \"Resource temporarily unavailable\" and 11 or 12)'")
+    return _ok, _code
+end
+
+local _lockedFile
 _test["lock_file"] = function()
-    local _file = io.open("tmp/test.file")
-    local _ok, _error = _eliFs.safe_lock_file(_file, "w")
+    _lockedFile = io.open("tmp/test.file", "w")
+    local _ok, _error = _eliFs.lock_file(_lockedFile, "w")
     _test.assert(_ok, _error)
-    -- // TODO: test locked
+    local _ok, _code, _ = _external_lock("tmp/test.file")
+    _test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
 end
 
 _test["unlock_file"] = function()
-    local _file = io.open("tmp/test.file")
-    local _ok, _error = _eliFs.safe_unlock_file(_file)
+    _lockedFile = io.open("tmp/test.file")
+    local _ok, _code, _ = _external_lock("tmp/test.file")
+    _test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
+    local _ok, _error = _eliFs.unlock_file(_lockedFile)
     _test.assert(_ok, _error)
-    -- // TODO: test unlocked
+    local _ok, _code, _ = _external_lock("tmp/test.file")
+    _test.assert(_ok and _code == 0, "Should not be able to lock twice!")
+end
+
+local _lockedFile2
+_test["lock_file (path)"] = function()
+    _lockedFile2, _error = _eliFs.lock_file("tmp/test.file", "w")
+    _test.assert(_lockedFile2 ~= nil, _error)
+    local _ok, _code, _ = _external_lock("tmp/test.file")
+    _test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
+end
+
+_test["unlock_file (path)"] = function()
+    local _ok, _code, _ = _external_lock("tmp/test.file")
+    _test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
+    local _ok, _error = _eliFs.unlock_file("tmp/test.file")
+    _test.assert(_ok, _error)
+    local _ok, _code, _ = _external_lock("tmp/test.file")
+    _test.assert(_ok and _code == 0, "Should not be able to lock twice!")
+    local _ok, _error = _eliFs.unlock_file("tmp/test.file")
+    _test.assert(_ok, _error)
 end
 
 _test["lock_dir & unlock_dir"] = function()
