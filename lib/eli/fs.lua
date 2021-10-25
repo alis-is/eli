@@ -73,7 +73,7 @@ end
 ---@param mkdir fun(path: string)
 ---@param scopeName string
 local function _internal_mkdir(path, mkdir, scopeName)
-    local _mkdir = type(mkdir) == 'function' and mkdir
+    local _mkdir = type(fs.mkdir) == 'function' and mkdir
     if type(_mkdir) ~= 'function' and efsLoaded then
         _mkdir = efs.mkdir
     end
@@ -111,7 +111,7 @@ end
 function fs.mkdirp(path, mkdir)
     local parent = dir(path)
     if parent ~= nil then
-        mkdirp(parent, mkdir)
+        fs.mkdirp(parent, mkdir)
     end
     _internal_mkdir(path, mkdir, 'mkdirp')
 end
@@ -124,7 +124,7 @@ end
 ---@param mkdir fun(path: string)
 function fs.create_dir(path, recurse, mkdir)
     if recurse then
-        mkdirp(path, mkdir)
+        fs.mkdirp(path, mkdir)
     else
         _internal_mkdir(path, mkdir, 'create_dir')
     end
