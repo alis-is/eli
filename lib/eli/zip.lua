@@ -17,6 +17,8 @@ local function _get_root_dir(zipArch)
    return _internalUtil.get_root_dir(_paths)
 end
 
+local zip = {}
+
 ---@class ZipExtractOptions
 ---#DES 'ZipExtractOptions.skipDestinationCheck'
 ---@field skipDestinationCheck nil|boolean
@@ -45,7 +47,7 @@ end
 ---@param source string
 ---@param destination string
 ---@param options ZipExtractOptions
-local function extract(source, destination, options)
+function zip.extract(source, destination, options)
    if type(options) ~= "table" then
       options = {}
    end
@@ -157,7 +159,7 @@ end
 ---@param file string
 ---@param destination string
 ---@param options ZipExtractOptions
-local function extract_file(source, file, destination, options)
+function zip.extract_file(source, file, destination, options)
    if type(destination) == "table" and options == nil then
       options = destination
       destination = file
@@ -177,7 +179,7 @@ local function extract_file(source, file, destination, options)
       true
    )
 
-   return extract(source, _path.dir(destination), _options)
+   return zip.extract(source, _path.dir(destination), _options)
 end
 
 ---#DES 'zip.extract_string'
@@ -187,7 +189,7 @@ end
 ---@param file string
 ---@param options ZipExtractOptions
 ---@return string
-local function extract_string(source, file, options)
+function zip.extract_string(source, file, options)
    local _result = ""
    local _options =
       _util.merge_tables(
@@ -213,7 +215,7 @@ local function extract_string(source, file, options)
       true
    )
 
-   extract(source, nil, _options)
+   zip.extract(source, nil, _options)
    return _result
 end
 
@@ -233,7 +235,7 @@ end
 ---@param source string
 ---@param options GetFilesOptions
 ---@return string[]
-local function get_files(source, options)
+function zip.get_files(source, options)
    if type(options) ~= "table" then
       options = {}
    end
@@ -274,7 +276,7 @@ end
 ---@param path string
 ---@param type '"file"' | '"string"' | '"directory"'
 ---@param content string
-local function _add_to_archive(archive, path, type, content)
+function zip.add_to_archive(archive, path, type, content)
    if type == "directory" then
       archive:add_dir(path)
    elseif type == "file" then
@@ -294,7 +296,7 @@ end
 ---@param path string
 ---@param checkcons boolean
 ---@return userdata
-local function _open_archive(path, checkcons)
+function zip.open_archive(path, checkcons)
    local _result, _error
    if checkcons then
       _result, _error = zip.open(path, zip.CHECKCONS)
@@ -309,7 +311,7 @@ end
 ---Creates zip archive file and returns it
 ---@param path string
 ---@return userdata
-local function _new_archive(path)
+function zip.new_archive(path)
    local _result, _error = zip.open(path, zip.OR(zip.CREATE, zip.EXCL))
    assert(_result, _error)
    return _result
@@ -329,7 +331,7 @@ end
 ---@param source string
 ---@param target string
 ---@param options CompressOptions
-local function _compress(source, target, options)
+function zip.compress(source, target, options)
    if type(options) ~= "table" then
       options = {}
    end
@@ -353,29 +355,18 @@ local function _compress(source, target, options)
       _skipLength = #source - #_targetName + 1
    end
 
-   local _archive = _new_archive(target)
+   local _archive = zip.new_archive(target)
    if fs.file_type(source) == "file" then
-      _add_to_archive(_archive, source:sub(_skipLength), "file", source)
+      zip.add_to_archive(_archive, source:sub(_skipLength), "file", source)
       _archive:close()
       return
    end
 
    local _dirEntries = fs.read_dir(source, {recurse = options.recurse, asDirEntries = true})
    for _, entry in ipairs(_dirEntries) do
-      _add_to_archive(_archive, entry:fullpath():sub(_skipLength), entry:type(), entry:fullpath())
+      zip.add_to_archive(_archive, entry:fullpath():sub(_skipLength), entry:type(), entry:fullpath())
    end
    _archive:close()
 end
 
-return _util.generate_safe_functions(
-   {
-      extract = extract,
-      extract_file = extract_file,
-      extract_string = extract_string,
-      get_files = get_files,
-      compress = _compress,
-      add_to_archive = _add_to_archive,
-      new_archive = _new_archive,
-      open_archive = _open_archive
-   }
-)
+return _util.generate_safe_functions(zip)

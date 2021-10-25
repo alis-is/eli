@@ -12,6 +12,8 @@ local function _get_root_dir(entries)
    return _internalUtil.get_root_dir(_paths)
 end
 
+local tar = {}
+
 ---@class TarExtractOptions
 ---#DES 'TarExtractOptions.skipDestinationCheck'
 ---@field skipDestinationCheck nil|boolean
@@ -40,7 +42,7 @@ end
 ---@param source string
 ---@param destination string
 ---@param options TarExtractOptions
-local function _extract(source, destination, options)
+function tar.extract(source, destination, options)
    if type(options) ~= "table" then
       options = {}
    end
@@ -140,7 +142,7 @@ end
 ---@param file string
 ---@param destination string
 ---@param options TarExtractOptions
-local function _extract_file(source, file, destination, options)
+function tar.extract_file(source, file, destination, options)
    if type(destination) == "table" and options == nil then
       options = destination
       destination = file
@@ -158,7 +160,7 @@ local function _extract_file(source, file, destination, options)
       },
       true
    )
-   return _extract(source, _path.dir(destination), _options)
+   return tar.extract(source, _path.dir(destination), _options)
 end
 
 ---#DES 'tar.extract_string'
@@ -168,7 +170,7 @@ end
 ---@param file string
 ---@param options TarExtractOptions
 ---@return string
-local function _extract_string(source, file, options)
+function tar.extract_string(source, file, options)
    local _result = ""
    local _options =
       _util.merge_tables(
@@ -194,12 +196,8 @@ local function _extract_string(source, file, options)
       true
    )
 
-   _extract(source, nil, _options)
+   tar.extract(source, nil, _options)
    return _result
 end
 
-return _util.generate_safe_functions({
-   extract = _extract,
-   extract_file = _extract_file,
-   extract_string = _extract_string
-})
+return _util.generate_safe_functions(tar)

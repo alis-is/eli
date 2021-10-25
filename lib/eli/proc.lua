@@ -2,6 +2,13 @@ local _util = require "eli.util"
 local eprocLoaded, eproc = pcall(require, "eli.proc.extra")
 local _sx = require "eli.extensions.string"
 
+local proc = {
+    ---#DES os.EPROC
+    ---
+    ---@type boolean
+    EPROC = eprocLoaded
+}
+
 ---@class GetStdStreamPartOptions
 ---@field stdoutRedirectTemplate nil | string
 ---@field stderrRedirectTemplate nil | string
@@ -19,7 +26,7 @@ local settings = {
 ---
 ---@param option EProcSettingsKind
 ---@param value string
-local function _set_settings(option, value)
+function proc.set_settings(option, value)
     if type(option) == "string" then
         settings[option] = value
     elseif type(option) == "table" then
@@ -108,7 +115,7 @@ end
 ---@param cmd string
 ---@param options ExecOptions
 ---@return ExecResult
-local function _exec(cmd, options)
+function proc.exec(cmd, options)
     if type(options) ~= "table" then options = {} end
 
     local _stdoutPart, _stdout, _tmpStdout =
@@ -130,15 +137,6 @@ local function _exec(cmd, options)
             (_tmpStderr and ExecTmpFile:new(_stderr) or io.open(_stderr))
     }
 end
-
-local proc = {
-    exec = _exec,
-    set_settings = _set_settings,
-    ---#DES os.EPROC
-    ---
-    ---@type boolean
-    EPROC = eprocLoaded
-}
 
 if not eprocLoaded then return _util.generate_safe_functions(proc) end
 
@@ -187,7 +185,7 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---
 ---@param _proc EliProcess
 ---@return SpawnResult
-local function _generate_spawn_result(_proc)
+function proc.generate_spawn_result(_proc)
     if (type(_proc) ~= "userdata" and type(_proc) ~= "table") or
         (_proc.__type ~= "ELI_PROCESS") then
         error(
@@ -207,7 +205,7 @@ end
 ---@param args string[]
 ---@param options SpawnOptions
 ---@return EliProcess | SpawnResult
-local function _spawn(path, args, options)
+function proc.spawn(path, args, options)
     if type(options) ~= "table" then options = {} end
 
     local _proc, err = eproc.spawn {
@@ -220,18 +218,15 @@ local function _spawn(path, args, options)
 
     if type(options.wait) == "boolean" and options.wait then
         _proc:wait()
-        return _generate_spawn_result(_proc)
+        return proc.generate_spawn_result(_proc)
     end
 
     if type(options.wait) == "number" and options.wait > 0 then
         local _exitCode = _proc:wait(options.wait)
-        if _exitCode >= 0 then return _generate_spawn_result(_proc) end
+        if _exitCode >= 0 then return proc.generate_spawn_result(_proc) end
     end
 
     return _proc
 end
-
-proc.spawn = _spawn
-proc.generate_spawn_result = _generate_spawn_result
 
 return _util.generate_safe_functions(proc)

@@ -365,9 +365,9 @@ function fs.lock_file(pathOrFile, mode, start, len)
     if type(len) ~= 'number' then len = 0 end
 
     if type(pathOrFile) == "string" then
-        return efs.lock_file(io.open(pathOrFile, mode), start, len)
+        return efs.lock_file(io.open(pathOrFile, mode), mode, start, len)
     else
-        return efs.lock_file(pathOrFile, start, len)
+        return efs.lock_file(pathOrFile, mode, start, len)
     end
 end
 
