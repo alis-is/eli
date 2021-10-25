@@ -368,7 +368,9 @@ function fs.lock_file(pathOrFile, mode, start, len)
     if type(pathOrFile) == "string" then
         local _f, _error = io.open(pathOrFile, mode)
         if _f == nil then return _error end
-        return efs.lock_file(_f, mode, start, len)
+        local _ok, _error efs.lock_file(_f, mode, start, len)
+        if _ok then return _f end
+        return _ok, _error
     else
         return efs.lock_file(pathOrFile, mode, start, len)
     end
