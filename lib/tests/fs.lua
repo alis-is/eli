@@ -198,7 +198,7 @@ end
 
 local _lockedFile2
 _test["lock_file (path)"] = function()
-    local _lockedFile2, _error = _eliFs.lock_file("tmp/test.file", "w")
+    _lockedFile2, _error = _eliFs.lock_file("tmp/test.file", "w")
     _test.assert(_lockedFile2 ~= nil, _error)
     local _ok, _code, _ = _external_lock("tmp/test.file")
     _test.assert(not _ok and _code == 11, "Should not be able to lock twice!")

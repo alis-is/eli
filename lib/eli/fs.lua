@@ -426,8 +426,10 @@ function fs.unlock_file(pathOrFileLock, start, len)
 
     if type(pathOrFileLock) == "string" then
         return efs.unlock_file(io.open(pathOrFileLock, "r"), start, len)
-    else
+    elseif type(pathOrFileLock) == "ELI_FILE_LOCK" or (type(pathOrFileLock) == "userdata" and pathOrFileLock.__type == "ELI_FILE_LOCK") then
         return efs.unlock_file(pathOrFileLock.__file, pathOrFileLock.__start, pathOrFileLock.__len)
+    else 
+        return efs.unlock_file(pathOrFileLock, start, len)
     end
 end
 
