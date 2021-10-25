@@ -186,16 +186,15 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@param _proc EliProcess
 ---@return SpawnResult
 function proc.generate_spawn_result(_proc)
-    if (type(_proc) ~= "userdata" and type(_proc) ~= "table") or
-        (_proc.__type ~= "ELI_PROCESS") then
-        error(
-            "Generate process result is possible only from ELI_PROCESS data structure!")
+    if ((type(_proc) ~= "userdata" or type(_proc) == "table") and _proc.__type ~= "ELI_PROCESS") or type(_proc) == "ELI_PROCESS" then 
+        return {
+            exitcode = _proc:get_exitcode(),
+            stdoutStream = _proc:get_stdout(),
+            stderrStream = _proc:get_stderr()
+        }
     end
-    return {
-        exitcode = _proc:get_exitcode(),
-        stdoutStream = _proc:get_stdout(),
-        stderrStream = _proc:get_stderr()
-    }
+        error(
+            "Generate process result is possible only from ELI_PROCESS data structure!")    
 end
 
 ---#DES 'proc.spawn'
