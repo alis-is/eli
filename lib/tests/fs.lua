@@ -174,16 +174,40 @@ end
 
 _test["lock_file"] = function()
     local _file = io.open("tmp/test.file")
-    local _ok, _error = _eliFs.safe_lock_file(_file, "w")
+    local _ok, _error = _eliFs.lock_file(_file, "w")
     _test.assert(_ok, _error)
-    -- // TODO: test locked
+    _ok, _ = _eliFs.lock_file(_file, "w")
+    _test.assert(_ok == nil, "Should not be able to lock twice!")
 end
 
 _test["unlock_file"] = function()
     local _file = io.open("tmp/test.file")
-    local _ok, _error = _eliFs.safe_unlock_file(_file)
+    local _ok, _ = _eliFs.lock_file(_file, "w")
+    _test.assert(_ok == nil, "Should not be able to lock twice!")
+    local _ok, _error = _eliFs.unlock_file(_file)
     _test.assert(_ok, _error)
-    -- // TODO: test unlocked
+    local _ok, _error = _eliFs.lock_file(_file, "w")
+    _test.assert(_ok, _error)
+    local _ok, _error = _eliFs.unlock_file(_file)
+    _test.assert(_ok, _error)
+end
+
+_test["lock_file (path)"] = function()
+    local _ok, _error = _eliFs.lock_file("tmp/test.file", "w")
+    _test.assert(_ok, _error)
+    _ok, _ = _eliFs.lock_file("tmp/test.file", "w")
+    _test.assert(_ok == nil, "Should not be able to lock twice!")
+end
+
+_test["unlock_file (path)"] = function()
+    local _ok, _ = _eliFs.lock_file("tmp/test.file", "w")
+    _test.assert(_ok == nil, "Should not be able to lock twice!")
+    local _ok, _error = _eliFs.unlock_file("tmp/test.file")
+    _test.assert(_ok, _error)
+    local _ok, _error = _eliFs.lock_file("tmp/test.file", "w")
+    _test.assert(_ok, _error)
+    local _ok, _error = _eliFs.unlock_file("tmp/test.file")
+    _test.assert(_ok, _error)
 end
 
 _test["lock_dir & unlock_dir"] = function()

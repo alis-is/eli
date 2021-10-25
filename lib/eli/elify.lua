@@ -46,12 +46,16 @@ local function _elify()
     type = function(v)
         local _t = _overridenValues.type(v)
         if _t == "table" or _t == "userdata" then
-            local _meta = getmetatable(v) or {}
-            local _ttype = _overridenValues.type(_meta.__type)
+            local _type = v.__type
+            if type(_type) ~= "string" and type(_type) ~= "function" then
+                local _meta = getmetatable(v) or {}
+                _type = _meta.__type
+            end
+            local _ttype = _overridenValues.type(_type )
             if _ttype == "string" then
-                return _meta.__type
+                return _type
             elseif _ttype == "function" then
-                return _meta.__type()
+                return _type()
             end
         end
         return _t
