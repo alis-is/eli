@@ -350,6 +350,8 @@ function fs.chown(path, uid, gid, options)
 	return true
 end
 
+---#DES fs.EliFileLock'
+---
 ---@class EliFileLock
 ---@field __type '"ELI_FILE_LOCK"'
 ---@field __file file*
@@ -375,10 +377,18 @@ function EliFileLock:new(file, start, len)
     return _tmpFileLock
 end
 
+---#DES 'EliFileLock.unlock_file'
+---
+---Unlocks access to file
+---@param self EliFileLock
 function EliFileLock:unlock()
     fs.unlock_file(self)
 end
 
+---#DES 'EliFileLock.unlock_file'
+---
+---Unlocks access to file
+---@param self EliFileLock
 function EliFileLock:free()
     self:unlock()
 end
