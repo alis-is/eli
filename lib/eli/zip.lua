@@ -354,7 +354,7 @@ function zip.compress(source, target, options)
       _skipLength = #source - #_targetName + 1
    end
 
-   local _archive = _lzip.new_archive(target)
+   local _archive = zip.new_archive(target)
    if fs.file_type(source) == "file" then
       zip.add_to_archive(_archive, source:sub(_skipLength), "file", source)
       _archive:close()

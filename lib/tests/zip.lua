@@ -51,6 +51,19 @@ _test["extract_string"] = function ()
     _test.assert(_hash == _hash2, "hashes dont match")
 end
 
+_test["compress"] = function ()
+    _eliFs.remove("tmp/test.file.zip")
+    local _ok, _file = _eliZip.safe_compress("assets/test.file", "tmp/test.file.zip")
+    _test.assert(_ok, _file)
+    local _ok, _error = _eliZip.safe_extract_file("tmp/test.file.zip", "test.file", "tmp/test.file.unzipped")
+    _test.assert(_ok, _error)
+    local _ok, _hash = _eliFs.safe_hash_file("tmp/test.file.unzipped", {hex = true})
+    local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.file", {hex = true})
+    local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.file", {hex = true})
+    _test.assert(_ok, _hash2)
+    _test.assert(_hash == _hash2, "hashes dont match")
+end
+
 if not TEST then
     _test.summary()
 end
