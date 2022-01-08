@@ -1,27 +1,27 @@
 local function eli_init()
-   local path = require"eli.path"
-   local _eos = require"eli.os"
+   local path = require 'eli.path'
+   local _eos = require 'eli.os'
    local i_min = 0
    while arg[i_min] do
       i_min = i_min - 1
    end
 
    local function try_identify_interpreter(interpreter)
-      if path.default_sep() == "/" then
-         local io = require "io"
-         local f = io.popen("which " .. interpreter)
-         local _path = f:read("a*")
+      if path.default_sep() == '/' then
+         local io = require 'io'
+         local f = io.popen('which ' .. interpreter)
+         local _path = f:read('a*')
          if _path ~= nil then
-            _path = _path:gsub("%s*", "")
+            _path = _path:gsub('%s*', '')
          end
          local _exit = f:close()
          if _exit == 0 then
             return _path
          end
       else
-         local _path = require "os".getenv "PATH"
+         local _path = require 'os'.getenv 'PATH'
          if _path then
-            for subpath in _path:gmatch("([^;]+)") do
+            for subpath in _path:gmatch('([^;]+)') do
                if _path.file(subpath) == interpreter then
                   return subpath
                end
@@ -50,23 +50,22 @@ local function eli_init()
       end
       APP_ROOT = path.dir(APP_ROOT_SCRIPT)
    end
-   ELI_LIB_VERSION = "0.17.3"
+   ELI_LIB_VERSION = '0.18.0'
 
    local _elify = true
    for i, v in ipairs(arg) do
-      if v == "--lua-env" then
+      if v == '--lua-env' then
          _elify = false
          table.remove(arg, i)
          break
       end
    end
    if _elify then
-      require("eli.elify").elify()
+      require('eli.elify').elify()
    else -- if not elified initial we make elify global
-      elify = require("eli.elify").elify
+      elify = require('eli.elify').elify
    end
 end
-
 
 eli_init()
 -- cleanup init
