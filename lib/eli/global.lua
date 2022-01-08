@@ -1,3 +1,5 @@
+local _string = require"eli.extensions.string"
+
 local global = {}
 
 ---#DES 'printf'
@@ -12,16 +14,7 @@ function global.printf(format, ...)
         if type(v) == 'table' and not util.is_array(_args[1]) then
             -- interpolate
             local _interpolationTable = table.remove(_args, i)
-            format =
-                format:gsub(
-                '(\\?$%b{})',
-                function(w)
-                    if w:sub(1, 1) == '\\' then
-                        return w:sub(2)
-                    end
-                    return _interpolationTable[w:sub(3, -2)] or w
-                end
-            )
+            format = _string.interpolate(format, _interpolationTable)
         end
     end
     return io.write(string.format(format, ...))
