@@ -11,6 +11,7 @@ require"lz"
 require"util"
 require"ver"
 require"elios"
+require"global"
 
 require"extensions.string"
 require"extensions.table"
