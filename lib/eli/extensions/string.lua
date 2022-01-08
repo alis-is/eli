@@ -64,11 +64,30 @@ local function _join_strings(separator, ...)
     return _join(separator, table.unpack(_tmp))
 end
 
+---#DES string.interpolate
+---
+---Interpolates string with data from table
+---@param format string
+---@param data table
+---@return string
+local function _interpolate(format, data)
+    ---@param w string
+    ---@return string
+    local function _interpolater(w)
+        if w:sub(1, 1) == '\\' then
+            return w:sub(2)
+        end
+        return tostring(data[w:sub(3, -2)]) or w
+    end
+    return format:gsub('(\\?$%b{})', _interpolater)
+end
+
 local function _globalize()
     string.split = _split
     string.join = _join
     string.join_strings = _join_strings
     string.trim = _trim
+    string.interpolate = _interpolate
 end
 
 return {
@@ -76,5 +95,6 @@ return {
     split = _split,
     join = _join,
     join_strings = _join_strings,
-    trim = _trim
+    trim = _trim,
+    interpolate = _interpolate
 }
