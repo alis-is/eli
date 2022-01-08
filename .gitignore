@@ -1,7 +1,10 @@
 lua
 lua-modules
 modules
-build
+build/*
+!build/.gitkeep
+tmp/*
+!tmp/.gitkeep
 tools/luasrcdiet
 .CACHE
 lib/tests/tmp/*

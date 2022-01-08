@@ -77,7 +77,7 @@ function tar.extract(source, destination, options)
    local _chunkSize = type(options.chunkSize) ~= "number" and options.chunkSize or 2 ^ 13 -- 8K
 
    local _tarEntries = _tar.open(source)
-   assert(_tarEntries, "lz: Failed to open source file " .. tostring(source) .. "!")
+   assert(_tarEntries, "tar: Failed to open source file " .. tostring(source) .. "!")
 
    local _ignorePath = _flattenRootDir and _get_root_dir(_tarEntries) or ""
    local _il = #_ignorePath + 1 -- ignore length

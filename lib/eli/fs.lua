@@ -133,6 +133,7 @@ end
 ---@class FsRemoveOptions
 ---@field recurse boolean
 ---@field contentOnly boolean
+---@field followLinks boolean
 
 ---#DES 'fs.remove'
 ---
@@ -155,10 +156,11 @@ function fs.remove(path, options)
     local contentOnly = options.contentOnly
     options.contentOnly = false -- for recursive calls
 
-    if efs.file_type(path) == nil then
+    local _type_check = options.followLinks and efs.file_type or efs.link_type
+    if _type_check(path) == nil then
         return
     end
-    if efs.file_type(path) == 'file' then
+    if _type_check(path) == 'file' then
         local _ok, _error = os.remove(path)
         assert(_ok, _error or '')
     end
@@ -166,10 +168,10 @@ function fs.remove(path, options)
         for o in efs.iter_dir(path) do
             local fullPath = combine(path, o)
             if o ~= '.' and o ~= '..' then
-                if efs.file_type(fullPath) == 'file' then
+                if _type_check(fullPath) == 'file' then
                     local _ok, _error = os.remove(fullPath)
                     assert(_ok, _error or '')
-                elseif efs.file_type(fullPath) == 'directory' then
+                elseif _type_check(fullPath) == 'directory' then
                     fs.remove(fullPath, options)
                 end
             end
@@ -294,7 +296,7 @@ function fs.read_dir(path, options)
         options = {}
     end
     if options.recurse then
-        local _lenOfPathToRemove = path:match('.*/') and #path or #path + 1
+        local _lenOfPathToRemove = path:match('.*/$') and #path or #path + 1
         if options.returnFullPaths then
             _lenOfPathToRemove = 0
         end

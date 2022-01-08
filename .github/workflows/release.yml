@@ -11,17 +11,13 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: alpine-latest
+    runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: setup deps
-        run: |
-          apk add cmake make perl pytho3 qemu-i386 qemu-aarch64 qemu-x86_64
-
-
+      
       - name: prepare
         id: prep
         run: |
@@ -29,31 +25,42 @@ jobs:
           ROOT=$(pwd) && echo "::set-output name=ROOT::$ROOT"
           rm -rf release .meta
           mkdir -p "$ROOT/release"
-
-      - name: build & test
-        id: build
-        env: 
-          TOOLCHAINS: x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross
-          ROOT: ${{ steps.prep.outputs.ROOT }}
-          PLATFORM: ${{ steps.prep.outputs.PLATFORM }}
-        run: 
-          - ./eli build.lua
-          - . "./test-utils.sh"
-          - test_platform "x86_64" && cp "$ROOT/build/x86_64-linux-musl-cross/eli" "$ROOT/release/eli-unix-x86_64"
-          - test_platform "i686" "i386" && cp "$ROOT/build/i686-linux-musl-cross/eli" "$ROOT/release/eli-unix-i686"
-          - test_platform "aarch64" && cp "$ROOT/build/aarch64-linux-musl-cross/eli" "$ROOT/release/eli-unix-aarch64"
-          - VERSION=$ROOT/build/$PLATFORM-linux-musl-cross/eli -e "io.write(ELI_VERSION or ELI_LIB_VERSION)" && echo "::set-output name=VERSION::$VERSION"
-
-      - name: post build
-        id: post
-        env: 
-          VERSION: ${{ steps.build.outputs.VERSION }}
-        run: |
+          VERSION=$(./eli -e 'io.write(require"hjson".parse(fs.read_file"config.hjson").version)')
           if git tag -l "$VERSION" | grep "$VERSION"; then 
             echo "Version $VERSION already exists";
           else
             echo "::set-output name=NEEDS_RELEASE::true"
           fi
+
+      - name: build the build container
+        uses: docker/build-push-action@v2
+        with:
+          tags: elibuild
+          file: 'tools/containers/build/Dockerfile'
+          push: false
+      
+      - name: build
+        uses: addnab/docker-run-action@v3
+        env: 
+          TOOLCHAINS: 'x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross'
+        with:
+          image: elibuild
+          run: ./eli tools/build.lua
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
+
+      - name: build the test container
+        uses: docker/build-push-action@v2
+        with:
+          tags: elitest
+          file: 'tools/containers/test/Dockerfile'
+          push: false
+
+      - name: test
+        uses: addnab/docker-run-action@v3
+        with:
+          image: elibuild
+          run: ./tools/test.sh
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
 
       - name: publish
         uses: ncipollo/release-action@v1

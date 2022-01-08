@@ -1,12 +1,4 @@
-local lfs = require "lfs"
-local path = require "eli.path"
-local fs = require "eli.fs"
-local readfile, writefile = fs.readfile, fs.writefile
-
-local escape = require "tools.escape"
-local io = require "io"
-local os = require "os"
-
+local escape_string = require "tools.escape".escape_string
 local separator = require "eli.path".default_sep()
 
 local function getFiles(location, recurse, filter, ignore, resultSeparator)
@@ -33,35 +25,45 @@ local function getFiles(location, recurse, filter, ignore, resultSeparator)
         end
     end
 
-    if lfs.attributes(location, "mode") == "file" then
+    if fs.file_type(location) == "file" then
         if (not filter or location:match(filter)) and not should_ignore(location) then
             table.insert(result, location)
             return result
         end
     end
 
-    for file in lfs.dir(location) do
-        if file ~= "." and file ~= ".." and not should_ignore(file) then
-            local fullPath = location .. separator .. file
-            if lfs.attributes(fullPath, "mode") == "file" and (not filter or file:match(filter)) then
-                table.insert(result, file)
-            elseif lfs.attributes(fullPath, "mode") == "directory" and recurse then
-                for _, _file in ipairs(getFiles(fullPath, recurse, filter, ignore, resultSeparator)) do
-                    table.insert(result, file .. resultSeparator .. _file) -- :gsub("[\\/]", "."))
-                end
+    for _, file in ipairs(fs.read_dir(location, { returnFullPaths = false, recurse = recurse })) do
+        if not should_ignore(file) then
+            if fs.file_type(path.combine(location, file)) == "file" and (not filter or file:match(filter)) then
+                local _modulePath = file:gsub("/", resultSeparator)
+                table.insert(result, _modulePath)
             end
         end
     end
     return result
 end
 
-local function generateModuleString(config, minify, amalgate)
-    if minify == nil then
-        minify = true
+---@class GenerateEmbedableModuleOptions
+---@field minify boolean
+---@field amalgate boolean
+---@field escape boolean
+
+---processes lua file and returns it as embedable string
+---@param config table
+---@param options GenerateEmbedableModuleOptions
+---@return string
+local function generate_embedable_module(config, options)
+    if type(options) ~= "table" then options = {} end
+    if options.minify == nil then
+        options.minify = true
     end
-    if amalgate == nil then
-        amalgate = true
+    if options.amalgate == nil then
+        options.amalgate = true
     end
+    if options.escape == nil then
+        options.escape = true
+    end
+
     local modulesToEmbed = ""
 
     for _, module in ipairs(config) do
@@ -72,48 +74,49 @@ local function generateModuleString(config, minify, amalgate)
             files = module.files
         end
         local s = ""
-        local oldworkDir = lfs.currentdir()
-        if amalgate then
+        local oldworkDir = os.cwd()
+        if options.amalgate then
             local filesToEmbed = ""
             for _, file in ipairs(files) do
                 filesToEmbed = filesToEmbed .. " " .. file:gsub(".lua$", "")
             end
-            if lfs.attributes(module.path, "mode") == "file" then
-                lfs.chdir(path.dir(module.path))
+            if fs.file_type(module.path) == "file" then
+                os.chdir(path.dir(module.path))
             else
-                lfs.chdir(module.path)
+                os.chdir(module.path)
             end
             local _pathToAmalg = path.combine(oldworkDir, "tools/amalg.lua")
             local f = io.popen("/root/luabuild/eli" .. " " .. _pathToAmalg .. " " .. filesToEmbed, "r")
             s = assert(f:read("*a"))
             f:close()
-            lfs.chdir(oldworkDir)
+            os.chdir(oldworkDir)
         else
             for _, file in ipairs(files) do
-                s = s .. readfile(file) .. "\n"
+                s = s .. fs.read_file(file) .. "\n"
             end
         end
-        if minify then
+        if options.minify then
             local tmpFile = os.tmpname()
             local tmpOutput = os.tmpname()
-            writefile(tmpFile, s)
+            fs.write_file(tmpFile, s)
 
-            lfs.chdir("tools/luasrcdiet")
+            os.chdir("tools/luasrcdiet")
             local _pathToLuaDiet = path.combine(oldworkDir, "tools/luasrcdiet/bin/luasrcdiet")
             local f =
                 io.popen(
                 "/root/luabuild/eli" ..
-                    " " .. _pathToLuaDiet .. " " .. tmpFile .. " -o " .. tmpOutput .. " --basic",
+                    " " .. _pathToLuaDiet .. " " .. tmpFile .. " -o " .. tmpOutput .. "",
                 "r"
             )
             assert(f:read("*a"):match("lexer%-based optimizations summary"), "Minification Failed")
-            s = readfile(tmpOutput)
+            s = fs.read_file(tmpOutput)
             f:close()
-            lfs.chdir(oldworkDir)
+            os.chdir(oldworkDir)
         end
         modulesToEmbed = modulesToEmbed .. s .. "\n"
     end
-    modulesToEmbed = escape.escape_string(modulesToEmbed)
+    modulesToEmbed = escape_string(modulesToEmbed)
+    if options.escape then return modulesToEmbed:gsub("%%", "%%%%") end
     return modulesToEmbed
 end
-return generateModuleString
+return generate_embedable_module

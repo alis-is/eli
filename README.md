@@ -34,9 +34,11 @@ Build requirements:
 
 Steps:
 1. `git clone https://github.com/alis-is/eli && cd eli`
-2. `docker build -t elibuild .`
-3. `docker run -v $(pwd):"/root/luabuild" -v "$(pwd)/toolchains:/opt/cross" -e TOOLCHAINS='x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross' elibuild`
-4. Built binaries `eli` and `elic` will be created in build directory and per `<toolchain>` subdirectories
+2. `docker build -t elibuild ./tools/containers/build`
+3. `docker build -t elitest ./tools/containers/test`
+4. `docker run -w "/root/luabuild" -v $(pwd):"/root/luabuild" -v "$(pwd)/toolchains:/opt/cross" -e TOOLCHAINS='x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross' -it elibuild`
+6. `docker run -w "/root/luabuild" -v $(pwd):"/root/luabuild" -it elitest`
+7. Built binaries `eli` and `elic` will be created in release directory
 
 *Note: You can choose build toolchain you like from https://musl.cc/ and set its name in TOOLCHAINS*
 
