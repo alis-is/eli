@@ -1,7 +1,7 @@
 local _test = TEST or require 'u-test'
 local _ok, _eliGlobals = pcall(require, "eli.global")
 
-_test["globabl available"] = function ()
+_test["global available"] = function ()
     _test.assert(_ok)
 end
 _test["printf C like"] = function ()
