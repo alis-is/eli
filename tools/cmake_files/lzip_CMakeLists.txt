@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.9)
 project (lua_zip)  # project here actually means solution in premake
 
 file(GLOB lua_zip_sources ./**.c)

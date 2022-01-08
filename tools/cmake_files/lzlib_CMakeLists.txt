@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.9)
 project (lzlib)  # project here actually means solution in premake
 
 file(GLOB lzlib_sources ./**.c)
@@ -6,3 +6,4 @@ SET(lzlib ${lzlib_sources})
 
 ADD_LIBRARY (lzlib  ${lzlib})
 TARGET_LINK_LIBRARIES (lzlib)
+

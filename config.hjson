@@ -1,9 +1,10 @@
 {
-   version: 0.17.3
+   version: 0.18.1
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    inject_CA: true
    cache_dir: .CACHE
+   build_type: MINSIZEREL
    c_libs: {
       eli_fs_extra: "eli.fs.extra"
       eli_proc_extra: "eli.proc.extra"
@@ -140,8 +141,8 @@
       },
       {
          id: eli_fs_extra
-         repository: cryon-io/eli-fs-extra
-         version: 0.3.1
+         repository: alis-is/eli-fs-extra
+         version: 0.4.0
          destination: modules/eli-fs-extra
          omitRoot: true
       },
@@ -206,7 +207,7 @@
       { 
          id: mbedtls
          repository: ARMmbed/mbedtls  
-         version: mbedtls-2.27.0
+         version: mbedtls-2.28.0
          destination: modules/mbedtls
          omitRoot: true
       },
@@ -240,8 +241,8 @@
       },
       { 
          id: luasrcdiet
-         repository: jirutka/luasrcdiet
-         version: v1.0.0
+         repository: cryi/luasrcdiet
+         version: 1.1.0
          destination: tools/luasrcdiet
          omitRoot: true
       }
