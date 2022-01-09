@@ -59,7 +59,7 @@ local function buildWithChain(id, buildDir)
       --fs.mkdirp("/opt/cross/" .. id)
       local tmp = os.tmpname()
       --local tmp2 = os.tmpname()
-      net.download_file("https://more.musl.cc/10/i686-linux-musl/" .. id .. ".tgz", tmp)
+      net.download_file("https://more.musl.cc/11/i686-linux-musl/" .. id .. ".tgz", tmp)
       -- eli.tar can not handle links annd long links so we use system tar for now
       assert(os.execute("tar -xzvf " .. tmp .. " && mv " .. id .. " /opt/cross/"))
 --      lz.extract(tmp, tmp2)
