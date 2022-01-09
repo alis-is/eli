@@ -42,12 +42,10 @@ jobs:
       
       - name: build
         uses: addnab/docker-run-action@v3
-        env: 
-          TOOLCHAINS: 'x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross'
         with:
           image: elibuild
           run: ./eli tools/build.lua
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross -e TOOLCHAINS='x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross'
 
       - name: build the test container
         uses: docker/build-push-action@v2
