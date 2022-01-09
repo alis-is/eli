@@ -26,6 +26,7 @@ jobs:
           rm -rf release .meta
           mkdir -p "$ROOT/release"
           VERSION=$(./eli -e 'io.write(require"hjson".parse(fs.read_file"config.hjson").version)')
+          echo "::set-output name=VERSION::$VERSION"
           if git tag -l "$VERSION" | grep "$VERSION"; then 
             echo "Version $VERSION already exists";
           else
