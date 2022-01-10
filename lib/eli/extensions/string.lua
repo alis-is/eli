@@ -66,11 +66,14 @@ end
 
 ---#DES string.interpolate
 ---
----Interpolates string with data from table
+---Interpolates string with data from table. If table is not provided uses _G as source for interpolation.
+---WARNING: _G does not contain local variables or upvalues in such scenario provide them through data parameter as table.
 ---@param format string
 ---@param data table
 ---@return string
 local function _interpolate(format, data)
+    if data == nil then data = _G end
+    if type(data) ~= "table" then data = {} end
     ---@param w string
     ---@return string
     local function _interpolater(w)
