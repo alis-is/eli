@@ -73,7 +73,7 @@ jobs:
 
       - name: publish
         uses: ncipollo/release-action@v1
-        if: ${{ steps.prep.outputs.NEEDS_RELEASE == 'true'}}
+        if: ${{ steps.prep.outputs.NEEDS_RELEASE == 'true' }}
         with:
           artifacts: "release/*"
           tag: ${{ steps.prep.outputs.VERSION }}
