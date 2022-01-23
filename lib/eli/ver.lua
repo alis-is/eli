@@ -1,12 +1,19 @@
 -- conforms to semver 2.0
 local generate_safe_functions = require"eli.util".generate_safe_functions
 
+---@class SemVer
+---@field major number
+---@field minor number
+---@field patch number
+---@field prerelease string
+---@field metadata string
+
 ---#DES 'ver.parse'
 ---
 ---Parses version string and returns table with major, minor, path, prerelease 
 ---and metadata values
 ---@param ver string
----@return table
+---@return SemVer
 local function _parse_semver(ver)
     if type(ver) ~= "string" then
         return nil

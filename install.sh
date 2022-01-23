@@ -10,6 +10,11 @@ else
     LATEST=$(wget -qO- https://api.github.com/repos/alis-is/eli/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g')
 fi
 
+if eli -v | grep "$LATEST"; then
+    echo "Latest eli already available."
+    exit 0
+fi
+
 PLATFORM=$(uname -m)
 echo "Downloading eli-unix-$PLATFORM $LATEST..."
 
