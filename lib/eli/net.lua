@@ -475,12 +475,12 @@ local function _download(url, write_function, options)
     local verifyPeer = options.verifyPeer
     if verifyPeer == nil then verifyPeer = true end
 
-    local _client = RestClient:new(url, {
+    local _client = RestClient:new(url, util.merge_tables(options, {
         followRedirects = followRedirects,
         verifyPeer = verifyPeer,
         timeout = options.timeout,
         write_function = write_function
-    })
+    }, true))
 
     return _client:get()
 end
