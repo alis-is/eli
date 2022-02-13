@@ -139,9 +139,8 @@ function zip.extract(source, destination, options)
          if _externalChmod then -- we got supplied chmod
             _chmod(_targetPath, _externalAtrributes)
          else -- we use built in chmod
-            local _permAttributes = (_externalAtrributes / 2 ^ 16)
-            local _valid, _permissions = pcall(string.format, "%o", _permAttributes)
-            if _valid and tonumber(_permissions) ~= 0 then
+            local _permissions = math.floor(_externalAtrributes / 2 ^ 16)
+            if tonumber(_permissions) ~= 0 then
                pcall(_chmod, _targetPath, tonumber(_permissions))
             end
          end
