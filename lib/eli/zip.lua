@@ -134,15 +134,14 @@ function zip.extract(source, destination, options)
             b = b + math.min(chunkSize, stat.size - b)
          end
          _close_file(_f)
-
-         local _externalAtrributes = zipArch:get_external_attributes(i)
-         if _externalChmod then -- we got supplied chmod
-            _chmod(_targetPath, _externalAtrributes)
-         else -- we use built in chmod
-            local _permissions = math.floor(_externalAtrributes / 2 ^ 16)
-            if tonumber(_permissions) ~= 0 then
-               pcall(_chmod, _targetPath, tonumber(_permissions))
-            end
+      end
+      local _externalAtrributes = zipArch:get_external_attributes(i)
+      if _externalChmod then -- we got supplied chmod
+         _chmod(_targetPath, _externalAtrributes)
+      elseif type(_externalAtrributes) == "number" then -- we use built in chmod
+         local _permissions = math.floor(_externalAtrributes / 2 ^ 16)
+         if tonumber(_permissions) ~= 0 then
+            pcall(_chmod, _targetPath, tonumber(_permissions))
          end
       end
       ::files_loop::
