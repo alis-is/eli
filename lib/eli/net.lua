@@ -26,6 +26,7 @@ end
 ---@field contentType string
 ---@field curlOptions table --- // TODO: expose as class possibly
 ---@field ignoreHttpErrors boolean
+---@field progressFunction function | nil
 
 ---@class RequestOptions: BaseRequestOptions
 ---@field write_function nil | fun(data: string)
@@ -57,7 +58,6 @@ local function _request(method, url, options, data)
     if verifyPeer == nil then verifyPeer = true end
 
     if type(options.curlOptions) ~= "table" then options.curlOptions = {} end
-
     local _easyOpts = {
         url = url,
         writefunction = _write,
@@ -65,7 +65,9 @@ local function _request(method, url, options, data)
         [curl.OPT_FOLLOWLOCATION] = followRedirects,
         [curl.OPT_SSL_VERIFYPEER] = verifyPeer,
         [curl.OPT_TIMEOUT] = options.timeout or 0,
-        httpheader = _encode_headers(_headers)
+        httpheader = _encode_headers(_headers),
+        noprogress = type(options.progressFunction) ~= "function",
+        progressfunction = options.progressFunction
     }
     for k, v in pairs(options.curlOptions) do
         if _easyOpts[k] == nil then _easyOpts[k] = v end
