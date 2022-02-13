@@ -352,6 +352,49 @@ function fs.chown(path, uid, gid, options)
 	return true
 end
 
+---@class FsChmodOptions
+---@field recurse boolean
+---@field recurseIgnoreErrors boolean
+
+---#DES 'fs.chmod'
+---
+---Sets file flags in the path
+---@param path string
+---@param mode integer|string
+---@param options FsChmodOptions
+---@return boolean, string, number
+function fs.chmod(path, mode, options)
+    _check_efs_available('chmod')
+    if type(options) ~= 'table' then
+        options = {}
+    end
+
+    if type(mode) == "string" then
+        mode = mode .. string.rep("-", 9 - #mode)
+    end
+    if not options.recurse or efs.file_type(path) ~= 'directory' then
+        return efs.chmod(path, mode)
+    end
+
+    if type(options.recurseIgnoreErrors) ~= 'boolean' then
+        options.recurseIgnoreErrors = true
+    end
+
+    local _ok, _error, _errno = efs.chmod(path, mode)
+    if not _ok and not options.recurseIgnoreErrors then
+        return _ok, _error, _errno
+    end
+
+    local _paths = fs.read_dir(path, {recurse = true, returnFullPaths = true})
+    for _, _path in ipairs(_paths) do
+		_ok, _error, _errno = efs.chmod(_path, mode)
+		if not _ok and not options.recurseIgnoreErrors then
+			return _ok, _error, _errno
+		end
+	end
+	return true
+end
+
 ---#DES fs.EliFileLock'
 ---
 ---@class EliFileLock
