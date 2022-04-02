@@ -32,6 +32,27 @@ _test["is_array (not array)"] = function ()
     _test.assert(not _eliUtil.is_array(_source))
 end
 
+_test["merge_arrays"] = function ()
+    local _t1 = { 1, "2", true }
+    local _t2 = { 3, "4", false }
+    local _result = _eliUtil.merge_arrays(_t1, _t2)
+    for k, v in pairs(_t1) do 
+        _test.assert(_result[k] == v)
+    end
+    for k, v in pairs(_t2) do 
+        _test.assert(_result[k + #_t1] == v)
+    end
+end
+
+_test["merge_arrays (not arrays)"] = function ()
+    local _t1 = { a = 'a', c = 'c', b = 'b'}
+    local _t2 = { d = 'd', f = 'f', e = 'e'}
+    local _result, _error = _eliUtil.merge_arrays(_t1, _t2)
+    _test.assert(not _result and _error:find("t1"))
+    local _result, _error = _eliUtil.merge_arrays({ 1, 2, 3 }, _t2)
+    _test.assert(not _result and _error:find("t2"))
+end
+
 _test["merge_tables (dictionaries - unique keys)"] = function ()
     local _t1 = { a = 'a', c = 'c', b = 'b'}
     local _t2 = { d = 'd', f = 'f', e = 'e'}

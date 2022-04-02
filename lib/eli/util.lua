@@ -17,6 +17,24 @@ function util.is_array(t)
    return true
 end
 
+---#DES 'util.merge_arrays'
+---@param t1 table
+---@param t2 table
+---@return table
+function util.merge_arrays(t1, t2)
+   if not util.is_array(t1) then
+      return nil, "t1 is not an array"
+   end
+   if not util.is_array(t2) then
+      return nil, "t2 is not an array"
+   end
+   local _result = { table.unpack(t1) }
+   for _, v in ipairs(t2) do
+      table.insert(_result, v)
+   end
+   return _result
+end
+
 ---#DES 'util.merge_tables'
 ---@param t1 table
 ---@param t2 table
