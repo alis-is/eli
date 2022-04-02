@@ -22,6 +22,11 @@ _test["is_array (array)"] = function ()
     _test.assert(_eliUtil.is_array(_source))
 end
 
+_test["is_array (array packed)"] = function ()
+    local _source = table.pack('a', 'c', 'b')
+    _test.assert(_eliUtil.is_array(_source))
+end
+
 _test["is_array (not array)"] = function ()
     local _source = { a = 'a', c = 'c', b = 'b'}
     _test.assert(not _eliUtil.is_array(_source))

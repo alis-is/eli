@@ -4,13 +4,16 @@ function util.is_array(t)
    if type(t) ~= "table" then
       return false
    end
+   local n = t.n
    local i = 0
    for k in pairs(t) do
       i = i + 1
-      if i ~= k then
+      if k ~= "n" and i ~= k then
          return false
       end
    end
+   -- arrays package with table.pack have n key describing count of elements. So actual number of array indexes is i - 1
+   if type(n) == "number" then return n == i - 1 end
    return true
 end
 
@@ -250,5 +253,7 @@ function util.equals(v, v2, deep)
      return v == v2
   end
 end
+
+-- // TODO: map
 
 return util
