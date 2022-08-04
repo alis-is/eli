@@ -11,8 +11,6 @@ local BUILD_TYPE = _config.build_type or "MINSIZEREL"
 require"tools.download"
 require"tools.create-env"
 log_info("Building eli...")
-fs.remove("release", { recurse = true })
-fs.mkdirp("release")
 
 --local _tmpname = os.tmpname
 --local _root = os.cwd()
@@ -59,7 +57,11 @@ local function buildWithChain(id, buildDir)
       --fs.mkdirp("/opt/cross/" .. id)
       local tmp = os.tmpname()
       --local tmp2 = os.tmpname()
-      net.download_file("https://more.musl.cc/11/i686-linux-musl/" .. id .. ".tgz", tmp)
+      local _ok = net.safe_download_file("https://github.com/alis-is/musl-toolchains/releases/download/global/" .. id .. ".tgz", tmp)
+      if not _ok then
+         print("Mirror not found. Downloading from upstream.")
+         net.download_file("https://more.musl.cc/11/x86_64-linux-musl/" .. id .. ".tgz", tmp)
+      end
       -- eli.tar can not handle links annd long links so we use system tar for now
       assert(os.execute("tar -xzvf " .. tmp .. " && mv " .. id .. " /opt/cross/"))
 --      lz.extract(tmp, tmp2)
@@ -139,9 +141,11 @@ else
 end
 
 log_success("Build completed.")
-log_info("Generating meta definitions...")
-fs.remove(".meta", { recurse = true })
-os.execute("chmod +x ./release/eli-unix-*")
-os.execute("./release/eli-unix-$(uname -m) ./tools/meta-generator.lua")
-zip.compress(".meta", "release/meta.zip", { recurse = true })
-log_success("Meta definitions generated...")
+if os.execute("./release/eli-unix-$(uname -m) -e \"print'ok'\"") then
+   log_info("Generating meta definitions...")
+   fs.remove(".meta", { recurse = true })
+   os.execute("chmod +x ./release/eli-unix-*")
+   os.execute("./release/eli-unix-$(uname -m) ./tools/meta-generator.lua")
+   zip.compress(".meta", "release/meta.zip", { recurse = true })
+   log_success("Meta definitions generated...")
+end
