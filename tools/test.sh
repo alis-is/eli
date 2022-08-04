@@ -11,6 +11,7 @@ test_build() {
 
 test_qemu_build() {
     cd lib/tests && \
+    export QEMU="$2" && \
     "$2" "$ROOT/release/eli-unix-$1" all.lua && \
     cd "$ROOT" || exit 1
 }

@@ -173,7 +173,7 @@ _test["read_dir & iter_dir"] = function()
 end
 
 local function _external_lock(file)
-    local _ok, _, _code = os.execute(arg[-1] .. " -e 'x, err = fs.lock_file(\"" .. file.. "\",\"w\"); if type(x) == \"ELI_FILE_LOCK\" then os.exit(0); end; os.exit(err == \"Resource temporarily unavailable\" and 11 or 12)'")
+    local _ok, _, _code = os.execute((os.getenv"QEMU" or "") .. " ".. arg[-1] .. " -e 'x, err = fs.lock_file(\"" .. file.. "\",\"w\"); if type(x) == \"ELI_FILE_LOCK\" then os.exit(0); end; os.exit(err == \"Resource temporarily unavailable\" and 11 or 12)'")
     return _ok, _code
 end
 
