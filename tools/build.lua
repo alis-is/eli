@@ -141,7 +141,7 @@ else
 end
 
 log_success("Build completed.")
-if os.execute("./release/eli-unix-$(uname -m) -e \"print'ok'\"") then
+if os.execute("chmod +x ./release/eli-unix-$(uname -m) && ./release/eli-unix-$(uname -m) -e \"print'ok'\"") then
    log_info("Generating meta definitions...")
    fs.remove(".meta", { recurse = true })
    os.execute("chmod +x ./release/eli-unix-*")
