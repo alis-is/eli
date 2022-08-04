@@ -114,7 +114,7 @@
       {
          id: mbed_hash
          repository: alis-is/lua-mbed-hash
-         version: 0.2.0
+         version: 0.2.1
          destination: modules/lua_mbed_hash
          omitRoot: true
       },
