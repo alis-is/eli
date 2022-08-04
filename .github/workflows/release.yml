@@ -30,32 +30,18 @@ jobs:
           if git tag -l "$VERSION" | grep "$VERSION"; then 
             echo "Version $VERSION already exists";
           else
+            NEEDS_RELEASE=true
             echo "::set-output name=NEEDS_RELEASE::true"
           fi
           echo "Building eli $VERSION (RELEASE_REQUIRE: $NEEDS_RELEASE)"
-
-      - name: build the build container
-        uses: docker/build-push-action@v2
-        with:
-          tags: elibuild
-          file: 'tools/containers/build/Dockerfile'
-          push: false
       
       - name: build
         uses: addnab/docker-run-action@v3
         if: ${{ steps.prep.outputs.NEEDS_RELEASE == 'true'}}
         with:
-          image: elibuild
+          image: ghcr.io/alis-is/eli-build:0.0.1
           run: ./eli tools/build.lua
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross -e TOOLCHAINS=x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross
-
-      - name: build
-        uses: addnab/docker-run-action@v3
-        if: ${{ steps.prep.outputs.NEEDS_RELEASE != 'true'}}
-        with:
-          image: elibuild
-          run: ./eli tools/build.lua
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross -e TOOLCHAINS=x86_64-linux-musl-cross
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross
 
       - name: build the test container
         uses: docker/build-push-action@v2
@@ -67,7 +53,7 @@ jobs:
       - name: test
         uses: addnab/docker-run-action@v3
         with:
-          image: elibuild
+          image: elitest
           run: ./tools/test.sh
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
 
@@ -77,4 +63,5 @@ jobs:
         with:
           artifacts: "release/*"
           tag: ${{ steps.prep.outputs.VERSION }}
+          commit: ${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
