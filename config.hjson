@@ -99,7 +99,7 @@
       {
          id: lua
          repository: lua/lua
-         version: v5.4.3
+         version: v5.4.4
          destination: lua/src
          omitRoot: true
          cmakelists: { source: "lua_CMakeLists.txt", destination: "lua/CMakeLists.txt" } 
@@ -184,7 +184,7 @@
       },
       {
          id: curl
-         url: https://github.com/curl/curl/releases/download/curl-7_79_1/curl-7.79.1.zip
+         url: https://github.com/curl/curl/releases/download/curl-7_84_0/curl-7.84.0.zip
          destination: modules/curl
          omitRoot: true
       },
@@ -207,21 +207,21 @@
       { 
          id: mbedtls
          repository: ARMmbed/mbedtls  
-         version: mbedtls-2.28.0
+         version: mbedtls-2.28.1
          destination: modules/mbedtls
          omitRoot: true
       },
       {
          id: zlib
          repository: madler/zlib
-         version: v1.2.11
+         version: v1.2.12
          destination: modules/zlib
          omitRoot: true
       },
       {
          id: libzip
          repository: nih-at/libzip
-         version: v1.8.0
+         version: v1.9.2
          destination: modules/libzip
          omitRoot: true
       },
