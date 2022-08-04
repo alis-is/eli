@@ -113,8 +113,8 @@
       },
       {
          id: mbed_hash
-         repository: cryon-io/lua-mbed-hash
-         version: 0.1.1
+         repository: alis-is/lua-mbed-hash
+         version: 0.2.0
          destination: modules/lua_mbed_hash
          omitRoot: true
       },
@@ -204,13 +204,13 @@
          omitRoot: true
          cmakelists: { source: "lzlib_CMakeLists.txt", destination: "modules/lzlib/CMakeLists.txt" }
       },
-      { 
+      {
          id: mbedtls
-         repository: ARMmbed/mbedtls  
-         version: mbedtls-2.28.1
+         repository: Mbed-TLS/mbedtls
+         version: v3.2.1
          destination: modules/mbedtls
          omitRoot: true
-      },
+      }
       {
          id: zlib
          repository: madler/zlib
