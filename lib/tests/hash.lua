@@ -55,7 +55,7 @@ end
 _test["equals"] = function ()
     local _data = "test text\n"
     local _data2 = "test text\n"
-    local _data3 = "test text\n"
+    local _data3 = "test text"
     local _result = _eliHash.sha256sum(_data)
     local _result2 = _eliHash.sha256sum(_data2)
     local _result3 = _eliHash.sha256sum(_data3)
