@@ -4,7 +4,7 @@ local dir = _eliPath.dir
 local combine = _eliPath.combine
 local _util = require 'eli.util'
 local efsLoaded, efs = pcall(require, 'eli.fs.extra')
-local hash = require 'lmbed_hash'
+local _hash = require 'lmbed_hash'
 
 
 local function _check_efs_available(operation)
@@ -223,25 +223,25 @@ function fs.hash_file(path, options)
     local size = 2 ^ 12 -- 4K
 
     if options.type == 'sha256' then
-        local ctx = hash.sha256_init()
+        local ctx = _hash.sha256_init()
         while true do
             local block = srcf:read(size)
             if not block then
                 break
             end
-            hash.sha256_update(ctx, block)
+            _hash.sha256_update(ctx, block)
         end
-        return hash.sha256_finish(ctx, options.hex)
+        return _hash.sha256_finish(ctx, options.hex)
     else
-        local ctx = hash.sha512_init()
+        local ctx = _hash.sha512_init()
         while true do
             local block = srcf:read(size)
             if not block then
                 break
             end
-            hash.sha512_update(ctx, block)
+            _hash.sha512_update(ctx, block)
         end
-        return hash.sha512_finish(ctx, options.hex)
+        return _hash.sha512_finish(ctx, options.hex)
     end
 end
 
