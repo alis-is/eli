@@ -141,11 +141,12 @@ else
 end
 
 log_success("Build completed.")
-if os.execute("chmod +x ./release/eli-unix-$(uname -m) && ./release/eli-unix-$(uname -m) -e \"print'ok'\"") then
+if os.execute("chmod +x ./release/eli-unix-$(uname -m) && ./release/eli-unix-$(uname -m) -e \"print''\"") then
    log_info("Generating meta definitions...")
    fs.remove(".meta", { recurse = true })
    os.execute("chmod +x ./release/eli-unix-*")
    os.execute("./release/eli-unix-$(uname -m) ./tools/meta-generator.lua")
+   fs.safe_remove("release/meta.zip", {})
    zip.compress(".meta", "release/meta.zip", { recurse = true })
    log_success("Meta definitions generated...")
 end

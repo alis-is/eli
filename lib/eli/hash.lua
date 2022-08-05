@@ -1,4 +1,4 @@
-local hash = require "lmbed_hash"
+local _hash = require "lmbed_hash"
 local _util = require "eli.util"
 
 ---@class HashGenerator
@@ -15,7 +15,7 @@ function Sha256:new()
 
     setmetatable(sha256, self)
     self.__index = self
-    sha256.ctx = hash.sha256_init()
+    sha256.ctx = _hash.sha256_init()
     return sha256
 end
 
@@ -23,14 +23,14 @@ end
 ---
 ---@param self Sha512
 ---@param bytes string
-function Sha256:update(bytes) hash.sha256_update(self.ctx, bytes) end
+function Sha256:update(bytes) _hash.sha256_update(self.ctx, bytes) end
 
 ---#DES 'hash.Sha256:finish'
 ---
 ---@param self Sha512
 ---@param hex boolean
 ---@return string
-function Sha256:finish(hex) return hash.sha256_finish(self.ctx, hex) end
+function Sha256:finish(hex) return _hash.sha256_finish(self.ctx, hex) end
 
 ---#DES 'hash.Sha512'
 ---@class Sha512: HashGenerator
@@ -42,7 +42,7 @@ function Sha512:new()
 
     setmetatable(sha512, self)
     self.__index = self
-    sha512.ctx = hash.sha512_init()
+    sha512.ctx = _hash.sha512_init()
     return sha512
 end
 
@@ -50,14 +50,24 @@ end
 ---
 ---@param self Sha512
 ---@param bytes string
-function Sha512:update(bytes) hash.sha512_update(self.ctx, bytes) end
+function Sha512:update(bytes) _hash.sha512_update(self.ctx, bytes) end
 
 ---#DES 'hash.Sha512:finish'
 ---
 ---@param self Sha512
 ---@param hex boolean
 ---@return string
-function Sha512:finish(hex) return hash.sha512_finish(self.ctx, hex) end
+function Sha512:finish(hex) return _hash.sha512_finish(self.ctx, hex) end
+
+---#DES 'hash.hex_equals'
+---
+---Compares 2 hashes represented as hex strings
+---@param hash1 string
+---@param hash2 string
+---@return boolean
+local function _hex_equals(hash1, hash2)
+    return _hash.equals(hash1, hash2, true)
+end
 
 return _util.generate_safe_functions({
     Sha256 = Sha256,
@@ -67,11 +77,20 @@ return _util.generate_safe_functions({
     ---@param data string
     ---@param hex boolean
     ---@return string
-    sha256sum = hash.sha256sum,
+    sha256sum = _hash.sha256sum,
     ---#DES hash.sha512sum
     ---
     ---@param data string
     ---@param hex boolean
     ---@return string
-    sha512sum = hash.sha512sum
+    sha512sum = _hash.sha512sum,
+    ---#DES 'hash.equals'
+    ---
+    ---Compares two strings (if hex true - compares as hex strings)
+    ---@param hash1 string
+    ---@param hash2 string
+    ---@param hex boolean
+    ---@return boolean
+    equals = _hash.equals,
+    hex_equals = _hex_equals
 })
