@@ -25,7 +25,7 @@ templates.loadLibsTemplate = [[
   inflate(&i_stream, Z_NO_FLUSH);
   inflateEnd(&i_stream);
   
-  uncompressedLibs[{{{embedableLibsLength}}} - 1] = '\0';
+  uncompressedLibs[{{{embedableLibsLength}}}] = '\0';
   
   luaL_loadstring(L, uncompressedLibs);
 {{/compress}}
@@ -94,7 +94,7 @@ inflateInit(&i_stream);
 inflate(&i_stream, Z_NO_FLUSH);
 inflateEnd(&i_stream);
 
-uncompressedCerts[{{{certsLength}}} - 1] = '\0';
+uncompressedCerts[{{{certsLength}}}] = '\0';
 
 ret = mbedtls_x509_crt_parse(&backend->cacert, uncompressedCerts, sizeof(uncompressedCerts));
 {{/compress}}
