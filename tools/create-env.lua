@@ -90,7 +90,7 @@ rebuild_file("lua/src/linit.c", function(file)
    local _start, _end = _newLinit:find("\nLUALIB_API void luaL_openlibs.*$")
    return _newLinit:sub(1, _start - 1) ..
        _newLinit:sub(_start, _end):gsub("\n}",
-          '\n' .. lustache:render(templates.loadLibsTemplate, { embedableLibsLength = #_embedableLibs + 1, compress = config.compress  }))
+          '\n' .. lustache:render(templates.loadLibsTemplate, { embedableLibsLength = #_embedableLibs, compress = config.compress  }))
 end)
 
 -- build new lua.c

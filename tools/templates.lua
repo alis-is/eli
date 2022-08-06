@@ -10,7 +10,7 @@ templates.loadLibsTemplate = [[
   lua_pop(L, 1);  /* remove _PRELOAD table */
   int arg = lua_gettop(L);
 {{#compress}}
-  char uncompressedLibs[{{{embedableLibsLength}}}];
+  char uncompressedLibs[{{{embedableLibsLength}}} + 1];
   z_stream i_stream;
   i_stream.zalloc = Z_NULL;
   i_stream.zfree = Z_NULL;
@@ -96,7 +96,7 @@ inflateEnd(&i_stream);
 
 uncompressedCerts[{{{certsLength}}} - 1] = '\0';
 
-ret = mbedtls_x509_crt_parse(&backend->cacert, eli_cacert, sizeof(uncompressedCerts));
+ret = mbedtls_x509_crt_parse(&backend->cacert, uncompressedCerts, sizeof(uncompressedCerts));
 {{/compress}}
 {{^compress}}
 const char eli_cacert[] = "{{{certs}}}";
