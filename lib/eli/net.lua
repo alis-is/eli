@@ -528,13 +528,13 @@ local function download_file(url, destination, options)
         if not _didOpenFile or _df == nil then error(_df) end
         local _write = function(data) _df:write(data) end
 
-        local _ok, _code = pcall(_download, url, _write, options)
+        local _ok, _response = pcall(_download, url, _write, options)
         if _ok then
             _df:close()
-            return _code
+            return _response.code
         elseif (_tries >= _retryLimit) then
             os.remove(destination)
-            error(_code)
+            error(_response.code)
         end
 
         _tries = _tries + 1
@@ -556,11 +556,11 @@ local function download_string(url, options)
         local _result = ""
         local _write = function(data) _result = _result .. data end
 
-        local _ok, _result = pcall(_download, url, _write, options)
+        local _ok, _response = pcall(_download, url, _write, options)
         if _ok then
-            return _result.data, _result.code
+            return _result, _response.code
         elseif (_tries >= _retryLimit) then
-            error(_result.code)
+            error(_response.code)
         end
         _tries = _tries + 1
     end
