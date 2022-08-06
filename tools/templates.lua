@@ -20,9 +20,9 @@ templates.loadLibsTemplate = [[
   i_stream.avail_out = (uInt)sizeof(uncompressedLibs);  // size of output
   i_stream.next_out = (Bytef *)uncompressedLibs;        // output char array
 
-  inflateInit(&infstream);
-  inflate(&infstream, Z_NO_FLUSH);
-  inflateEnd(&infstream);
+  inflateInit(&i_stream);
+  inflate(&i_stream, Z_NO_FLUSH);
+  inflateEnd(&i_stream);
   
   uncompressedLibs[{{{embedableLibsLength}}} - 1] = '\0';
 
