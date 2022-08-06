@@ -77,7 +77,7 @@ templates.curlMbedTlSCertsLoader = [[mbedtls_x509_crt_init(&backend->cacert);
 /* CA Certificates */
 {{#compress}}
 const char eli_cacert[] = { {{{certs}}} };
-char uncompressedCerts[{{{certsLength}}}];
+char uncompressedCerts[{{{certsLength}}} + 1];
 
 #include "zlib.h"
 z_stream i_stream;
@@ -93,6 +93,8 @@ i_stream.next_out = (Bytef *)uncompressedCerts;        // output char array
 inflateInit(&i_stream);
 inflate(&i_stream, Z_NO_FLUSH);
 inflateEnd(&i_stream);
+
+uncompressedLibs[{{{certsLength}}} - 1] = '\0';
 
 ret = mbedtls_x509_crt_parse(&backend->cacert, eli_cacert, sizeof(uncompressedCerts));
 {{/compress}}

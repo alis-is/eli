@@ -30,31 +30,26 @@ end
 
 ---#DES string.join
 ---
+---@overload fun(separator: string, data: any[]): string
 ---@param separator string
----@vararg string|table
+---@vararg any
 ---@return string
 local function _join(separator, ...)
     local _result = ""
     if type(separator) ~= "string" then
         separator = ""
     end
-    for _, v in ipairs(table.pack(...)) do
-        if type(v) == "table" then 
-            for _, v in pairs(v) do
-                if #_result == 0 then
-                    _result = tostring(v)
-                else
-                    _result = _result .. separator .. tostring(v)
-                end
-            end
-            goto CONTINUE
-        end
+    local _parts = table.pack(...)
+    if #_parts > 0 and type(_parts[1]) == "table" then 
+        _parts = _parts[1]
+    end
+
+    for _, v in ipairs(_parts) do
         if #_result == 0 then
             _result = tostring(v)
         else
             _result = _result .. separator .. tostring(v)
         end
-        ::CONTINUE::
     end
     return _result
 end
@@ -62,6 +57,7 @@ end
 ---#DES string.join_strings
 ---
 ---joins only strings, ignoring other values
+---@overload fun(separator: string, data: string[]): string
 ---@param separator string
 ---@vararg string
 ---@return string
