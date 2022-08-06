@@ -46,6 +46,7 @@ end
 ---@class GenerateEmbedableModuleOptions
 ---@field minify boolean?
 ---@field amalgate boolean?
+---@field escapeForLuaGsub boolean?
 ---@field escape boolean?
 
 ---processes lua file and returns it as embedable string
@@ -62,6 +63,9 @@ local function generate_embedable_module(config, options)
     end
     if options.escape == nil then
         options.escape = true
+    end
+    if options.escapeForLuaGsub == nil then
+        options.escapeForLuaGsub = true
     end
 
     local modulesToEmbed = ""
@@ -115,8 +119,12 @@ local function generate_embedable_module(config, options)
         end
         modulesToEmbed = modulesToEmbed .. s .. "\n"
     end
-    modulesToEmbed = escape_string(modulesToEmbed)
-    if options.escape then return modulesToEmbed:gsub("%%", "%%%%") end
+    if options.escape then
+        modulesToEmbed = escape_string(modulesToEmbed)
+    end
+    if options.escapeForLuaGsub then
+        return modulesToEmbed:gsub("%%", "%%%%")
+    end
     return modulesToEmbed
 end
 return generate_embedable_module

@@ -76,7 +76,7 @@ end
 log_info("Building linit.c...")
 assert(fs.read_file("lua/src/linit.c"):match("\nLUALIB_API void luaL_openlibs.-\n}"))
 rebuild_file("lua/src/linit.c", function(file)
-   local _embedableLibs = generate_embedable_module(config.lua_libs, { minify = config.minify })
+   local _embedableLibs = generate_embedable_module(config.lua_libs, { minify = config.minify, escape = false })
    local _byteArray = table.map(
       table.filter(table.pack(string.byte(lz.compress_string(_embedableLibs), 1, -1)),
          function(k)

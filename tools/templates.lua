@@ -47,7 +47,7 @@ static const luaL_Reg preloadedlibs[] = {
 
 #include "zlib.h"
 const char lua_libs[] = { {{{embedableLibs}}} };
-const char lua_libs2[] = "{{{embedableLibs2}}}";
+//const char lua_libs[] = "{{{embedableLibs}}}";
 /* end eli additional libs */
 
 LUALIB_API void luaL_openlibs]]
