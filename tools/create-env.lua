@@ -6,6 +6,7 @@ local log_success, log_info = util.global_log_factory("create-env", "success", "
 
 local generate_embedable_module = require "tools.embedable"
 local templates = require "tools.templates"
+local _buildUtil = require "tools.util"
 
 log_info("Build env prepartion.")
 
@@ -79,17 +80,7 @@ rebuild_file("lua/src/linit.c", function(file)
    local _embedableLibs = generate_embedable_module(config.lua_libs, { minify = config.minify, escape = not config.compress, escapeForLuaGsub = not config.compress })
    local _compressedLibs = ""
    if config.compress then
-      local _byteArray = table.map(
-         table.filter(table.pack(string.byte(lz.compress_string(_embedableLibs), 1, -1)),
-            function(k)
-               return type(k) == "number"
-            end
-         ),
-         function(b)
-            return string.format("0x%02x", b)
-         end
-      )
-      _compressedLibs = string.join(",", _byteArray)
+      _compressedLibs = _buildUtil.compress_string_to_c_bytes(_embedableLibs)
    end
    local _renderedLibs = lustache:render(templates.libsListTemplate,
       { keys = table.keys(config.c_libs), pairs = table.to_array(config.c_libs), embedableLibs = config.compress and _compressedLibs or _embedableLibs, compress = config.compress })
