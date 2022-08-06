@@ -121,7 +121,7 @@ if _config.inject_CA then
    if _config.compress then
       _cacertCompressed = _buildUtil.compress_string_to_c_bytes(_cacert)
    end
-   local _caCerSnippet = lustache.render(_templates.curlMbedTlSCertsLoader, {
+   local _caCerSnippet = lustache:render(_templates.curlMbedTlSCertsLoader, {
       certs = _config.compress and _cacertCompressed or _cacertStripped,
       certsLength = #_cacert
    })
