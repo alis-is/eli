@@ -97,7 +97,7 @@ local function buildWithChain(id, buildDir)
       rc = rc:gsub("\n", ""),
       BUILD_TYPE = BUILD_TYPE,
       ccf = BUILD_TYPE == "MINSIZEREL" and "-s" or "",
-      ch = id
+      ch = id:gsub("%-cross", "")
    })
 
    log_info("Configuring (" .. _cmd .. ")...")
