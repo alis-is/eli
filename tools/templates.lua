@@ -9,7 +9,24 @@ templates.loadLibsTemplate = [[
   }
   lua_pop(L, 1);  /* remove _PRELOAD table */
   int arg = lua_gettop(L);
-  luaL_loadstring(L, lua_libs);
+  char uncompressedLibs[{{{embedableLibsLength}}}];
+  z_stream i_stream;
+  i_stream.zalloc = Z_NULL;
+  i_stream.zfree = Z_NULL;
+  i_stream.opaque = Z_NULL;
+  
+  i_stream.avail_in = (uInt)sizeof(lua_libs);           // size of input
+  i_stream.next_in = (Bytef *)lua_libs;                 // input char array
+  i_stream.avail_out = (uInt)sizeof(uncompressedLibs);  // size of output
+  i_stream.next_out = (Bytef *)uncompressedLibs;        // output char array
+
+  inflateInit(&infstream);
+  inflate(&infstream, Z_NO_FLUSH);
+  inflateEnd(&infstream);
+  
+  uncompressedLibs[{{{embedableLibsLength}}} - 1] = '\0';
+
+  luaL_loadstring(L, uncompressedLibs);
   lua_insert(L,1);
   lua_call(L,arg,1);
 /* end eli additional libs */
@@ -27,7 +44,9 @@ static const luaL_Reg preloadedlibs[] = {
   {NULL, NULL}
 };
 
-const char lua_libs[] = "{{{embedableLibs}}}";
+#include "zlib.h"
+const char lua_libs[] = { {{{embedableLibs}}} };
+// "{{{embedableLibs}}}";
 /* end eli additional libs */
 
 LUALIB_API void luaL_openlibs]]

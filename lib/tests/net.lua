@@ -158,6 +158,10 @@ _test["RestClient get_url and res"] = function ()
     _test.assert(_client:get_url() == "https://httpbin.org/test/test2/test3")
 end
 
+_test["RestClient res advanced"] = function ()
+    -- // TODO:
+end
+
 if not TEST then
     _test.summary()
 end

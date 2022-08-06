@@ -70,7 +70,7 @@ end
 
 ---Creates directory
 ---@param path string
----@param mkdir fun(path: string)
+---@param mkdir (fun(path: string))?
 ---@param scopeName string
 local function _internal_mkdir(path, mkdir, scopeName)
     local _mkdir = type(fs.mkdir) == 'function' and mkdir
@@ -79,10 +79,11 @@ local function _internal_mkdir(path, mkdir, scopeName)
     end
     if type(_mkdir) ~= 'function' then
         -- we do not have any mkdir avaialble
-        -- we can siletntly ifnore this if dir already exists
+        -- we can siletntly ignore this if dir already exists
         local f = io.open(path)
         if f == nil then
             _check_efs_available(scopeName)
+            return -- we error line above if efs not available
         end
         local _, _, _errorCode = f:read(0)
         if _errorCode == 21 or (f:read(0) and f:seek('end') ~= 0) then
@@ -90,6 +91,7 @@ local function _internal_mkdir(path, mkdir, scopeName)
             return
         end
         _check_efs_available(scopeName)
+        return -- we error line above if efs not available
     end
     _mkdir(path)
 end
@@ -98,7 +100,7 @@ end
 ---
 ---Creates directory
 ---@param path string
----@param mkdir fun(path: string)
+---@param mkdir (fun(path: string))?
 function fs.mkdir(path, mkdir)
     _internal_mkdir(path, mkdir, 'mkdir')
 end
@@ -107,7 +109,7 @@ end
 ---
 ---Creates directory recursively
 ---@param path string
----@param mkdir fun(path: string)
+---@param mkdir (fun(path: string))?
 function fs.mkdirp(path, mkdir)
     local parent = dir(path)
     if parent ~= nil then
@@ -140,7 +142,7 @@ end
 ---Removes file or directory
 ---(if EFS is false dir has to be empty and options are ignored)
 ---@param path string
----@param options FsRemoveOptions
+---@param options FsRemoveOptions?
 function fs.remove(path, options)
     if not efsLoaded then
         -- fallback to os delete
@@ -205,13 +207,13 @@ end
 
 ---@class FsHashFileOptions
 ---@field type '"sha256"'| '"sha512"'
----@field hex boolean
+---@field hex boolean?
 
 ---#DES 'fs.hash_file'
 ---
 ---Hashes file in specified path
 ---@param path string
----@param options FsHashFileOptions
+---@param options? FsHashFileOptions
 function fs.hash_file(path, options)
     if type(options) ~= 'table' then
         options = {}
@@ -288,7 +290,7 @@ end
 ---
 ---Reads directory and returns dir entire or paths based on options
 ---@param path string
----@param options FsReadDirOptions
+---@param options FsReadDirOptions?
 ---@return string[]|DirEntry[]
 function fs.read_dir(path, options)
     _check_efs_available('read_dir')
@@ -321,8 +323,8 @@ end
 ---@param path string
 ---@param uid integer
 ---@param gid integer
----@param options FsChownOptions
----@return boolean, string, number
+---@param options FsChownOptions?
+---@return boolean, string?, number?
 function fs.chown(path, uid, gid, options)
     _check_efs_available('chown')
     if type(options) ~= 'table' then
@@ -361,8 +363,8 @@ end
 ---Sets file flags in the path
 ---@param path string
 ---@param mode integer|string
----@param options FsChmodOptions
----@return boolean, string, number
+---@param options FsChmodOptions?
+---@return boolean, string?, number?
 function fs.chmod(path, mode, options)
     _check_efs_available('chmod')
     if type(options) ~= 'table' then
@@ -443,9 +445,9 @@ end
 ---Locks access to file
 ---@param pathOrFile string|file*
 ---@param mode '"r"'|'"w"'
----@param start integer
----@param len integer
----@return EliFileLock|nil, string
+---@param start integer?
+---@param len integer?
+---@return EliFileLock?, string?
 function fs.lock_file(pathOrFile, mode, start, len)
     _check_efs_available('lock_file')
 
@@ -455,7 +457,7 @@ function fs.lock_file(pathOrFile, mode, start, len)
 
     if type(pathOrFile) == "string" then
         local _f, _error = io.open(pathOrFile, mode)
-        if _f == nil then return _error end
+        if _f == nil then return nil, _error end
         local _ok, _error = efs.lock_file(_f, mode, start, len)
         if _ok then return EliFileLock:new(_f, start, len) end
         return _ok, _error
@@ -470,9 +472,9 @@ end
 ---
 ---Unlocks access to file
 ---@param pathOrFileLock string|EliFileLock
----@param start integer|nil
----@param len integer|nil
----@return boolean|nil, string
+---@param start integer?
+---@param len integer?
+---@return boolean?, string
 function fs.unlock_file(pathOrFileLock, start, len)
     _check_efs_available('unlock_file')
 

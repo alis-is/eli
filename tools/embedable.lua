@@ -44,13 +44,13 @@ local function getFiles(location, recurse, filter, ignore, resultSeparator)
 end
 
 ---@class GenerateEmbedableModuleOptions
----@field minify boolean
----@field amalgate boolean
----@field escape boolean
+---@field minify boolean?
+---@field amalgate boolean?
+---@field escape boolean?
 
 ---processes lua file and returns it as embedable string
 ---@param config table
----@param options GenerateEmbedableModuleOptions
+---@param options GenerateEmbedableModuleOptions?
 ---@return string
 local function generate_embedable_module(config, options)
     if type(options) ~= "table" then options = {} end

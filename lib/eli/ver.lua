@@ -13,7 +13,7 @@ local generate_safe_functions = require"eli.util".generate_safe_functions
 ---Parses version string and returns table with major, minor, path, prerelease 
 ---and metadata values
 ---@param ver string
----@return SemVer
+---@return SemVer?
 local function _parse_semver(ver)
     if type(ver) ~= "string" then
         return nil
@@ -145,7 +145,7 @@ end
 ---Parses version string and returns table with major, minor, path, prerelease 
 ---and metadata values
 ---@param ver string
----@return table
+---@return SemVer?
 local function _parse_semver_old(...) return _parse_semver(...) end
 
 ---#DES 'ver.compare_version'

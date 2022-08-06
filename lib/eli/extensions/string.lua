@@ -10,8 +10,8 @@ end
 ---#DES string.split
 ---
 ---@param s string
----@param sep string
----@param trim boolean
+---@param sep string?
+---@param trim boolean?
 ---@return string[]
 local function _split(s, sep, trim)
     if type(s) ~= 'string' then return s end
@@ -31,7 +31,7 @@ end
 ---#DES string.join
 ---
 ---@param separator string
----@vararg string
+---@vararg string|table
 ---@return string
 local function _join(separator, ...)
     local _result = ""
@@ -39,11 +39,22 @@ local function _join(separator, ...)
         separator = ""
     end
     for _, v in ipairs(table.pack(...)) do
+        if type(v) == "table" then 
+            for _, v in pairs(v) do
+                if #_result == 0 then
+                    _result = tostring(v)
+                else
+                    _result = _result .. separator .. tostring(v)
+                end
+            end
+            goto CONTINUE
+        end
         if #_result == 0 then
             _result = tostring(v)
         else
             _result = _result .. separator .. tostring(v)
         end
+        ::CONTINUE::
     end
     return _result
 end
@@ -82,7 +93,8 @@ local function _interpolate(format, data)
         end
         return tostring(data[w:sub(3, -2)]) or w
     end
-    return format:gsub('(\\?$%b{})', _interpolater)
+    local _result = format:gsub('(\\?$%b{})', _interpolater)
+    return _result
 end
 
 local function _globalize()

@@ -28,7 +28,7 @@ function Sha256:update(bytes) _hash.sha256_update(self.ctx, bytes) end
 ---#DES 'hash.Sha256:finish'
 ---
 ---@param self Sha512
----@param hex boolean
+---@param hex boolean?
 ---@return string
 function Sha256:finish(hex) return _hash.sha256_finish(self.ctx, hex) end
 
@@ -55,7 +55,7 @@ function Sha512:update(bytes) _hash.sha512_update(self.ctx, bytes) end
 ---#DES 'hash.Sha512:finish'
 ---
 ---@param self Sha512
----@param hex boolean
+---@param hex boolean?
 ---@return string
 function Sha512:finish(hex) return _hash.sha512_finish(self.ctx, hex) end
 
@@ -75,13 +75,13 @@ return _util.generate_safe_functions({
     ---#DES hash.sha256sum
     ---
     ---@param data string
-    ---@param hex boolean
+    ---@param hex boolean?
     ---@return string
     sha256sum = _hash.sha256sum,
     ---#DES hash.sha512sum
     ---
     ---@param data string
-    ---@param hex boolean
+    ---@param hex boolean?
     ---@return string
     sha512sum = _hash.sha512sum,
     ---#DES 'hash.equals'
@@ -89,7 +89,7 @@ return _util.generate_safe_functions({
     ---Compares two strings (if hex true - compares as hex strings)
     ---@param hash1 string
     ---@param hash2 string
-    ---@param hex boolean
+    ---@param hex boolean?
     ---@return boolean
     equals = _hash.equals,
     hex_equals = _hex_equals

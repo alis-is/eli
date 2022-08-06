@@ -118,9 +118,10 @@ end
 ---
 ---Returns elements for which filter function returns true from table t
 ---@generic T
+---@overload fun(t: table<string, T>, filterFn: fun(k:string|number, v: T): boolean): table<string, T>
 ---@param t table<string, T>|T[]
----@param filterFn fun(element: T): boolean
----@return T
+---@param filterFn fun(k:string|number, v: T): boolean
+---@return table<string, T>|T[]
 local function _filter(t, filterFn)
     if type(filterFn) ~= "function" then
         return t
@@ -146,7 +147,7 @@ end
 ---@generic T
 ---@param arr T[]
 ---@param mapFn fun(element: T): any
----@return T
+---@return T[]
 local function _map(arr, mapFn)
     if not _util.is_array(arr) or type(mapFn) ~= "function" then
         return arr
