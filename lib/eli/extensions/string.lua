@@ -63,7 +63,11 @@ end
 ---@return string
 local function _join_strings(separator, ...)
     local _tmp = {}
-    for _, v in ipairs(table.pack(...)) do
+    local _parts = table.pack(...)
+    if #_parts > 0 and type(_parts[1]) == "table" then
+        _parts = _parts[1]
+    end
+    for _, v in ipairs(_parts) do
         if type(v) == "string" then
             table.insert(_tmp, v)
         end
