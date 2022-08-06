@@ -26,7 +26,8 @@ templates.loadLibsTemplate = [[
 //  
 //  uncompressedLibs[{{{embedableLibsLength}}} - 1] = '\0';
 
-  luaL_loadstring(L, uncompressedLibs);
+//  luaL_loadstring(L, uncompressedLibs);
+  luaL_loadstring(L, lua_libs);
   lua_insert(L,1);
   lua_call(L,arg,1);
 /* end eli additional libs */
