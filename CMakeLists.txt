@@ -2,7 +2,6 @@ cmake_minimum_required (VERSION 2.6)
 project (eli)
 
 SET(BUILD_SHARED_LIBS OFF)
-SET(CURL_HOST "x86_64-linux-musl")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip -Os -DLUA_USE_POSIX -s -fPIC  -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto -g3 -Wl,--as-needed -Wl,--gc-sections")
 SET(CMAKE_EXE_LINKER_FLAGS "-static -s")
 
@@ -108,7 +107,7 @@ add_dependencies(lua_zip zip)
 
 # LIBCURL
 set(CURL_LIB_CPPFLAGS "-I${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/include -I${ZLIB_INCLUDE_DIR}")
-set(CURL_LIB_LDFLAGS "-L${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library")
+set(CURL_LIB_LDFLAGS "-L${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library -L${ZLIB_INCLUDE_DIR}")
 ExternalProject_Add(
   curl_lib
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/
@@ -123,14 +122,12 @@ ExternalProject_Add(
                     --disable-manual
                     --disable-unix-sockets
                     --disable-versioned-symbols
-                    --enable-hidden-symbols
-                    --without-libdin
                     --without-librtmp
                     --disable-ldap
                     --disable-tftp
                     --disable-dict
-#                    --disable-file
-#                    --disable-ftp
+                    --disable-pthreads
+                    --disable-threaded-resolver
                     --disable-ldaps
                     --disable-thread
                     --disable-dict
@@ -140,7 +137,9 @@ ExternalProject_Add(
                     --disable-netrc
                     --disable-dnsshuffle
                     --disable-progress-meter
-                    --without-quiche                                                                                                                                                            --without-libssh2                                                                                                                                                           --without-nss                                                                                                                                                               --without-strerror
+                    --without-quiche                                                                                                                                                            
+                    --without-libssh2                                                                                                                                                           
+                    --without-nss
                     --disable-pop3
                     --disable-smtp
                     --disable-telnet

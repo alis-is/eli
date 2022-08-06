@@ -222,8 +222,8 @@
       },
       {
          id: libzip
-         repository: nih-at/libzip
-         version: v1.9.2
+         repository: cryi/libzip
+         version: v1.9.3
          destination: modules/libzip
          omitRoot: true
       },
