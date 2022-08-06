@@ -76,7 +76,7 @@ end
 log_info("Building linit.c...")
 assert(fs.read_file("lua/src/linit.c"):match("\nLUALIB_API void luaL_openlibs.-\n}"))
 rebuild_file("lua/src/linit.c", function(file)
-   local _embedableLibs = lz.compress_string(generate_embedable_module(config.lua_libs, { minify = config.minify }))
+   local _embedableLibs = generate_embedable_module(config.lua_libs, { minify = config.minify })
    local _byteArray = table.map(
       table.filter(table.pack(string.byte(lz.compress_string(_embedableLibs), 1, -1)),
          function(k)
@@ -89,7 +89,7 @@ rebuild_file("lua/src/linit.c", function(file)
    )
    local _compressedLibs = string.join(",", _byteArray)
    local _renderedLibs = lustache:render(templates.libsListTemplate,
-      { keys = table.keys(config.c_libs), pairs = table.to_array(config.c_libs), embedableLibs = _compressedLibs })
+      { keys = table.keys(config.c_libs), pairs = table.to_array(config.c_libs), embedableLibs = _embedableLibs })
    local _newLinit = file:gsub("/%* eli additional libs %*/.-/%* end eli additional libs %*/\n", "")
        -- cleanup potential old init
        :gsub("\nLUALIB_API void luaL_openlibs", _renderedLibs) -- inject libs

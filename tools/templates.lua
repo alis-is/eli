@@ -9,22 +9,22 @@ templates.loadLibsTemplate = [[
   }
   lua_pop(L, 1);  /* remove _PRELOAD table */
   int arg = lua_gettop(L);
-  char uncompressedLibs[{{{embedableLibsLength}}}];
-  z_stream i_stream;
-  i_stream.zalloc = Z_NULL;
-  i_stream.zfree = Z_NULL;
-  i_stream.opaque = Z_NULL;
-  
-  i_stream.avail_in = (uInt)sizeof(lua_libs);           // size of input
-  i_stream.next_in = (Bytef *)lua_libs;                 // input char array
-  i_stream.avail_out = (uInt)sizeof(uncompressedLibs);  // size of output
-  i_stream.next_out = (Bytef *)uncompressedLibs;        // output char array
-
-  inflateInit(&i_stream);
-  inflate(&i_stream, Z_NO_FLUSH);
-  inflateEnd(&i_stream);
-  
-  uncompressedLibs[{{{embedableLibsLength}}} - 1] = '\0';
+//  char uncompressedLibs[{{{embedableLibsLength}}}];
+//  z_stream i_stream;
+//  i_stream.zalloc = Z_NULL;
+//  i_stream.zfree = Z_NULL;
+//  i_stream.opaque = Z_NULL;
+//  
+//  i_stream.avail_in = (uInt)sizeof(lua_libs);           // size of input
+//  i_stream.next_in = (Bytef *)lua_libs;                 // input char array
+//  i_stream.avail_out = (uInt)sizeof(uncompressedLibs);  // size of output
+//  i_stream.next_out = (Bytef *)uncompressedLibs;        // output char array
+//
+//  inflateInit(&i_stream);
+//  inflate(&i_stream, Z_NO_FLUSH);
+//  inflateEnd(&i_stream);
+//  
+//  uncompressedLibs[{{{embedableLibsLength}}} - 1] = '\0';
 
   luaL_loadstring(L, uncompressedLibs);
   lua_insert(L,1);
@@ -45,8 +45,8 @@ static const luaL_Reg preloadedlibs[] = {
 };
 
 #include "zlib.h"
-const char lua_libs[] = { {{{embedableLibs}}} };
-// "{{{embedableLibs}}}";
+//const char lua_libs[] = { {{{embedableLibs}}} };
+const char lua_libs[] = "{{{embedableLibs}}}";
 /* end eli additional libs */
 
 LUALIB_API void luaL_openlibs]]
