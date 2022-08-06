@@ -129,7 +129,6 @@ ExternalProject_Add(
                     --disable-pthreads
                     --disable-threaded-resolver
                     --disable-ldaps
-                    --disable-thread
                     --disable-dict
                     --disable-sspi
                     --disable-socketpair
