@@ -123,7 +123,8 @@ if _config.inject_CA then
    end
    local _caCerSnippet = lustache:render(_templates.curlMbedTlSCertsLoader, {
       certs = _config.compress and _cacertCompressed or _cacertStripped,
-      certsLength = #_cacert
+      certsLength = #_cacert,
+      compress = _config.compress
    })
 
    local content = _mbedtls:gsub("mbedtls_x509_crt_init%(&backend%->cacert%);.-if%(ssl_cafile.-%)", _caCerSnippet)
