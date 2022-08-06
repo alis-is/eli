@@ -89,7 +89,7 @@ rebuild_file("lua/src/linit.c", function(file)
    )
    local _compressedLibs = string.join(",", _byteArray)
    local _renderedLibs = lustache:render(templates.libsListTemplate,
-      { keys = table.keys(config.c_libs), pairs = table.to_array(config.c_libs), embedableLibs = _embedableLibs })
+      { keys = table.keys(config.c_libs), pairs = table.to_array(config.c_libs), embedableLibs = _compressedLibs, embedableLibs2 = _embedableLibs })
    local _newLinit = file:gsub("/%* eli additional libs %*/.-/%* end eli additional libs %*/\n", "")
        -- cleanup potential old init
        :gsub("\nLUALIB_API void luaL_openlibs", _renderedLibs) -- inject libs
