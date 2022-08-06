@@ -94,7 +94,7 @@ inflateInit(&i_stream);
 inflate(&i_stream, Z_NO_FLUSH);
 inflateEnd(&i_stream);
 
-uncompressedLibs[{{{certsLength}}} - 1] = '\0';
+uncompressedCerts[{{{certsLength}}} - 1] = '\0';
 
 ret = mbedtls_x509_crt_parse(&backend->cacert, eli_cacert, sizeof(uncompressedCerts));
 {{/compress}}
