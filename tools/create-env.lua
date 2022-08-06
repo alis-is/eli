@@ -76,27 +76,30 @@ end
 log_info("Building linit.c...")
 assert(fs.read_file("lua/src/linit.c"):match("\nLUALIB_API void luaL_openlibs.-\n}"))
 rebuild_file("lua/src/linit.c", function(file)
-   local _embedableLibs = generate_embedable_module(config.lua_libs, { minify = config.minify, escape = false })
-   local _byteArray = table.map(
-      table.filter(table.pack(string.byte(lz.compress_string(_embedableLibs), 1, -1)),
-         function(k)
-            return type(k) == "number"
+   local _embedableLibs = generate_embedable_module(config.lua_libs, { minify = config.minify, escape = not config.compress, escapeForLuaGsub = not config.compress })
+   local _compressedLibs = ""
+   if config.compress then
+      local _byteArray = table.map(
+         table.filter(table.pack(string.byte(lz.compress_string(_embedableLibs), 1, -1)),
+            function(k)
+               return type(k) == "number"
+            end
+         ),
+         function(b)
+            return string.format("0x%02x", b)
          end
-      ),
-      function(b)
-         return string.format("0x%02x", b)
-      end
-   )
-   local _compressedLibs = string.join(",", _byteArray)
+      )
+      _compressedLibs = string.join(",", _byteArray)
+   end
    local _renderedLibs = lustache:render(templates.libsListTemplate,
-      { keys = table.keys(config.c_libs), pairs = table.to_array(config.c_libs), embedableLibs = _compressedLibs, embedableLibs2 = _embedableLibs })
+      { keys = table.keys(config.c_libs), pairs = table.to_array(config.c_libs), embedableLibs = config.compress and _compressedLibs or _embedableLibs, compress = config.compress })
    local _newLinit = file:gsub("/%* eli additional libs %*/.-/%* end eli additional libs %*/\n", "")
        -- cleanup potential old init
        :gsub("\nLUALIB_API void luaL_openlibs", _renderedLibs) -- inject libs
    local _start, _end = _newLinit:find("\nLUALIB_API void luaL_openlibs.*$")
    return _newLinit:sub(1, _start - 1) ..
        _newLinit:sub(_start, _end):gsub("\n}",
-          '\n' .. lustache:render(templates.loadLibsTemplate, { embedableLibsLength = #_embedableLibs + 1 }))
+          '\n' .. lustache:render(templates.loadLibsTemplate, { embedableLibsLength = #_embedableLibs + 1, compress = config.compress  }))
 end)
 
 -- build new lua.c
