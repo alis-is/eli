@@ -25,15 +25,19 @@ end
 _test["join"] = function()
     local _result = _exString.join(", ", "test", "join", "string")
     _test.assert(_result == "test, join, string")
-    local _ok, _result = pcall(_exString.join, ", ", "test", {"join"}, "string")
+    local _ok, _result = pcall(_exString.join, ", ", "test", { "join" }, "string")
     _test.assert(_ok and _result:match("test, table:"))
+    local _result = _exString.join(", ", { "test", "join", "string" })
+    _test.assert(_result == "test, join, string")
 end
 
 _test["join_strings"] = function()
-    local _result = _exString.join_strings(", ", "test", "join", {test = "string"}, "string")
+    local _result = _exString.join_strings(", ", "test", "join", { test = "string" }, "string")
     _test.assert(_result == "test, join, string")
-    local _ok, _result = pcall(_exString.join_strings, ", ", "test", {"join"}, "string")
-    _test.assert(_ok)
+    local _ok, _result = pcall(_exString.join_strings, ", ", "test", { "join" }, "string")
+    _test.assert(_ok and _result == "test, string")
+    local _result = _exString.join_strings(", ", { "test", "join", { test = "string" }, "string" })
+    _test.assert(_result == "test, join, string")
 end
 
 _test["split"] = function()
@@ -42,7 +46,8 @@ _test["split"] = function()
 end
 
 _test["interpolate"] = function()
-    local _result = _exString.interpolate("Hello from ${name}! This is formatted: ${n} ${n2}\nAnd this is escaped \\${escaped} and this a table value ${t}", { name = "printf", n = 1, n2 = 2, escaped = "anyValiue", t = {}})
+    local _result = _exString.interpolate("Hello from ${name}! This is formatted: ${n} ${n2}\nAnd this is escaped \\${escaped} and this a table value ${t}"
+        , { name = "printf", n = 1, n2 = 2, escaped = "anyValiue", t = {} })
     _test.assert(_result:match("Hello from printf! This is formatted: 1 2\nAnd this is escaped ${escaped} and this a table value table: 0x"))
 end
 

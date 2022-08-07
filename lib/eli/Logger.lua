@@ -1,10 +1,10 @@
-local hjson = require"hjson"
+local hjson = require "hjson"
 local encode_to_hjson = hjson.encode
 local encode_to_json = hjson.encode_to_json
 
 local is_tty = require "is_tty".is_stdout_tty()
-local _util = require"eli.util"
-local _exTable = require"eli.extensions.table"
+local _util = require "eli.util"
+local _exTable = require "eli.extensions.table"
 
 local RESET_COLOR = string.char(27) .. "[0m"
 
@@ -34,7 +34,7 @@ Logger.__index = Logger
 ---#DES 'Logger:new'
 ---
 ---@param self Logger
----@param options EliLoggerOptions
+---@param options EliLoggerOptions?
 ---@return Logger
 function Logger:new(options)
     local logger = {}
@@ -124,7 +124,7 @@ end
 ---@param colorful boolean
 ---@param color string
 ---@param noTime boolean
----@param includeFields boolean
+---@param includeFields boolean|string[]
 local function log_txt(data, colorful, color, noTime, includeFields)
     local module = ""
     if data.module ~= nil and data.module ~= "" then
@@ -140,14 +140,14 @@ local function log_txt(data, colorful, color, noTime, includeFields)
     if includeFields then
 
         if not _util.is_array(includeFields) then
-            includeFields = _exTable.filter(_exTable.keys(data), function(_,v)
+            includeFields = _exTable.filter(_exTable.keys(data), function(_, v)
                 return v ~= 'msg' and v ~= 'module' and v ~= 'level'
             end)
         end
 
         local _fields = {}
         local _any = false
-        for _,v in ipairs(includeFields) do
+        for _, v in ipairs(includeFields) do
             _any = true
             _fields[v] = data[v]
         end
@@ -166,12 +166,12 @@ end
 ---@param data table
 local function log_json(data)
     data.timestamp = os.time()
-    print(encode_to_json(data, {indent = false, skipkeys = true}))
+    print(encode_to_json(data, { indent = false, skipkeys = true }))
 end
 
 local function wrap_msg(msg)
     if type(msg) ~= 'table' then
-        return {msg = msg, level = "info"}
+        return { msg = msg, level = "info" }
     end
     return msg
 end

@@ -20,32 +20,32 @@ local zip = {}
 
 ---@class ZipExtractOptions
 ---#DES 'ZipExtractOptions.skipDestinationCheck'
----@field skipDestinationCheck nil|boolean
+---@field skipDestinationCheck boolean?
 ---#DES 'ZipExtractOptions.flattenRootDir'
----@field flattenRootDir nil|boolean
+---@field flattenRootDir boolean?
 ---#DES 'ZipExtractOptions.chmod'
----@field chmod nil|fun(path: string, attributes: integer)
+---@field chmod (fun(path: string, attributes: integer))?
 ---#DES 'ZipExtractOptions.openFlags'
----@field openFlags nil|integer
+---@field openFlags integer?
 ---#DES 'ZipExtractOptions.mkdirp'
----@field mkdirp nil|fun(path: string)
+---@field mkdirp (fun(path: string))?
 ---#DES 'ZipExtractOptions.transform_path'
----@field transform_path nil|fun(path: string): string
+---@field transform_path (fun(path: string, destination: string): string)?
 ---#DES 'ZipExtractOptions.filter'
----@field filter nil|fun(name: string): boolean
+---@field filter (fun(name: string): boolean)?
 ---#DES 'ZipExtractOptions.open_file'
----@field open_file nil|fun(path: string, mode: string): file*
+---@field open_file (fun(path: string, mode: string): file*)?
 ---#DES 'ZipExtractOptions.write'
----@field write nil|fun(path: string, data: string)
+---@field write (fun(path: string, data: string))?
 ---#DES 'ZipExtractOptions.close_file'
----@field close_file nil|fun(f: file*)
+---@field close_file (fun(f: file*))?
 
 ---#DES 'zip.extract'
 ---
 ---Extracts data from source into destination folder
 ---@param source string
----@param destination string
----@param options ZipExtractOptions
+---@param destination string?
+---@param options ZipExtractOptions?
 function zip.extract(source, destination, options)
    if type(options) ~= "table" then
       options = {}
@@ -155,7 +155,7 @@ end
 ---@param source string
 ---@param file string
 ---@param destination string
----@param options ZipExtractOptions
+---@param options ZipExtractOptions?
 function zip.extract_file(source, file, destination, options)
    if type(destination) == "table" and options == nil then
       options = destination
@@ -184,7 +184,7 @@ end
 ---Extracts single file from source archive into string
 ---@param source string
 ---@param file string
----@param options ZipExtractOptions
+---@param options ZipExtractOptions?
 ---@return string
 function zip.extract_string(source, file, options)
    local _result = ""
@@ -230,7 +230,7 @@ end
 ---
 ---Extracts single file from source archive into string
 ---@param source string
----@param options GetFilesOptions
+---@param options GetFilesOptions?
 ---@return string[]
 function zip.get_files(source, options)
    if type(options) ~= "table" then
@@ -291,7 +291,7 @@ end
 ---
 ---Opens zip archive and returns it
 ---@param path string
----@param checkcons boolean
+---@param checkcons boolean?
 ---@return userdata
 function zip.open_archive(path, checkcons)
    local _result, _error
@@ -327,7 +327,7 @@ end
 ---Copresses directory into zip archive
 ---@param source string
 ---@param target string
----@param options CompressOptions
+---@param options CompressOptions?
 function zip.compress(source, target, options)
    if type(options) ~= "table" then
       options = {}

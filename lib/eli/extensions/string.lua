@@ -10,8 +10,8 @@ end
 ---#DES string.split
 ---
 ---@param s string
----@param sep string
----@param trim boolean
+---@param sep string?
+---@param trim boolean?
 ---@return string[]
 local function _split(s, sep, trim)
     if type(s) ~= 'string' then return s end
@@ -30,15 +30,21 @@ end
 
 ---#DES string.join
 ---
+---@overload fun(separator: string, data: any[]): string
 ---@param separator string
----@vararg string
+---@vararg any
 ---@return string
 local function _join(separator, ...)
     local _result = ""
     if type(separator) ~= "string" then
         separator = ""
     end
-    for _, v in ipairs(table.pack(...)) do
+    local _parts = table.pack(...)
+    if #_parts > 0 and type(_parts[1]) == "table" then 
+        _parts = _parts[1]
+    end
+
+    for _, v in ipairs(_parts) do
         if #_result == 0 then
             _result = tostring(v)
         else
@@ -51,12 +57,17 @@ end
 ---#DES string.join_strings
 ---
 ---joins only strings, ignoring other values
+---@overload fun(separator: string, data: string[]): string
 ---@param separator string
 ---@vararg string
 ---@return string
 local function _join_strings(separator, ...)
     local _tmp = {}
-    for _, v in ipairs(table.pack(...)) do
+    local _parts = table.pack(...)
+    if #_parts > 0 and type(_parts[1]) == "table" then
+        _parts = _parts[1]
+    end
+    for _, v in ipairs(_parts) do
         if type(v) == "string" then
             table.insert(_tmp, v)
         end
@@ -82,7 +93,8 @@ local function _interpolate(format, data)
         end
         return tostring(data[w:sub(3, -2)]) or w
     end
-    return format:gsub('(\\?$%b{})', _interpolater)
+    local _result = format:gsub('(\\?$%b{})', _interpolater)
+    return _result
 end
 
 local function _globalize()
