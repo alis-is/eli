@@ -1,7 +1,8 @@
 {
-   version: 0.22.0
+   version: 0.23.0
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
+   compress: true // TODO
    inject_CA: true
    cache_dir: .CACHE
    build_type: MINSIZEREL
@@ -155,15 +156,15 @@
       },
       {
          id: eli_os_extra
-         repository: cryon-io/eli-os-extra
-         version: 0.0.3
+         repository: alis-is/eli-os-extra
+         version: 0.0.4
          destination: modules/eli-os-extra
          omitRoot: true
       },
       {
          id: eli_env_extra
-         repository: cryon-io/eli-env-extra
-         version: 0.1.1
+         repository: alis-is/eli-env-extra
+         version: 0.1.2
          destination: modules/eli-env-extra
          omitRoot: true
       },
@@ -220,8 +221,8 @@
       },
       {
          id: libzip
-         repository: nih-at/libzip
-         version: v1.9.2
+         repository: cryi/libzip
+         version: v1.9.3
          destination: modules/libzip
          omitRoot: true
       },
@@ -235,7 +236,7 @@
       {
          id: hjson
          repository: cryi/hjson-lua
-         version: 0.1.3-1
+         version: 0.1.4
          destination: lua-modules/hjson
          omitRoot: true
       },

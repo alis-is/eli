@@ -15,14 +15,14 @@ local _util = require("eli.util")
 ---#DES cli.parse_args
 ---
 ---Parses array of arguments
----@param args string[]
+---@param args string[]|nil
 ---@return CliArg[]
 local function _parse_args(args)
     if not _util.is_array(args) then
         args = arg
     end
     local _argList = {}
-
+    if args == nil then return _argList end
     for i = 1, #args, 1 do
         local _arg = args[i]
         if type(_arg) == "string" then

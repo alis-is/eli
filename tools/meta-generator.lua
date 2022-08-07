@@ -183,7 +183,7 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
     table.sort(_fields)
 
     local _generatedDoc = ""
-    --- @type string
+    --- @type string | table
     local _sourcePaths = {"lib/eli/" .. _libName:gsub('%.', '/') .. ".lua"}
     if type(sourceFiles) == "string" then
         _sourcePaths = {sourceFiles}

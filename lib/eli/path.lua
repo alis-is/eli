@@ -469,9 +469,9 @@ end
 ---
 ---@param s1 string
 ---@param s2 string
----@param pl platform
----@param sep string
----@param default_sep string
+---@param pl platform?
+---@param sep string?
+---@param default_sep string?
 ---@return string
 function path.combine(s1, s2, pl, sep, default_sep)
 	local type1, p1, drive1 = path.parse(s1, pl)
@@ -543,9 +543,9 @@ end
 ---NOTE: repl can be a function(match, err) -> repl_str.
 ---NOTE: if repl isn't itself escaped then duplicate filenames can result.
 ---@param s string
----@param pl platform
----@param repl fun(match: string, err: string): string
----@param break_on_err string
+---@param pl platform?
+---@param repl (fun(match: string, err: string): string)?
+---@param break_on_err string?
 ---@return string
 function path.filename(s, pl, repl, break_on_err)
 	local win = win(pl)

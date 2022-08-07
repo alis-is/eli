@@ -54,6 +54,13 @@ _test["extract_from_string"] = function()
     _test.assert(_hash == _hash2, "hashes dont match")
 end
 
+_test["compress_string"] = function()
+    local _ok, _data = _eliLz.safe_compress_string("test string")
+    _test.assert(_ok, _data)
+    local _ok, _data2 = _eliLz.safe_extract_from_string(_data)
+    _test.assert(_ok, _data2 == "test string")
+end
+
 if not TEST then
     _test.summary()
 end

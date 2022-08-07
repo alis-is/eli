@@ -16,7 +16,8 @@ local function stripstring(s, type)
 		return s
 	end
 
-	s = s:gsub("[\t]", "")
+	-- this messes with whitespace strings
+	-- s = s:gsub("[\t]", "")
 
 	-- strip any CRs
 	s = s:gsub("[\r]", "")
@@ -43,7 +44,8 @@ local function stripstring(s, type)
 	s = s:gsub('"', '\\"')
 
 	-- remove multiple spaces
-	s = s:gsub("%s+", " ")
+	-- this messes with whitespace strings
+	-- s = s:gsub("%s+", " ")
 	return s
 end
 

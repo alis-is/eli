@@ -38,7 +38,7 @@ end
 ---@param stdname string
 ---@param file nil | string
 ---@param options GetStdStreamPartOptions
----@return string, nil|string, boolean
+---@return string, string?, boolean?
 local function _get_stdstream_cmd_part(stdname, file, options)
     local _tmpMode = false
     if file == nil then return "", nil end
@@ -213,7 +213,7 @@ function proc.spawn(path, args, options)
         env = options.env,
         stdio = options.stdio
     }
-    if not _proc then return error(err) end
+    if not _proc then error(err) end
 
     if type(options.wait) == "boolean" and options.wait then
         _proc:wait()

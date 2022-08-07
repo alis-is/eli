@@ -17,30 +17,30 @@ local lz = {}
 ---
 ---Extracts z compressed stream from source into destination
 ---@param source string
----@param destination string
----@param options LzExtractOptions
+---@param destination string?
+---@param options LzExtractOptions?
 function lz.extract(source, destination, options)
     local _sf = io.open(source)
     assert(_sf, "lz: Failed to open source file " .. tostring(source) .. "!")
 
     if type(options) ~= "table" then options = {} end
     local _open_file = type(options.open_file) == "function" and
-                           options.open_file or
-                           function(path, mode)
+        options.open_file or
+        function(path, mode)
             return io.open(path, mode)
         end
     local _write = type(options.write) == "function" and options.write or
-                       function(file, data) return file:write(data) end
+        function(file, data) return file:write(data) end
     local _close_file = type(options.close_file) == "function" and
-                            options.close_file or
-                            function(file) return file:close() end
+        options.close_file or
+        function(file) return file:close() end
 
     local _df = _open_file(destination, "w")
     assert(_df,
-           "lz: Failed to open destination file " .. tostring(source) .. "!")
+        "lz: Failed to open destination file " .. tostring(source) .. "!")
 
     local _chunkSize =
-        type(options.chunkSize) == "number" and options.chunkSize or 2 ^ 13 -- 8K
+    type(options.chunkSize) == "number" and options.chunkSize or 2 ^ 13 -- 8K
 
     local _inflate = _zlib.inflate()
     local _shift = 0
@@ -84,18 +84,42 @@ end
 ---
 --- extracts string from z compressed archive from path source
 ---@param source string
----@param options LzExtractOptions
+---@param options LzExtractOptions?
 ---@return string
 function lz.extract_string(source, options)
     local _result = ""
     local _options = _util.merge_tables(type(options) == "table" and options or
-                                            {}, {
-        open_file = function() return _result end,
-        write = function(_, data) _result = _result .. data end,
-        close_file = function() end
-    }, true)
+        {}, {
+            open_file = function() return _result end,
+            write = function(_, data) _result = _result .. data end,
+            close_file = function() end
+        }, true)
 
     lz.extract(source, nil, _options)
+    return _result
+end
+
+---@class LzCompressOptions
+---@field level number
+
+---#DES lz.extract_string
+---
+--- extracts string from z compressed archive from path source
+---@param data string
+---@param options LzCompressOptions?
+---@return string
+function lz.compress_string(data, options)
+    if type(data) ~= "string" then
+        error("lz: Unsupported data type: " .. type(data) .. "!")
+    end
+    if type(options) ~= "table" then
+        options = {}
+    end
+    local _level = type(options.level) == "number" and options.level or 6
+    if _level > 9 then _level = 9 end
+    if _level < 0 then _level = 0 end
+    local _deflate = _zlib.deflate(_level)
+    local _result = _deflate(data, 'finish')
     return _result
 end
 

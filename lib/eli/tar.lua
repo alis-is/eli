@@ -24,7 +24,7 @@ local tar = {}
 ---#DES 'TarExtractOptions.mkdirp'
 ---@field mkdirp nil|fun(path: string)
 ---#DES 'TarExtractOptions.transform_path'
----@field transform_path nil|fun(path: string): string
+---@field transform_path (fun(path: string, destination: string?): string)?
 ---#DES 'TarExtractOptions.filter'
 ---@field filter nil|fun(name: string): boolean
 ---#DES 'TarExtractOptions.open_file'
@@ -40,8 +40,8 @@ local tar = {}
 ---
 ---Extracts data from source into destination folder
 ---@param source string
----@param destination string
----@param options TarExtractOptions
+---@param destination string?
+---@param options TarExtractOptions?
 function tar.extract(source, destination, options)
    if type(options) ~= "table" then
       options = {}
@@ -141,7 +141,7 @@ end
 ---@param source string
 ---@param file string
 ---@param destination string
----@param options TarExtractOptions
+---@param options TarExtractOptions?
 function tar.extract_file(source, file, destination, options)
    if type(destination) == "table" and options == nil then
       options = destination
@@ -168,7 +168,7 @@ end
 ---Extracts single file from source archive into string
 ---@param source string
 ---@param file string
----@param options TarExtractOptions
+---@param options TarExtractOptions?
 ---@return string
 function tar.extract_string(source, file, options)
    local _result = ""
