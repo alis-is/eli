@@ -262,6 +262,7 @@ end
 
 ---@class ResourceCreationOptions: RestClientOptions
 ---@field allowRestclientPropertyOverride boolean?
+---@field shortcutRules fun(name: string, path: string): string
 
 ---#DES 'net.RestClient:res'
 ---
@@ -280,10 +281,10 @@ function RestClient:res(resources, options)
     ---@return RestClient
     local function makeResource(name, path)
         if type(self.__resources) ~= "table" then self.__resources = {} end
-        if self.__resources[name] then return self.__resources[name] end
+        if self.__resources[path] then return self.__resources[path] end
 
         local _result = RestClient:new(tostring(path), self)
-        self.__resources[name] = _result
+        self.__resources[path] = _result
         if _shortcut then
             self.__shortcuts[name] = _result
             self[name] = _result
@@ -291,7 +292,7 @@ function RestClient:res(resources, options)
                 { "__options", "shortcutRules" },
                 {})) do
                 if type(rule) == "function" then
-                    local _customShortcut = rule(name);
+                    local _customShortcut = rule(name, path);
                     if type(_customShortcut) == "string" then
                         self.__shortcuts[_customShortcut] = _result
                         self[_customShortcut] = _result
@@ -321,10 +322,9 @@ function RestClient:res(resources, options)
                 local _parent = makeResource(k, v.__root or k)
                 local _options = util.clone(options, true)
                 _options.shortcut = true
-                _parent:res(v, _options)
+                _parent:res(table.filter(v, function (k) return k ~= "__root" end), _options)
                 _resources = _parent
-            end
-            if type(v) == "number" or type(v) == "string" then
+            elseif type(v) == "number" or type(v) == "string" then
                 _resources = makeResource(k, v)
             end
             _result[k] = _resources
