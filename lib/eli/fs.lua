@@ -214,6 +214,7 @@ end
 ---Hashes file in specified path
 ---@param path string
 ---@param options? FsHashFileOptions
+---@return string
 function fs.hash_file(path, options)
     if type(options) ~= 'table' then
         options = {}
