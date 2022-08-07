@@ -1,5 +1,6 @@
 TEST = require 'u-test'
 local _test = TEST
+require"hjson"
 require"hash"
 require"net"
 require"fs"
