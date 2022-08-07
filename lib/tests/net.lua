@@ -176,30 +176,30 @@ _test["RestClient res (advanced)"] = function()
     _test.assert(_arrayClients[2]:get_url() == "https://httpbin.org/test2/test3")
     local _objectClientsTemplate = {
         test = "test",
-        test2 = { "test2/test3", "test2/test4" },
+        test2 = { "test3", "test4" },
         test3 = {
-            __root = "test3",
-            test1 = "test3/test1",
-            test2 = "test3/test2"
+            __root = "test5",
+            test1 = "test1",
+            test2 = "test2"
         }
     }
     local _objectClients = _client:res(_objectClientsTemplate)
     _test.assert(_objectClients.test:get_url() == "https://httpbin.org/test")
     _test.assert(_objectClients.test2[1]:get_url() == "https://httpbin.org/test2/test3")
     _test.assert(_objectClients.test2[2]:get_url() == "https://httpbin.org/test2/test4")
-    _test.assert(_objectClients.test3:get_url() == "https://httpbin.org/test3")
-    _test.assert(_objectClients.test3.test1:get_url() == "https://httpbin.org/test3/test1")
-    _test.assert(_objectClients.test3.test2:get_url() == "https://httpbin.org/test3/test2")
+    _test.assert(_objectClients.test3:get_url() == "https://httpbin.org/test5")
+    _test.assert(_objectClients.test3.test1:get_url() == "https://httpbin.org/test5/test1")
+    _test.assert(_objectClients.test3.test2:get_url() == "https://httpbin.org/test5/test2")
 
-    local _notOverrideClientsTemplate = { __root = "t", get = "test" }
+    local _notOverrideClientsTemplate = { test = { __root = "t", get = "test" } }
     local _notOverrideClients = _client:res(_notOverrideClientsTemplate)
-    _test.assert(type(_notOverrideClients.get) ~= "function")
-    _test.assert(_notOverrideClients:get_url() == "https://httpbin.org/t")
+    _test.assert(type(_notOverrideClients.test.get) ~= "function")
+    _test.assert(_notOverrideClients.test:get_url() == "https://httpbin.org/t")
 
-    local _overrideClientsTemplate = { __root = "t", get = "test" }
+    local _overrideClientsTemplate = { test = { __root = "t", get = "test" } }
     local _notOverrideClients = _client:res(_overrideClientsTemplate, { allowRestclientPropertyOverride = true })
-    _test.assert(type(_notOverrideClients.get) ~= "function")
-    _test.assert(_notOverrideClients:get_url() == "https://httpbin.org/t")
+    _test.assert(type(_notOverrideClients.test.get) ~= "function")
+    _test.assert(_notOverrideClients.test:get_url() == "https://httpbin.org/t")
 end
 
 if not TEST then
