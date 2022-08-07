@@ -113,7 +113,7 @@ end
 ---
 --- Executes specified cmd (waits for exit)
 ---@param cmd string
----@param options ExecOptions
+---@param options ExecOptions?
 ---@return ExecResult
 function proc.exec(cmd, options)
     if type(options) ~= "table" then options = {} end
@@ -145,15 +145,17 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field stdoutStream nil | ExecTmpFile
 ---@field stderrStream nil | ExecTmpFile
 
+---@alias StdType '"ignore"' | '"pipe"' | '"inherit"' | string | file* 
+
 ---@class SpawnStdio
----@field stdin '"ignore"' | '"pipe"' | '"inherit"' | string | file*
----@field stdout '"ignore"' | '"pipe"' | '"inherit"' | string | file*
----@field stderr '"ignore"' | '"pipe"' | '"inherit"' | string | file*
+---@field stdin StdType
+---@field stdout StdType
+---@field stderr StdType
 
 ---@class SpawnOptions
 ---@field env table<string, string>
 ---@field wait boolean
----@field stdio SpawnStdio
+---@field stdio SpawnStdio | StdType
 
 ---@class EliProcessStdioInfo
 ---@field stdin '"ignore"' | '"pipe"' | '"inherit"' | '"external' | '"file"'
@@ -202,7 +204,7 @@ end
 ---Spawn process from executable in path (wont wait unless wait set to true)
 ---@param path string
 ---@param args string[]
----@param options SpawnOptions
+---@param options SpawnOptions?
 ---@return EliProcess | SpawnResult
 function proc.spawn(path, args, options)
     if type(options) ~= "table" then options = {} end
