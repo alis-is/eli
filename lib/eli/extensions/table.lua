@@ -143,7 +143,8 @@ end
 
 ---#DES 'table.map'
 ---
----maps table elements to corresponding values returned by mapFn
+---maps array like table elemenets to corresponding values returned by mapFn
+--- can be used to map dictionary like tables BUT value is passed as first argument and key as second
 ---@generic T
 ---@param arr T[]|table<string|number, T>
 ---@param mapFn fun(element: T, k: string| number): T
@@ -154,7 +155,7 @@ local function _map(arr, mapFn)
     end
     local _result = {}
     for k, v in pairs(arr) do
-        table.insert(_result, mapFn(v, k))
+        _result[k] = mapFn(v, k)
     end
     return _result
 end
