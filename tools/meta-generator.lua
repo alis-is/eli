@@ -94,12 +94,12 @@ local function _collect_safe_function(code, libName, docBlock, isGlobal)
     _content = _content:gsub("#DES '?" .. libName .. "%." ..
                                  docBlock.name:match("safe_(.*)") .. "'?",
                              "#DES '" .. libName .. "." .. docBlock.name .. "'")
-    -- fix content for save function
+    -- fix content for safe function
     if _content:find("---[ ]?@return") then
-        _content = _content:gsub("---[ ]?@return", "---@return boolean,")
+        _content = _content:gsub("---[ ]?@return", "---@return boolean, string|")
     else
         local _, _end = _get_next_doc_block(_content, libName)
-        _content = _content:sub(1, _end) .. "---@return boolean\n" ..
+        _content = _content:sub(1, _end) .. "---@return boolean, string?\n" ..
                        _content:sub(_end + 1)
     end
     return _content

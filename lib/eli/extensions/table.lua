@@ -93,7 +93,7 @@ end
 ---Sets value in path of table to value
 ---@generic T: table
 ---@param obj T
----@param path string
+---@param path string|string[]
 ---@param value any
 ---@return T
 local function _set(obj, path, value)

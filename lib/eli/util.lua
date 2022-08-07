@@ -204,6 +204,7 @@ end
 ---#DES 'util.random_string'
 ---@param length number
 ---@param charset table?
+---@return string
 function util.random_string(length, charset)
    if type(charset) ~= "table" then
       charset = {}

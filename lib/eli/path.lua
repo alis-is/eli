@@ -514,9 +514,9 @@ path.abs = path.combine
 ---the ending separator is preserved.
 ---@param s string
 ---@param pwd string
----@param pl platform
----@param sep string
----@param default_sep string
+---@param pl platform?
+---@param sep string?
+---@param default_sep string?
 ---@return string
 function path.rel(s, pwd, pl, sep, default_sep)
 	local prefix = path.commonpath(s, pwd, pl)

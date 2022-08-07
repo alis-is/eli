@@ -26,6 +26,14 @@ _test["printf interpolated"] = function ()
     _test.assert(_result == "Hello from printf! This is formatted: 1 2\nAnd this is escaped ${escaped}")
 end
 
+_test["ELI_VERSION"] = function ()
+    _test.assert(ELI_VERSION, "ELI_VERSION not defined!")
+end
+
+_test["ELI_LIB_VERSION"] = function ()
+    _test.assert(ELI_LIB_VERSION, "ELI_LIB_VERSION not defined!")
+end
+
 if not TEST then 
     _test.summary()
 end

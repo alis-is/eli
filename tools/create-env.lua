@@ -73,6 +73,14 @@ function string.join(separator, ...)
    return _result
 end
 
+-- inject ELI versions
+log_info("Injecting eli version...")
+rebuild_file("lib/init.lua", function(file)
+   local _start, _ = file:find("ELI_LIB_VERSION")
+   if _start then file = file:sub(1, _start - 1) end
+   return file .. "\nELI_LIB_VERSION = '" .. config.version .. "'\nELI_VERSION = '" .. config.version .. "'"
+end)
+
 -- add libraries
 log_info("Building linit.c...")
 assert(fs.read_file("lua/src/linit.c"):match("\nLUALIB_API void luaL_openlibs.-\n}"))
@@ -158,14 +166,6 @@ message( ${ZLIBINCLUDEDIR} )
 ]]
 }, function(file)
    return not file:match("SET%(ZLIB_INCLUDE_DIR " .. _zlibPath) or not file:match("SET%(ZLIB_LIBRARY " .. _zlibPath)
-end)
-
--- inject ELI versions
-log_info("Injecting eli version...")
-rebuild_file("lib/init.lua", function(file)
-   local _start, _ = file:find("ELI_LIB_VERSION")
-   if _start then file = file:sub(1, _start - 1) end
-   return file .. "\nELI_LIB_VERSION = '" .. config.version .. "'\nELI_VERSION = '" .. config.version .. "'"
 end)
 
 log_success("Build environment ready.")
