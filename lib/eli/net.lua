@@ -143,9 +143,9 @@ local function encodeQueryParams(data)
 end
 
 ---@class RestClientOptions: RequestOptions
----@field shortcut boolean
----@field params table<string,string>|string[]
----@field data string
+---@field shortcut boolean?
+---@field params (table<string,string>|string[])?
+---@field data string?
 
 ---@class RestClient
 ---@field __type '"ELI_REST_CLIENT"'
@@ -260,12 +260,15 @@ function RestClient:conf(options)
     return self.__options
 end
 
+---@class ResourceCreationOptions: RestClientOptions
+---@field allowRestclientPropertyOverride boolean?
+
 ---#DES 'net.RestClient:res'
 ---
 --- creates resource
----@overload fun(self: RestClient, resources: string, options: RestClientOptions?):RestClient?
----@overload fun(self: RestClient, resources: string[], options: RestClientOptions?):RestClient[]?
----@overload fun(self: RestClient, resources: {k:string, v:string}, options: RestClientOptions?):{k:string, v:RestClient}?
+---@overload fun(self: RestClient, resources: string, options: ResourceCreationOptions?):RestClient?
+---@overload fun(self: RestClient, resources: string[], options: ResourceCreationOptions?):RestClient[]?
+---@overload fun(self: RestClient, resources: {k:string, v:string}, options: ResourceCreationOptions?):{k:string, v:RestClient}?
 function RestClient:res(resources, options)
     if options == nil then options = {} end
     local _shortcut = options.shortcut
@@ -308,13 +311,20 @@ function RestClient:res(resources, options)
     if type(resources) == "table" then
         local _result = {}
         for k, v in pairs(resources) do
-            if type(k) ~= "number" and type(k) ~= "string" then
+            local _resources
+            if type(v) == "table" then
+                _resources = self:res(v)
                 goto continue
             end
-            local _resource = makeResource(k)
-            if v then _resource:res(v) end
-            _result[k] = _resource
+            if type(v) == "number" or type(v) == "string" then
+                _resources = makeResource(v)
+                goto continue
+            end
+            _result[k] = _resources
             ::continue::
+        end
+        if type(_result.__root) == "table" and _result.__root.__type == "ELI_REST_CLIENT" then
+            _result = _util.merge_tables(_result.__root, _exTable.filter(_result, function(k) return k ~= "__root" end), options.allowRestclientPropertyOverride)
         end
         return _result
     end
