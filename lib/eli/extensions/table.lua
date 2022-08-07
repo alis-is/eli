@@ -143,18 +143,18 @@ end
 
 ---#DES 'table.map'
 ---
----maps array like table elemenets to corresponding values returned by mapFn
+---maps table elements to corresponding values returned by mapFn
 ---@generic T
----@param arr T[]
----@param mapFn fun(element: T): any
----@return T[]
+---@param arr T[]|table<string|number, T>
+---@param mapFn fun(element: T, k: string| number): T
+---@return T[]|table<string|number, T>
 local function _map(arr, mapFn)
     if not _util.is_array(arr) or type(mapFn) ~= "function" then
         return arr
     end
     local _result = {}
-    for _, v in ipairs(arr) do
-        table.insert(_result, mapFn(v))
+    for k, v in pairs(arr) do
+        table.insert(_result, mapFn(v, k))
     end
     return _result
 end

@@ -274,11 +274,16 @@ function RestClient:res(resources, options)
     local _shortcut = options.shortcut
     if _shortcut == nil then _shortcut = self.__options.shortcut end
 
-    local function makeResource(name)
+    ---comment
+    ---@param name string|number
+    ---@param path string|number
+    ---@return RestClient
+    local function makeResource(name, path)
+        if type(self.__resources) ~= "table" then self.__resources = {} end
         if self.__resources[name] then return self.__resources[name] end
 
-        local _result = RestClient:new(tostring(name), self)
-        self.__resources = _result
+        local _result = RestClient:new(tostring(path), self)
+        self.__resources[name] = _result
         if _shortcut then
             self.__shortcuts[name] = _result
             self[name] = _result
@@ -298,14 +303,14 @@ function RestClient:res(resources, options)
     end
 
     if type(resources) == "string" or type(resources) == "number" then
-        return makeResource(resources)
+        return makeResource(resources, resources)
     end
 
     if _util.is_array(resources) then
         local _validForResource = _exTable.filter(resources, function(_, v)
             return type(v) == "string" or type(resources) == "number"
         end)
-        return _exTable.map(_validForResource, makeResource)
+        return _exTable.map(_validForResource, function(v, i) return makeResource(i, v) end)
     end
 
     if type(resources) == "table" then
@@ -313,18 +318,16 @@ function RestClient:res(resources, options)
         for k, v in pairs(resources) do
             local _resources
             if type(v) == "table" then
-                _resources = self:res(v)
-                goto continue
+                local _parent = makeResource(k, v.__root or k)
+                local _options = util.clone(options, true)
+                _options.shortcut = true
+                _parent:res(v, _options)
+                _resources = _parent
             end
             if type(v) == "number" or type(v) == "string" then
-                _resources = makeResource(v)
-                goto continue
+                _resources = makeResource(k, v)
             end
             _result[k] = _resources
-            ::continue::
-        end
-        if type(_result.__root) == "table" and _result.__root.__type == "ELI_REST_CLIENT" then
-            _result = _util.merge_tables(_result.__root, _exTable.filter(_result, function(k) return k ~= "__root" end), options.allowRestclientPropertyOverride)
         end
         return _result
     end
