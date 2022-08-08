@@ -75,10 +75,12 @@ CC="{{{gcc}}}" CXX="{{{gpp}}}" AR="{{{ar}}}" LD="{{{ld}}}" RANLIB="{{{ranlib}}}"
 
 templates.curlMbedTlsCertsLoader = [[mbedtls_x509_crt_init(&backend->cacert);
 /* CA Certificates */
-const char eli_cacerts[][] = { {{{certs}}} };
+const char eli_cacerts[] = { {{{certs}}} };
+const long unsigned int eli_cacertSizes[] = { {{{certSizes}}} };
 
+long unsigned int shift = 0;
 for (int i = 0; i < {{{certsCount}}}; i++) {
-  ret = mbedtls_x509_crt_parse_der_nocopy(&backend->cacert, eli_cacerts[i], sizeof(eli_cacerts[i]));
+  ret = mbedtls_x509_crt_parse_der_nocopy(&backend->cacert, eli_cacerts + shift, eli_cacertSizes[i]);
   if (ret) {
     #ifdef MBEDTLS_ERROR_C
     mbedtls_strerror(ret, errorbuf, sizeof(errorbuf));
@@ -87,6 +89,7 @@ for (int i = 0; i < {{{certsCount}}}; i++) {
     if(verifypeer)
     return CURLE_SSL_CERTPROBLEM;
   }
+  shift += eli_cacertSizes[i];
 }
 if(ssl_cafile && false)]]
 
@@ -97,15 +100,20 @@ templates.mbetTlsOverride = [[
 {{/overrides}}
 {{^overrides}}
 #undef MBEDTLS_ERROR_STRERROR_DUMMY
-#undef MBEDTLS_SELF_TEST
 #undef MBEDTLS_VERSION_FEATURES
-#undef MBEDTLS_ASN1_WRITE_C
-#undef MBEDTLS_ASN1_WRITE_C
-#undef MBEDTLS_DEBUG_C
-#undef MBEDTLS_PK_WRITE_C
-#undef MBEDTLS_X509_CRL_PARSE_C
+#undef MBEDTLS_X509_CSR_WRITE_C
+#undef MBEDTLS_X509_CSR_READ_C
 #undef MBEDTLS_X509_CSR_PARSE_C
+#undef MBEDTLS_X509_CRL_WRITE_C
+#undef MBEDTLS_X509_CRL_READ_C
+#undef MBEDTLS_X509_CRL_PARSE_C
+#undef MBEDTLS_DEBUG_C
+#undef MBEDTLS_SSL_SRV_C
 #undef MBEDTLS_X509_CREATE_C
+#undef MBEDTLS_PEM_PARSE_C
+#undef MBEDTLS_PEM_WRITE_C
+#undef MBEDTLS_BASE64_C
+#undef MBEDTLS_X509_CRT_WRITE_C
 {{/overrides}}
 /* end eli mbedtls overrides */
 ]]

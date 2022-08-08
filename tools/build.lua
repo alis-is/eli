@@ -119,17 +119,26 @@ end
 if _config.inject_CA then
    local _mbedtls = fs.read_file "modules/curl/lib/vtls/mbedtls.c"
    local _certs = get_ca_certs()
-   local _certsAsByteArray = table.map(_certs, function(cert)
-      return table.map(table.pack(string.byte(cert, 1, -1)), function(b)
-         return string.format("0x%02x", b)
+   local _certsAsByteArrays = table.map(_certs,
+      function(cert)
+         return table.map(
+            table.filter(
+               table.pack(string.byte(cert, 1, -1)),
+               function(k)
+                  return type(k) == "number"
+               end),
+            function(b)
+               return string.format("0x%02x", b)
+            end)
       end)
-   end)
-   local _certsFormatted = string.join(",\n", table.map(_certsAsByteArray, function (certAsByteArray)
-      return "{" .. string.join(",", certAsByteArray) .. "}"
+   local _certsFormatted = string.join(",\n", table.map(_certsAsByteArrays, function(certAsByteArray)
+      return string.join(",", certAsByteArray)
    end))
+   local _certSizes = string.join(",", table.map(_certsAsByteArrays, function(certAsByteArray) return #certAsByteArray end))
 
    local _caCerSnippet = lustache:render(_templates.curlMbedTlsCertsLoader, {
       certs = _certsFormatted,
+      certSizes = _certSizes,
       certsCount = #_certs,
    })
 
@@ -141,7 +150,8 @@ end
 local _mbedtlsConfigPath = "modules/mbedtls/include/mbedtls/mbedtls_config.h"
 local _mbedtlsConfig = fs.read_file(_mbedtlsConfigPath)
 local _newMbedtlsConfig = _mbedtlsConfig:gsub("/%* eli mbedtls overrides %*/.-/%* end eli mbedtls overrides %*/\n", "")
-_newMbedtlsConfig = _newMbedtlsConfig .. lustache:render(_templates.mbetTlsOverride, { overrides = _config.mbedtlsOverrides })
+_newMbedtlsConfig = _newMbedtlsConfig ..
+    lustache:render(_templates.mbetTlsOverride, { overrides = _config.mbedtlsOverrides })
 fs.write_file(_mbedtlsConfigPath, _newMbedtlsConfig)
 
 if _isMultitoolchain then
