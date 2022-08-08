@@ -39,7 +39,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         if: ${{ steps.prep.outputs.NEEDS_RELEASE == 'true'}}
         with:
-          image: ghcr.io/alis-is/eli-build:0.0.1
+          image: ghcr.io/alis-is/eli-build:latest
           run: ./eli tools/build.lua
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross
 
