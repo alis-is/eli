@@ -16,7 +16,6 @@ local function _compress_string_to_c_bytes(data)
 	 return string.join(",", _byteArray)
 end
 
-
 return {
 	compress_string_to_c_bytes = _compress_string_to_c_bytes
 }
