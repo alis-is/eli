@@ -73,43 +73,41 @@ CC="{{{gcc}}}" CXX="{{{gpp}}}" AR="{{{ar}}}" LD="{{{ld}}}" RANLIB="{{{ranlib}}}"
 -DCMAKE_BUILD_TYPE={{{BUILD_TYPE}}} -DCMAKE_C_FLAGS={{{ccf}}} -DCURL_HOST={{{ch}}}
 ]]
 
-templates.curlMbedTlSCertsLoader = [[mbedtls_x509_crt_init(&backend->cacert);
+templates.curlMbedTlsCertsLoader = [[mbedtls_x509_crt_init(&backend->cacert);
 /* CA Certificates */
-{{#compress}}
-const char eli_cacert[] = { {{{certs}}} };
-char uncompressedCerts[{{{certsLength}}} + 1];
+const char eli_cacerts[][] = { {{{certs}}} };
 
-#include "zlib.h"
-z_stream i_stream;
-i_stream.zalloc = Z_NULL;
-i_stream.zfree = Z_NULL;
-i_stream.opaque = Z_NULL;
-
-i_stream.avail_in = (uInt)sizeof(eli_cacert);           // size of input
-i_stream.next_in = (Bytef *)eli_cacert;                 // input char array
-i_stream.avail_out = (uInt)sizeof(uncompressedCerts);  // size of output
-i_stream.next_out = (Bytef *)uncompressedCerts;        // output char array
-
-inflateInit(&i_stream);
-inflate(&i_stream, Z_NO_FLUSH);
-inflateEnd(&i_stream);
-
-uncompressedCerts[{{{certsLength}}}] = '\0';
-
-ret = mbedtls_x509_crt_parse(&backend->cacert, uncompressedCerts, sizeof(uncompressedCerts));
-{{/compress}}
-{{^compress}}
-const char eli_cacert[] = "{{{certs}}}";
-ret = mbedtls_x509_crt_parse(&backend->cacert, eli_cacert, sizeof(eli_cacert));
-{{/compress}}
-if (ret) {
-#ifdef MBEDTLS_ERROR_C
-mbedtls_strerror(ret, errorbuf, sizeof(errorbuf));
-#endif /* MBEDTLS_ERROR_C */
-failf(data, "Error reading ca cert file - mbedTLS: (-0x%%04X) %%s", -ret, errorbuf);
-if(verifypeer)
-return CURLE_SSL_CERTPROBLEM;
+for (int i = 0; i < {{{certsCount}}}; i++) {
+  ret = mbedtls_x509_crt_parse_der_nocopy(&backend->cacert, eli_cacerts[i], sizeof(eli_cacerts[i]));
+  if (ret) {
+    #ifdef MBEDTLS_ERROR_C
+    mbedtls_strerror(ret, errorbuf, sizeof(errorbuf));
+    #endif /* MBEDTLS_ERROR_C */
+    failf(data, "Error reading ca cert file - mbedTLS: (-0x%%04X) %%s", -ret, errorbuf);
+    if(verifypeer)
+    return CURLE_SSL_CERTPROBLEM;
+  }
 }
 if(ssl_cafile && false)]]
+
+templates.mbetTlsOverride = [[
+/* eli mbedtls overrides */
+{{#overrides}}
+{{{.}}}
+{{/overrides}}
+{{^overrides}}
+#undef MBEDTLS_ERROR_STRERROR_DUMMY
+#undef MBEDTLS_SELF_TEST
+#undef MBEDTLS_VERSION_FEATURES
+#undef MBEDTLS_ASN1_WRITE_C
+#undef MBEDTLS_ASN1_WRITE_C
+#undef MBEDTLS_DEBUG_C
+#undef MBEDTLS_PK_WRITE_C
+#undef MBEDTLS_X509_CRL_PARSE_C
+#undef MBEDTLS_X509_CSR_PARSE_C
+#undef MBEDTLS_X509_CREATE_C
+{{/overrides}}
+/* end eli mbedtls overrides */
+]]
 
 return templates

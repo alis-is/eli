@@ -1,5 +1,5 @@
 FROM docker.io/alpine:latest
-RUN apk add cmake make perl python3
+RUN apk add cmake make perl python3 openssl
 RUN mkdir /opt/cross
 RUN wget https://more.musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz && tar -xzvf x86_64-linux-musl-cross.tgz && mv x86_64-linux-musl-cross /opt/cross/
 RUN wget https://more.musl.cc/11/x86_64-linux-musl/i686-linux-musl-cross.tgz && tar -xzvf i686-linux-musl-cross.tgz && mv i686-linux-musl-cross /opt/cross/
