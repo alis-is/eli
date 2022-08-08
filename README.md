@@ -48,5 +48,5 @@ Tests:
 
 Libraries used for build: 
 
-- eli v0.1.0 with all embedded libraries
+- eli 0.23.2
 - [luasrcdiet](https://github.com/jirutka/luasrcdiet) (*for minfication*)

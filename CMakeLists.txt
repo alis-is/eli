@@ -157,6 +157,7 @@ ExternalProject_Add(
                     --disable-shared
                     --without-ca-bundle
                     --without-ca-path
+                    --enable-symbol-hiding
   PREFIX ${CMAKE_BINARY_DIR}/modules/curl/
   BUILD_COMMAND make
   BUILD_IN_SOURCE 1
