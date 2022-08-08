@@ -100,7 +100,8 @@ function lz.extract_string(source, options)
 end
 
 ---@class LzCompressOptions
----@field level number
+---@field level number 0 - 9
+---@field windowSize integer 9 - 15
 
 ---#DES lz.extract_string
 ---
@@ -118,7 +119,12 @@ function lz.compress_string(data, options)
     local _level = type(options.level) == "number" and options.level or 6
     if _level > 9 then _level = 9 end
     if _level < 0 then _level = 0 end
-    local _deflate = _zlib.deflate(_level)
+    local _windowSize = options.windowSize
+    if type(_windowSize) == "number" then
+        if _windowSize < 9 then _windowSize = 9 end
+        if _windowSize > 15 then _windowSize = 15 end
+    end
+    local _deflate = _zlib.deflate(_level, _windowSize)
     local _result = _deflate(data, 'finish')
     return _result
 end

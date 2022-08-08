@@ -32,47 +32,6 @@ local function rebuild_file(source, replace, conditionFn, target)
    fs.write_file(target, _file)
 end
 
-function lz.compress_string(data, options)
-   if type(data) ~= "string" then
-      error("lz: Unsupported data type: " .. type(data) .. "!")
-   end
-   if type(options) ~= "table" then
-      options = {}
-   end
-   local _level = type(options.level) == "number" and options.level or 6
-   if _level > 9 then _level = 9 end
-   if _level < 1 then _level = 1 end
-   local _deflate = require("zlib").deflate(_level)
-   local _result = _deflate(data, 'finish')
-   return _result
-end
-
-function string.join(separator, ...)
-   local _result = ""
-   if type(separator) ~= "string" then
-      separator = ""
-   end
-   for _, v in ipairs(table.pack(...)) do
-      if type(v) == "table" then
-         for _, v in pairs(v) do
-            if #_result == 0 then
-               _result = tostring(v)
-            else
-               _result = _result .. separator .. tostring(v)
-            end
-         end
-         goto CONTINUE
-      end
-      if #_result == 0 then
-         _result = tostring(v)
-      else
-         _result = _result .. separator .. tostring(v)
-      end
-      ::CONTINUE::
-   end
-   return _result
-end
-
 -- inject ELI versions
 log_info("Injecting eli version...")
 rebuild_file("lib/init.lua", function(file)
