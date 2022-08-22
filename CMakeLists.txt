@@ -78,7 +78,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   )
 endif()
 # disable other targets
-set_target_properties(example example64 minigzip minigzip64 PROPERTIES EXCLUDE_FROM_ALL 1)
+set_target_properties(example example64 minigzip minigzip64 zlib PROPERTIES EXCLUDE_FROM_ALL 1)
 
 # LIBZIP
 set(ENABLE_COMMONCRYPTO CACHE BOOL OFF FORCE)
@@ -117,6 +117,7 @@ endif()
 
 # fix streerrorlen_s with mingw
 set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)
+set(BUILD_SHARED_LIBS CACHE BOOL OFF FORCE)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip/)
 add_dependencies(zip zlibstatic)
