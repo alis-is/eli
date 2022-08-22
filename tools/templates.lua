@@ -70,6 +70,7 @@ templates.eliInitTemplate = [[
 templates.buildConfigureTemplate = [[
 CC="{{{gcc}}}" CXX="{{{gpp}}}" AR="{{{ar}}}" LD="{{{ld}}}" RANLIB="{{{ranlib}}}" cmake {{{rootDir}}} \
 -DCMAKE_AR="{{{ar}}}" -DCMAKE_C_COMPILER="{{{gcc}}}" -DCMAKE_CXX_COMPILER="{{{gpp}}}" -DCMAKE_RC_COMPILER="{{{rc}}}" \
+-DCMAKE_AS="{{{as}}}" -DCMAKE_OBJDUMP="{{{objdump}}}" -DCMAKE_STRIP="{{{strip}}}" \
 -DCMAKE_BUILD_TYPE={{{BUILD_TYPE}}} -DCMAKE_C_FLAGS={{{ccf}}} -DCURL_HOST={{{ch}}}
 ]]
 

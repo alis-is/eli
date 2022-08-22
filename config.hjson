@@ -1,5 +1,5 @@
 {
-   version: 0.23.2
+   version: 0.24.0
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    compress: true // TODO
@@ -107,71 +107,71 @@
       },
       {
          id: is_tty
-         repository: cryon-io/lua_is_tty
-         version: 0.1.2
+         repository: alis-is/lua_is_tty
+         version: 0.2.0
          destination: modules/lua_is_tty
          omitRoot: true
       },
       {
          id: mbed_hash
          repository: alis-is/lua-mbed-hash
-         version: 0.3.0
+         version: 0.4.0
          destination: modules/lua_mbed_hash
          omitRoot: true
       },
       {
          id: eli_extra_utils
-         repository: cryon-io/eli-extra-utils
-         version: 0.0.1
+         repository: alis-is/eli-extra-utils
+         version: 0.1.0
          destination: modules/eli-extra-utils
          omitRoot: true
       },
       {
          id: eli_stream_extra
-         repository: cryon-io/eli-stream-extra
-         version: 0.0.1
+         repository: alis-is/eli-stream-extra
+         version: 0.1.0
          destination: modules/eli-stream-extra
          omitRoot: true
       },
       {
          id: eli_pipe_extra
-         repository: cryon-io/eli-pipe-extra
-         version: 0.0.1
+         repository: alis-is/eli-pipe-extra
+         version: 0.1.0
          destination: modules/eli-pipe-extra
          omitRoot: true
       },
       {
          id: eli_fs_extra
          repository: alis-is/eli-fs-extra
-         version: 0.4.0
+         version: 0.5.0
          destination: modules/eli-fs-extra
          omitRoot: true
       },
       {
          id: eli_proc_extra
-         repository: cryon-io/eli-proc-extra
-         version: 0.3.1
+         repository: alis-is/eli-proc-extra
+         version: 0.4.0
          destination: modules/eli-proc-extra
          omitRoot: true
       },
       {
          id: eli_os_extra
          repository: alis-is/eli-os-extra
-         version: 0.0.4
+         version: 0.1.0
          destination: modules/eli-os-extra
          omitRoot: true
       },
       {
          id: eli_env_extra
          repository: alis-is/eli-env-extra
-         version: 0.1.2
+         version: 0.2.0
          destination: modules/eli-env-extra
          omitRoot: true
       },
       {
          id: lua_tar_extract_native
-         repository: cryon-io/lua-tar-extract-native
-         version: 0.0.2
+         repository: alis-is/lua-tar-extract-native
+         version: 0.1.0
          destination: modules/tar
          omitRoot: true
       },
@@ -222,7 +222,7 @@
       {
          id: libzip
          repository: cryi/libzip
-         version: v1.9.3
+         version: v1.9.3b
          destination: modules/libzip
          omitRoot: true
       },
