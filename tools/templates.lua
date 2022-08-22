@@ -71,7 +71,7 @@ templates.buildConfigureTemplate = [[
 CC="{{{gcc}}}" CXX="{{{gpp}}}" AR="{{{ar}}}" LD="{{{ld}}}" RANLIB="{{{ranlib}}}" cmake {{{rootDir}}} \
 -DCMAKE_AR="{{{ar}}}" -DCMAKE_C_COMPILER="{{{gcc}}}" -DCMAKE_CXX_COMPILER="{{{gpp}}}" -DCMAKE_RC_COMPILER="{{{rc}}}" \
 -DCMAKE_AS="{{{as}}}" -DCMAKE_OBJDUMP="{{{objdump}}}" -DCMAKE_STRIP="{{{strip}}}" \
--DCMAKE_BUILD_TYPE={{{BUILD_TYPE}}} -DCMAKE_C_FLAGS={{{ccf}}} -DCURL_HOST={{{ch}}}
+-DCMAKE_BUILD_TYPE={{{BUILD_TYPE}}} -DCMAKE_C_FLAGS={{{ccf}}} -DCURL_HOST={{{ch}}} -DCMAKE_SYSTEM_NAME={{{SYSTEM_NAME}}}
 ]]
 
 templates.curlMbedTlsCertsLoader = [[mbedtls_x509_crt_init(&backend->cacert);

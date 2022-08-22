@@ -72,7 +72,7 @@ local function buildWithChain(id, buildDir)
          print("Mirror not found. Downloading from upstream.")
          net.download_file("https://more.musl.cc/11/x86_64-linux-musl/" .. id .. ".tgz", tmp)
       end
-      -- eli.tar can not handle links annd long links so we use system tar for now
+      -- eli.tar can not handle links and long links so we use system tar for now
       assert(os.execute("tar -xzvf " .. tmp .. " && mv " .. id .. " /opt/cross/"))
       --      lz.extract(tmp, tmp2)
       --      tar.extract(tmp2, "/opt/cross/" --[[.. id]], { flattenRootDir = true, filter = function (f)
@@ -111,6 +111,7 @@ local function buildWithChain(id, buildDir)
       rc = rc:gsub("\n", ""),
       BUILD_TYPE = BUILD_TYPE,
       ccf = BUILD_TYPE == "MINSIZEREL" and "-s" or "",
+      SYSTEM_NAME = id:match("mingw") and "Windows" or "Linux",
       ch = id:gsub("%-cross", "")
    })
 

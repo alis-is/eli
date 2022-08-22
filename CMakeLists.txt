@@ -1,25 +1,21 @@
-cmake_minimum_required (VERSION 3.14)
+cmake_minimum_required (VERSION 3.13)
 include(ExternalProject)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
-set(CMAKE_SYSTEM_NAME Generic)
 project (eli)
 
 
-set(BUILD_SHARED_LIBS CACHE OFF FORCE)
+set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -s -fPIC -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto -g3 -Wl,--as-needed -Wl,--gc-sections -DCURL_STATICLIB -static")
 
-if(MINGW) 
+if(CMAKE_SYSTEM_NAME STREQUAL Windows) 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_POSIX_THREAD_SAFE_FUNCTIONS")
 endif()
 
-if(WIN32 OR MINGW)
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
   set(LUA_DEFINITIONS LUA_USE_WINDOWS)
-  set(ZIP_LIB_WIN32 ON)
-elseif (UNIX)
+elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(LUA_DEFINITIONS LUA_USE_POSIX)
-else()
-  set(ZIP_LIB_WIN32 OFF)
 endif()
 
 # INCLUDE PATHS & DIRS
@@ -28,7 +24,7 @@ set(LUA_INCLUDE ${CMAKE_SOURCE_DIR}/lua/src/)
 set(ZIP_LIB_INCLUDE ${CMAKE_SOURCE_DIR}/modules/libzip/lib/)
 
 set(ZLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/modules/zlib/)
-set(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/modules/zlib/libzlibstatic.a)
+set(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/modules/zlib/libz.a)
 set(MbedTLS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/include)
 set(MbedTLS_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library)
 
@@ -75,9 +71,13 @@ add_custom_target(copy_zlib_files ALL DEPENDS zlibstatic)
 add_custom_command(TARGET copy_zlib_files POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/modules/zlib/*.h ${ZLIB_INCLUDE_DIR}
 )
-add_custom_command(TARGET copy_zlib_files POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${ZLIB_INCLUDE_DIR}/libzlibstatic.a ${ZLIB_INCLUDE_DIR}/libz.a
-)
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  add_custom_command(TARGET copy_zlib_files POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy ${ZLIB_INCLUDE_DIR}/libzlibstatic.a ${ZLIB_INCLUDE_DIR}/libz.a
+  )
+endif()
+# disable other targets
+set_target_properties(example example64 minigzip minigzip64 PROPERTIES EXCLUDE_FROM_ALL 1)
 
 # LIBZIP
 set(ENABLE_COMMONCRYPTO CACHE BOOL OFF FORCE)
@@ -93,8 +93,28 @@ set(BUILD_REGRESS CACHE BOOL OFF FORCE)
 set(BUILD_EXAMPLES CACHE BOOL OFF FORCE)
 set(BUILD_DOC CACHE BOOL OFF FORCE)
 
+if (CMAKE_SYSTEM_NAME STREQUAL Linux)
+  set(HAVE__CLOSE CACHE BOOL OFF FORCE)
+  set(HAVE__DUP CACHE BOOL OFF FORCE)
+  set(HAVE__FDOPEN CACHE BOOL OFF FORCE)
+  set(HAVE__FILENO CACHE BOOL OFF FORCE)
+  set(HAVE__SETMODE CACHE BOOL OFF FORCE)
+  set(HAVE__STRDUP CACHE BOOL OFF FORCE)
+  set(HAVE__STRTOI64 CACHE BOOL OFF FORCE)
+  set(HAVE__STRTOUI64 CACHE BOOL OFF FORCE)
+  set(HAVE__UNLINK CACHE BOOL OFF FORCE)
+  set(HAVE_ARC4RANDOM CACHE BOOL OFF FORCE)
+  set(HAVE_CLONEFILE CACHE BOOL OFF FORCE)
+  set(HAVE_EXPLICIT_MEMSET CACHE BOOL OFF FORCE)
+  set(HAVE_GETPROGNAME CACHE BOOL OFF FORCE)
+  set(HAVE_MEMCPY_S CACHE BOOL OFF FORCE)
+  set(HAVE_SETMODE CACHE BOOL OFF FORCE)
+  set(HAVE_STRERROR_S CACHE BOOL OFF FORCE)
+  set(HAVE_STRICMP CACHE BOOL OFF FORCE)
+  set(HAVE_STRNCPY_S CACHE BOOL OFF FORCE)
+endif()
+
 # fix streerrorlen_s with mingw
-set(HAVE_STRERRORLEN_S CACHE BOOL OFF FORCE)
 set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/libzip/)
