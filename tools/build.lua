@@ -119,6 +119,7 @@ local function buildWithChain(id, buildDir)
    log_info("Building (make)...")
    os.execute "make"
    os.chdir(_oldCwd)
+   fs.mkdirp("release")
    if id:match("mingw") or id:match("mingw") then
       fs.copy_file(path.combine(buildDir, "eli.exe"), "release/eli-win-" .. id:gsub("%-w64%-mingw32%-cross", "") .. ".exe")
    else
