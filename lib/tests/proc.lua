@@ -1,6 +1,7 @@
 local _test = TEST or require "u-test"
 local _ok, _eliProc = pcall(require, "eli.proc")
 local _eliFs = require("eli.fs")
+local _eliPath = require"eli.path"
 
 if not _ok then
     _test["eli.proc available"] = function()
@@ -14,36 +15,51 @@ if not _ok then
     end
 end
 
+local _pathSeparator = package.config:sub(1,1)
+
 _test["eli.proc available"] = function()
     _test.assert(true)
 end
 
 _test["exec"] = function ()
-    local _result = _eliProc.exec("printf 135")
+    local _result = _eliProc.exec("echo 135")
     _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and _result.stderrStream == nil)
 end
 
 _test["exec (stdout)"] = function ()
-    local _result = _eliProc.exec("printf 135", { stdout = "pipe" })
-    _test.assert(_result.exitcode == 0 and _result.stdoutStream:read("a") == "135"  and _result.stderrStream == nil)
+    local _result = _eliProc.exec("echo 135", { stdout = "pipe" })
+    _test.assert(_result.exitcode == 0 and string.trim(_result.stdoutStream:read("a")) == "135"  and _result.stderrStream == nil)
 end
 
 _test["exec (stdout - path)"] = function ()
-    local _result = _eliProc.exec("printf 135", { stdout = "tmp/stdout.tmp" })
-    _test.assert(_result.exitcode == 0 and _result.stdoutStream:read("a") == "135" and _result.stderrStream == nil)
+    local _result = _eliProc.exec("echo 135", { stdout = "tmp/stdout.tmp" })
+    _test.assert(_result.exitcode == 0 and string.trim(_result.stdoutStream:read("a")) == "135" and _result.stderrStream == nil)
 end
 
 _test["exec (stderr)"] = function ()
-    local _result = _eliProc.exec("sh -c \"printf 'error 173' >&2\"", { stderr = "pipe" })
-    _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and _result.stderrStream:read("a") == "error 173")
+    local _cli = "sh -c"
+    if _pathSeparator == "\\" then
+        _cli = "cmd /c"
+    end
+    local _result = _eliProc.exec(_cli .. " \"echo error 173 >&2\"", { stderr = "pipe" })
+    _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and string.trim(_result.stderrStream:read("a")) == "error 173")
 end
 
 _test["exec (stderr - path)"] = function ()
-    local _result = _eliProc.exec("sh -c \"printf 'error 173' >&2\"", { stderr = "tmp/stderr.tmp" })
-    _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and  _result.stderrStream:read("a") == "error 173")
+    local _cli = "sh -c"
+    if _pathSeparator == "\\" then
+        _cli = "cmd /c"
+    end
+    local _result = _eliProc.exec(_cli .. " \"echo error 173 >&2\"", { stderr = "tmp/stderr.tmp" })
+    _test.assert(_result.exitcode == 0 and _result.stdoutStream == nil and  string.trim(_result.stderrStream:read("a")) == "error 173")
 end
 
 _test["exec (stdin)"] = function ()
+    local _scriptPath = _eliPath.combine("tmp", "script")
+    local _ok = _eliFs.safe_write_file(_scriptPath, "123\n\n")
+    _test.assert(_ok, "Failed to write stdin file")
+    local _result = _eliProc.exec("more", { stdin = _scriptPath, stdout = "pipe" })
+    _test.assert(_result.exitcode == 0 and string.trim(_result.stdoutStream:read("a")) == "123" and _result.stderrStream == nil)
 end
 
 if not _eliProc.EPROC then

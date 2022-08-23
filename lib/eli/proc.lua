@@ -1,6 +1,7 @@
 local _util = require "eli.util"
 local eprocLoaded, eproc = pcall(require, "eli.proc.extra")
 local _sx = require "eli.extensions.string"
+local _sep = package.config:sub(1,1) 
 
 local proc = {
     ---#DES os.EPROC
@@ -14,25 +15,11 @@ local proc = {
 ---@field stderrRedirectTemplate nil | string
 ---@field stdinRedirectTemplate nil | string
 
-local settings = {
+proc.settings = {
     stdoutRedirectTemplate = '> "<file>"',
     stderrRedirectTemplate = '2> "<file>"',
-    stdinRedirectTemplate = 'type "<file>" |'
+    stdinRedirectTemplate = _sep == "\\" and 'type "<file>" |' or 'cat "<file>" |'
 }
-
----@alias EProcSettingsKind '"stdoutRedirectTemplate"'|'"stderrRedirectTemplate"'|'"stdinRedirectTemplate"'
-
----#DES proc.set_settings
----
----@param option EProcSettingsKind
----@param value string
-function proc.set_settings(option, value)
-    if type(option) == "string" then
-        settings[option] = value
-    elseif type(option) == "table" then
-        settings = _util.merge_tables(settings, option)
-    end
-end
 
 ---Compiles std option into exec template
 ---@param stdname string
@@ -52,7 +39,7 @@ local function _get_stdstream_cmd_part(stdname, file, options)
     end
     if file == "ignore" then return "", nil end
     local _template = options[stdname .. "RedirectTemplate"] or
-                          settings[stdname .. "RedirectTemplate"]
+                            proc.settings[stdname .. "RedirectTemplate"]
     if type(_template) == "function" then
         return _template(file), file, _tmpMode
     elseif type(_template) == "string" then
