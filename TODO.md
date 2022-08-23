@@ -19,10 +19,18 @@
 * [x] replace curl with libfetch (requires testing)
 * [x] mount and use toolchain dir during build (toolchain caching)
 * [ ] optional use of cache during build
-* [ ] windows build
+* [x] windows build
 
 ## CMakeLists 
 * [ ] optional build Eli mini - without eli.net and libcurl related libs 
 
-# Init scripts:
-* [x] initialize ELI_LIB_VERSION, INTERPRETER, APP_ROOT_SCRIPT, APP_ROOT
+## Fix tests - win
+fs
+- file_type (file)
+- file_type (dir)
+- lock_file
+- unlock_file
+- lock_file (path)
+- unlock_file (path)
+proc
+- spawn

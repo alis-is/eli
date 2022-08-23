@@ -59,14 +59,14 @@ end
 _test["mkdir"] = function()
     local _ok, _error = _eliFs.safe_mkdir("tmp/test-dir")
     _test.assert(_ok, _error)
-    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir")
+    local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir")
     _test.assert(_exists, (_exists or "not exists"))
 end
 
 _test["mkdirp"] = function()
     local _ok = _eliFs.safe_mkdirp("tmp/test-dir/test/test")
     _test.assert(_ok)
-    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir/test/test")
+    local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir/test/test")
     _test.assert(_ok and _exists, (_exists or "not exists"))
 end
 
@@ -74,17 +74,17 @@ _test["create_dir"] = function()
     _eliFs.safe_remove("tmp/test-dir", {recurse = true})
     local _ok, _error = _eliFs.safe_create_dir("tmp/test-dir")
     _test.assert(_ok, _error)
-    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir")
+    local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir")
     _test.assert(_exists, (_exists or "not exists"))
 
     local _ok = _eliFs.safe_create_dir("tmp/test-dir/test/test")
     _test.assert(_ok)
-    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir/test/test")
+    local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir/test/test")
     _test.assert(_ok and not _exists, (_exists or "exists"))
 
     local _ok = _eliFs.safe_create_dir("tmp/test-dir/test/test", true)
     _test.assert(_ok)
-    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir/test/test")
+    local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir/test/test")
     _test.assert(_ok and _exists, (_exists or "not exists"))
 end
 

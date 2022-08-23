@@ -6,7 +6,6 @@ local _util = require 'eli.util'
 local efsLoaded, efs = pcall(require, 'eli.fs.extra')
 local _hash = require 'lmbed_hash'
 
-
 local function _check_efs_available(operation)
     if not efsLoaded then
         if operation ~= nil and operation ~= '' then
@@ -206,11 +205,17 @@ end
 ---Returns true if specified path exists
 ---@param path string
 function fs.exists(path)
-    if io.open(path) then
-        return true
-    else
-        return false
-    end
+	local _ok, _, _code = os.rename(path, path)
+	return _ok or _code == 13
+end
+
+---#DES 'fs.exists'
+---
+---Returns true if specified path exists
+---@param path string
+function fs.dir_exists(path)
+	path = path:sub(#path, #path) == "/" and path or path .. "/"
+	return fs.exists(path)
 end
 
 ---@class FsHashFileOptions: AccessFileOptions
