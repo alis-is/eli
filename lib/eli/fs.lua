@@ -517,6 +517,19 @@ function fs.unlock_directory(fsLock)
     end
 end
 
+---#DES 'fs.file_type'
+---
+---returns type of file
+---@param path string
+---@return boolean|nil, string
+function fs.file_type(path)
+    local _last = path:sub(#path, #path)
+    if _last == "/" or _last == "\\" then
+        path = path:sub(1, #path - 1)
+    end
+    return efs.file_type(path)
+end
+
 if efsLoaded then
     local result = _util.generate_safe_functions(_util.merge_tables(fs, efs))
     result.safe_iter_dir = nil -- not supported
