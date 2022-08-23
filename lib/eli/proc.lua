@@ -59,7 +59,7 @@ ExecTmpFile.__index = ExecTmpFile
 function ExecTmpFile:new(path)
     local _tmpFile = {}
     _tmpFile.path = path
-    _tmpFile.__file = io.open(path)
+    _tmpFile.__file = io.open(path, "rb")
 
     setmetatable(_tmpFile, self)
     self.__index = self
