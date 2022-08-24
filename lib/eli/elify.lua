@@ -21,7 +21,7 @@ local function _elify()
       if not _efk or _special[_efk] then
          goto continue
       end
-      _G[_efk] = require(k)
+      _, _G[_efk] = pcall(require, k)
       ::continue::
    end
    _overridenValues.os = os

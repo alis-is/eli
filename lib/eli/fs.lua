@@ -4,7 +4,6 @@ local dir = _eliPath.dir
 local combine = _eliPath.combine
 local _util = require 'eli.util'
 local efsLoaded, efs = pcall(require, 'eli.fs.extra')
-local _hash = require 'lmbed_hash'
 
 local function _check_efs_available(operation)
     if not efsLoaded then
@@ -229,6 +228,7 @@ end
 ---@param options? FsHashFileOptions
 ---@return string
 function fs.hash_file(path, options)
+    local _hash = require 'lmbed_hash'
     options = _util.merge_tables({ type = "sha256", binaryMode = true }, options, true)
     local srcf = assert(io.open(path, options.binaryMode and "rb" or "r"), 'No such a file or directory - ' .. path)
     local size = 2 ^ 12 -- 4K

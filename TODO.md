@@ -26,8 +26,6 @@
 
 ## Fix tests - win
 fs
-- file_type (file)
-- file_type (dir)
 - lock_file
 - unlock_file
 - lock_file (path)
