@@ -49,8 +49,8 @@ static const luaL_Reg preloadedlibs[] = {
   {NULL, NULL}
 };
 
-#include "zlib.h"
 {{#compress}}
+#include "zlib.h"
 const char lua_libs[] = { {{{embedableLibs}}} };
 {{/compress}}
 {{^compress}}
