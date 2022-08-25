@@ -25,10 +25,5 @@
 * [ ] optional build Eli mini - without eli.net and libcurl related libs 
 
 ## Fix tests - win
-fs
-- lock_file
-- unlock_file
-- lock_file (path)
-- unlock_file (path)
 proc
 - spawn
