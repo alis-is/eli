@@ -3,7 +3,6 @@ include(ExternalProject)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 project (eli)
 
-
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -s -fPIC -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto -g3 -Wl,--as-needed -Wl,--gc-sections -DCURL_STATICLIB -static")
 
@@ -14,9 +13,9 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
-  set(LUA_DEFINITIONS LUA_USE_WINDOWS)
+  # -DLUA_USE_WINDOWS is detected automatically with _WIN32 flag
 elseif (CMAKE_SYSTEM_NAME STREQUAL Linux)
-  set(LUA_DEFINITIONS LUA_USE_POSIX)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS -DLUA_USE_POSIX")
 endif()
 
 # INCLUDE PATHS & DIRS

@@ -399,45 +399,12 @@ end
 ---#DES fs.EliFileLock'
 ---
 ---@class EliFileLock
+---@field free fun(eliFileLock: EliFileLock):nil
+---@field unlock fun(eliFileLock: EliFileLock):nil
+---@field is_active fun(eliFileLock: EliFileLock): boolean
 ---@field __type '"ELI_FILE_LOCK"'
----@field __file file*
----@field __start number
----@field __len number
-local EliFileLock = {}
-EliFileLock.__index = EliFileLock
 
----comment
----@param file file*
----@param start integer
----@param len integer
----@return EliFileLock
-function EliFileLock:new(file, start, len)
-    local _tmpFileLock = {}
-    _tmpFileLock.__file = file
-    _tmpFileLock.__start = start
-    _tmpFileLock.__len = len
-
-    setmetatable(_tmpFileLock, self)
-    self.__index = self
-    self.__type = "ELI_FILE_LOCK"
-    return _tmpFileLock
-end
-
----#DES 'EliFileLock.unlock_file'
----
----Unlocks access to file
----@param self EliFileLock
-function EliFileLock:unlock()
-    fs.unlock_file(self)
-end
-
----#DES 'EliFileLock.unlock_file'
----
----Unlocks access to file
----@param self EliFileLock
-function EliFileLock:free()
-    self:unlock()
-end
+local ELI_FILE_LOCK_ID = "ELI_FILE_LOCK"
 
 ---#DES 'fs.lock_file'
 ---
@@ -446,74 +413,58 @@ end
 ---@param mode '"rb"'|'"wb"'
 ---@param start integer?
 ---@param len integer?
----@return EliFileLock?, string?
+---@return EliFileLock?, string?, integer?
 function fs.lock_file(pathOrFile, mode, start, len)
     _check_efs_available('lock_file')
-
-    if type(mode) ~= 'string' then mode = "wb" end
-    if type(start) ~= 'number' then start = 0 end
-    if type(len) ~= 'number' then len = 0 end
-
-    if type(pathOrFile) == "string" then
-        local _f, _error = io.open(pathOrFile, mode)
-        if _f == nil then return nil, _error end
-        local _ok, _error = efs.lock_file(_f, mode, start, len)
-        if _ok then return EliFileLock:new(_f, start, len) end
-        return _ok, _error
-    else
-        local _ok, _error = efs.lock_file(pathOrFile, mode, start, len)
-        if _ok then return EliFileLock:new(pathOrFile, start, len) end
-        return _ok, _error
-    end
+    return efs.lock_file(pathOrFile, mode, start, len)
 end
 
 ---#DES 'fs.unlock_file'
 ---
 ---Unlocks access to file
----@param pathOrFileLock string|EliFileLock
----@param start integer?
----@param len integer?
----@return boolean?, string
-function fs.unlock_file(pathOrFileLock, start, len)
+---@param fsLock EliFileLock
+---@return boolean?, string?
+function fs.unlock_file(fsLock)
     _check_efs_available('unlock_file')
 
-    if type(start) ~= 'number' then start = 0 end
-    if type(len) ~= 'number' then len = 0 end
-
-    if type(pathOrFileLock) == "string" then
-        return efs.unlock_file(io.open(pathOrFileLock, "rb"), start, len)
-    elseif type(pathOrFileLock) == "ELI_FILE_LOCK" or (type(pathOrFileLock) == "userdata" and pathOrFileLock.__type == "ELI_FILE_LOCK") then
-        return efs.unlock_file(pathOrFileLock.__file, pathOrFileLock.__start, pathOrFileLock.__len)
-    else 
-        return efs.unlock_file(pathOrFileLock, start, len)
+    if type(fsLock) == ELI_FILE_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type == ELI_FILE_LOCK_ID) then
+        return fsLock:unlock()
+    else
+        return false, "Invalid " .. ELI_FILE_LOCK_ID .. " type! '".. ELI_DIR_LOCK_ID .."' expected, got: " .. type(fsLock) .. "!"
     end
 end
 
----@class FsLock
----@field free fun(fsLock: FsLock):nil
----@field unlock fun(fsLock: FsLock):nil
----@field __type '"ELI_LOCK"'
+---#DES fs.EliDirLock'
+---
+---@class EliDirLock
+---@field free fun(eliDirLock: EliDirLock):nil
+---@field unlock fun(eliDirLock: EliDirLock):nil
+---@field is_active fun(eliDirLock: EliDirLock): boolean
+---@field __type '"ELI_DIR_LOCK"'
+
+local ELI_DIR_LOCK_ID = "ELI_DIR_LOCK"
 
 ---#DES 'fs.lock_directory'
 ---
 ---Locks access to directory
 ---@param path string
----@return FsLock|nil, string
-function fs.lock_directory(path)
+---@param lockFileName string?
+---@return EliDirLock|nil, string?
+function fs.lock_directory(path, lockFileName)
     _check_efs_available('lock_dir')
-    return efs.lock_dir(path)
+    return efs.lock_dir(path, lockFileName)
 end
 
 ---#DES 'fs.unlock_directory'
 ---
 ---Unlocks access to directory
----@param fsLock FsLock
----@return boolean|nil, string
+---@param fsLock EliDirLock
+---@return boolean|nil, string?
 function fs.unlock_directory(fsLock)
-    if type(fsLock) == "ELI_LOCK" or (type(fsLock) == "userdata" and fsLock.__type == "ELI_LOCK") then
+    if type(fsLock) == ELI_DIR_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type == ELI_DIR_LOCK_ID) then
         return fsLock:unlock()
     else
-        return false, "Invalid fsLock type! 'FsLock' expected, got: " .. type(fsLock) .. "!"
+        return false, "Invalid " .. ELI_DIR_LOCK_ID .. " type! '".. ELI_DIR_LOCK_ID .."' expected, got: " .. type(fsLock) .. "!"
     end
 end
 
