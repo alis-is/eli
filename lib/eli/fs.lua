@@ -430,7 +430,7 @@ function fs.unlock_file(fsLock)
     if type(fsLock) == ELI_FILE_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type == ELI_FILE_LOCK_ID) then
         return fsLock:unlock()
     else
-        return false, "Invalid " .. ELI_FILE_LOCK_ID .. " type! '".. ELI_DIR_LOCK_ID .."' expected, got: " .. type(fsLock) .. "!"
+        return false, "Invalid " .. ELI_FILE_LOCK_ID .. " type! '".. ELI_FILE_LOCK_ID .."' expected, got: " .. type(fsLock) .. "!"
     end
 end
 
