@@ -206,6 +206,7 @@ end
 _test["lock (not active - passed file)"] = function()
     _test.assert(not _lock:is_active(), "Lock should not be active")
 end
+if _lockedFile ~= nil then _lockedFile:close() end
 
 local _lock
 _test["lock_file (owned file)"] = function()
