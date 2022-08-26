@@ -178,8 +178,8 @@ _test["spawn (stdin/stdout/stderr as path)"] = function()
         wait = true,
         stdio = {
             stdin = "assets/test.script",
-            stdout = "/tmp/stdout.log",
-            stderr = "/tmp/stderr.log"
+            stdout = "tmp/stdout.log",
+            stderr = "tmp/stderr.log"
         }
     }
     local _result = _isUnixLike and
