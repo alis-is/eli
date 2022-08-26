@@ -161,8 +161,8 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field __type '"ELI_PROCESS"'
 ---@field __tostring fun(self: EliProcess): string
 ---@field pid fun(self: EliProcess): integer
----@field wait fun(self: EliProcess, intervalSeconds: integer, unitsDivider: integer): integer
----@field kill fun(self: EliProcess, signal: integer): integer
+---@field wait fun(self: EliProcess, intervalSeconds: integer?, unitsDivider: integer?): integer
+---@field kill fun(self: EliProcess, signal: integer?): integer
 ---@field get_exitcode fun(self: EliProcess): integer
 ---@field exited fun(self: EliProcess): boolean
 ---@field get_stdout fun(self: EliProcess): EliWritableStream | nil
@@ -190,7 +190,7 @@ end
 ---
 ---Spawn process from executable in path (wont wait unless wait set to true)
 ---@param path string
----@param args string[]
+---@param args string[]?
 ---@param options SpawnOptions?
 ---@return EliProcess | SpawnResult
 function proc.spawn(path, args, options)
