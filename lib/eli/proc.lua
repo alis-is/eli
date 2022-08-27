@@ -190,15 +190,19 @@ end
 ---
 ---Spawn process from executable in path (wont wait unless wait set to true)
 ---@param path string
----@param args string[]?
+---@param argsOrOptions string[]|SpawnOptions?
 ---@param options SpawnOptions?
 ---@return EliProcess | SpawnResult
-function proc.spawn(path, args, options)
+function proc.spawn(path, argsOrOptions, options)
+    if type(argsOrOptions) == "table" and not _util.is_array(argsOrOptions) and type(options) ~= "table" then
+        options = argsOrOptions
+        argsOrOptions = nil
+    end
     if type(options) ~= "table" then options = {} end
 
     local _proc, err = eproc.spawn {
         command = path,
-        args = args,
+        args = argsOrOptions,
         env = options.env,
         stdio = options.stdio
     }
