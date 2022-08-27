@@ -76,13 +76,29 @@ end
 local _isUnixLike = package.config:sub(1, 1) == "/"
 _test["spawn"] = function()
     local _testExecutable = _isUnixLike and "sh" or "cmd"
-    local _proc, _err, code = _eliProc.spawn(_testExecutable)
+    local _proc, _, _ = _eliProc.spawn(_testExecutable)
     local _wr = _proc:get_stdin()
     _wr:write("echo 173\n")
     _wr:write("exit\n")
     local _exitcode = _proc:wait()
     local _result = _proc:get_stdout():read("a")
     _test.assert(_exitcode == 0 and _result:match("173"))
+end
+
+_test["spawn (cleanup)"] = function()
+    local _testExecutable = _isUnixLike and "sh" or "cmd"
+    function _t()
+        local _, _, _ = _eliProc.spawn(_testExecutable)
+    end
+    _t()
+    -- we would segfault/sigbus here if cleanup does not work properly
+    _test.assert(true)
+end
+
+_test["spawn (not found)"] = function()
+    local _testExecutable = not _isUnixLike and "sh" or "cmd"
+    local _ok, _err = _eliProc.safe_spawn(_testExecutable)
+    _test.assert(not _ok and _err:match("The system cannot find the file specified") or _err:match("No such file or directory"))
 end
 
 _test["spawn (args)"] = function()
