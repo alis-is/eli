@@ -12,6 +12,7 @@
 * [x] rewrite eli.proc.extra to provide more consistent eliProc
 * [ ] debug build
 * [ ] smaller eli.path with smaller feature support, but with support for basic URL manipulation
+* [ ] Automated test of windows build
 
 ## CMakeLists 
 * [ ] optional build Eli mini - without eli.net and libcurl related libs
