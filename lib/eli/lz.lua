@@ -20,7 +20,7 @@ local lz = {}
 ---@param destination string?
 ---@param options LzExtractOptions?
 function lz.extract(source, destination, options)
-    local _sf = io.open(source)
+    local _sf = io.open(source, "rb")
     assert(_sf, "lz: Failed to open source file " .. tostring(source) .. "!")
 
     if type(options) ~= "table" then options = {} end
@@ -35,7 +35,7 @@ function lz.extract(source, destination, options)
         options.close_file or
         function(file) return file:close() end
 
-    local _df = _open_file(destination, "w")
+    local _df = _open_file(destination, "wb")
     assert(_df,
         "lz: Failed to open destination file " .. tostring(source) .. "!")
 
@@ -48,7 +48,7 @@ function lz.extract(source, destination, options)
         local _data = _sf:read(_chunkSize)
         if not _data then break end
         local _inflated, eof, bytes_in, _ = _inflate(_data)
-        if type(_inflated) == "string" then _write(_df, _inflated) end
+		if type(_inflated) == "string" then _write(_df, _inflated) end
         if eof then -- we got end of gzip stream we return to bytes_in pos in case there are multiple stream embedded
             _sf:seek("set", _shift + bytes_in)
             _shift = _shift + bytes_in

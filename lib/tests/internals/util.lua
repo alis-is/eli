@@ -21,7 +21,7 @@ _test["eli.internals.util get_root_dir"] = function()
         "src/__app/specs.json",
         "src/__app/ami.lua"
     }
-    _test.assert(_internalUtil.get_root_dir(_paths) == "src/__app/")
+    _test.assert(_internalUtil.get_root_dir(_paths):match("^src[/\\]__app[/\\]$"))
     _paths = {
         "src/__app/aaa/remove-all.lua",
         "src/__app/aaa/configure.lua",
@@ -29,7 +29,7 @@ _test["eli.internals.util get_root_dir"] = function()
         "src/__app/specs.json",
         "src/ami.lua"
     }
-    _test.assert(_internalUtil.get_root_dir(_paths) == "src/")
+    _test.assert(_internalUtil.get_root_dir(_paths):match("^src[/\\]$"))
     _paths = {
         "src/__app/aaa/remove-all.lua",
         "src/__app/aaa/configure.lua",
@@ -37,7 +37,7 @@ _test["eli.internals.util get_root_dir"] = function()
         "specs.json",
         "src/ami.lua"
     }
-    _test.assert(_internalUtil.get_root_dir(_paths) == "")
+    _test.assert(_internalUtil.get_root_dir(_paths):match("^$"))
 end
 
 if not TEST then
