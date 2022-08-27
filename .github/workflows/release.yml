@@ -43,20 +43,58 @@ jobs:
           run: ./eli tools/build.lua
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross;x86_64-w64-mingw32-cross;i686-w64-mingw32-cross
 
-      - name: build the test container
-        uses: docker/build-push-action@v2
+      - name: Cache release
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-binaries
         with:
-          tags: elitest
-          file: 'tools/containers/test/Dockerfile'
-          push: false
+          path: ./release
+          key: ${{ runner.os }}-build-$VERSION-${{ github.sha }}
 
-      - name: test-linux
+  test-linux:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Cache release
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-binaries
+        with:
+          path: ./release
+          key: ${{ runner.os }}-build-$VERSION-${{ github.sha }}
+      - name: test
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/alis-is/eli-test:latest
           run: ./tools/test.sh
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
+  test-windows:
+    runs-on: windows-latest
+    needs: build
+    steps:
+      - name: Cache release
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-binaries
+        with:
+          path: ./release
+          key: ${{ runner.os }}-build-$VERSION-${{ github.sha }}
+      - name: test
+        shell: pwsh
+        run: |
+          ./tools/test.ps1
 
+  publish:
+    runs-on: ubuntu-latest
+    needs: [test-windows, test-linux]
+    steps:
+      - name: Cache release
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-binaries
+        with:
+          path: ./release
+          key: ${{ runner.os }}-build-$VERSION-${{ github.sha }}
       - name: publish
         uses: ncipollo/release-action@v1
         if: ${{ steps.prep.outputs.NEEDS_RELEASE == 'true' }}
