@@ -93,7 +93,7 @@ function tar.extract(source, destination, options)
          goto files_loop
       end
 
-      local _targetPath = _path.filename(_entryPath)
+      local _targetPath = _path.file(_entryPath)
       if type(_transform_path) == "function" then -- if supplied transform with transform functions
          _targetPath = _transform_path(_entryPath:sub(_il), destination)
       elseif type(_mkdirp) == "function" and type(destination) == "string" then --mkdir supported we can use path as is :)

@@ -109,7 +109,7 @@ function zip.extract(source, destination, options)
       end
 
       -- by default we assume that mkdir is nor supported and we cannot create directories
-      local _targetPath = _path.filename(stat.name)
+      local _targetPath = _path.file(stat.name)
       if type(_transform_path) == "function" then -- if supplied transform with transform functions
          _targetPath = _transform_path(stat.name:sub(il), destination)
       elseif type(_mkdirp) == "function" and type(destination) == "string" then --mkdir supported we can use path as is :)
