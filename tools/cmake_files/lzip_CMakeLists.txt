@@ -1,8 +1,7 @@
-cmake_minimum_required (VERSION 2.9)
 project (lua_zip)  # project here actually means solution in premake
 
 file(GLOB lua_zip_sources ./**.c)
-SET(lua_zip ${lua_zip_sources})
+set(lua_zip ${lua_zip_sources})
 
-ADD_LIBRARY (lua_zip  ${lua_zip})
-TARGET_LINK_LIBRARIES (lua_zip)
+add_library (lua_zip  ${lua_zip})
+target_link_libraries (lua_zip)

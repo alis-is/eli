@@ -4,8 +4,6 @@ local dir = _eliPath.dir
 local combine = _eliPath.combine
 local _util = require 'eli.util'
 local efsLoaded, efs = pcall(require, 'eli.fs.extra')
-local _hash = require 'lmbed_hash'
-
 
 local function _check_efs_available(operation)
     if not efsLoaded then
@@ -23,13 +21,19 @@ local fs = {
     EFS = efsLoaded
 }
 
+---@class AccessFileOptions
+---@field binaryMode boolean
+
 ---#DES 'fs.read_file'
 ---
 ---Reads file from path
 ---@param path string
+---@param options AccessFileOptions?
 ---@return string
-function fs.read_file(path)
-    local f = assert(io.open(path, 'r'), 'No such a file or directory - ' .. path)
+function fs.read_file(path, options)
+    ---@type AccessFileOptions
+    options = _util.merge_tables({ binaryMode = true }, options, true)
+    local f = assert(io.open(path, options.binaryMode and "rb" or "r" ), 'No such a file or directory - ' .. path)
     local result = f:read('a*')
     f:close()
     return result
@@ -40,8 +44,11 @@ end
 ---Writes content into file in specified path
 ---@param path string
 ---@param content string
-function fs.write_file(path, content)
-    local f = assert(io.open(path, 'w'), 'No such a file or directory - ' .. path)
+---@param options AccessFileOptions?
+function fs.write_file(path, content, options)
+    ---@type AccessFileOptions
+    options = _util.merge_tables({ binaryMode = true }, options, true)
+    local f = assert(io.open(path,  options.binaryMode and "wb" or "w"), 'No such a file or directory - ' .. path)
     f:write(content)
     f:close()
 end
@@ -51,10 +58,12 @@ end
 ---Copies file from src to dst
 ---@param src string
 ---@param dst string
-function fs.copy_file(src, dst)
+---@param options AccessFileOptions?
+function fs.copy_file(src, dst, options)
     assert(src ~= dst, 'Identical source and destiontion path!')
-    local srcf = assert(io.open(src, 'r'), 'No such a file or directory - ' .. src)
-    local dstf = assert(io.open(dst, 'w'), 'Failed to open file for write - ' .. dst)
+    options = _util.merge_tables({ binaryMode = true }, options, true)
+    local srcf = assert(io.open(src, options.binaryMode and "rb" or "r"), 'No such a file or directory - ' .. src)
+    local dstf = assert(io.open(dst, options.binaryMode and "wb" or "w"), 'Failed to open file for write - ' .. dst)
 
     local size = 2 ^ 12 -- 4K
     while true do
@@ -150,10 +159,7 @@ function fs.remove(path, options)
         assert(_ok, _error or '')
     end
 
-    if type(options) ~= 'table' then
-        options = {}
-    end
-
+    options = _util.merge_tables({}, options, true)
     local recurse = options.recurse
     local contentOnly = options.contentOnly
     options.contentOnly = false -- for recursive calls
@@ -198,14 +204,20 @@ end
 ---Returns true if specified path exists
 ---@param path string
 function fs.exists(path)
-    if io.open(path) then
-        return true
-    else
-        return false
-    end
+	local _ok, _, _code = os.rename(path, path)
+	return _ok or _code == 13
 end
 
----@class FsHashFileOptions
+---#DES 'fs.exists'
+---
+---Returns true if specified path exists
+---@param path string
+function fs.dir_exists(path)
+	path = path:sub(#path, #path) == "/" and path or path .. "/"
+	return fs.exists(path)
+end
+
+---@class FsHashFileOptions: AccessFileOptions
 ---@field type '"sha256"'| '"sha512"'
 ---@field hex boolean?
 
@@ -216,13 +228,9 @@ end
 ---@param options? FsHashFileOptions
 ---@return string
 function fs.hash_file(path, options)
-    if type(options) ~= 'table' then
-        options = {}
-    end
-    if options.type ~= 'sha512' then
-        options.type = 'sha256'
-    end
-    local srcf = assert(io.open(path, 'r'), 'No such a file or directory - ' .. path)
+    local _hash = require 'lmbed_hash'
+    options = _util.merge_tables({ type = "sha256", binaryMode = true }, options, true)
+    local srcf = assert(io.open(path, options.binaryMode and "rb" or "r"), 'No such a file or directory - ' .. path)
     local size = 2 ^ 12 -- 4K
 
     if options.type == 'sha256' then
@@ -295,9 +303,8 @@ end
 ---@return string[]|DirEntry[]
 function fs.read_dir(path, options)
     _check_efs_available('read_dir')
-    if type(options) ~= 'table' then
-        options = {}
-    end
+    options = _util.merge_tables({}, options, true)
+    
     if options.recurse then
         local _lenOfPathToRemove = path:match('.*/$') and #path or #path + 1
         if options.returnFullPaths then
@@ -328,16 +335,9 @@ end
 ---@return boolean, string?, number?
 function fs.chown(path, uid, gid, options)
     _check_efs_available('chown')
-    if type(options) ~= 'table' then
-        options = {}
-    end
-
+    options = _util.merge_tables({ recurseIgnoreErrors = true }, options, true)
     if not options.recurse or efs.file_type(path) ~= 'directory' then
         return efs.chown(path, uid, gid)
-    end
-
-    if type(options.recurseIgnoreErrors) ~= 'boolean' then
-        options.recurseIgnoreErrors = true
     end
 
     local _ok, _error, _errno = efs.chown(path, uid, gid)
@@ -368,9 +368,7 @@ end
 ---@return boolean, string?, number?
 function fs.chmod(path, mode, options)
     _check_efs_available('chmod')
-    if type(options) ~= 'table' then
-        options = {}
-    end
+    options = _util.merge_tables({}, options, true)
 
     if type(mode) == "string" then
         mode = mode .. string.rep("-", 9 - #mode)
@@ -401,122 +399,86 @@ end
 ---#DES fs.EliFileLock'
 ---
 ---@class EliFileLock
+---@field free fun(eliFileLock: EliFileLock):nil
+---@field unlock fun(eliFileLock: EliFileLock):nil
+---@field is_active fun(eliFileLock: EliFileLock): boolean
 ---@field __type '"ELI_FILE_LOCK"'
----@field __file file*
----@field __start number
----@field __len number
-local EliFileLock = {}
-EliFileLock.__index = EliFileLock
 
----comment
----@param file file*
----@param start integer
----@param len integer
----@return EliFileLock
-function EliFileLock:new(file, start, len)
-    local _tmpFileLock = {}
-    _tmpFileLock.__file = file
-    _tmpFileLock.__start = start
-    _tmpFileLock.__len = len
-
-    setmetatable(_tmpFileLock, self)
-    self.__index = self
-    self.__type = "ELI_FILE_LOCK"
-    return _tmpFileLock
-end
-
----#DES 'EliFileLock.unlock_file'
----
----Unlocks access to file
----@param self EliFileLock
-function EliFileLock:unlock()
-    fs.unlock_file(self)
-end
-
----#DES 'EliFileLock.unlock_file'
----
----Unlocks access to file
----@param self EliFileLock
-function EliFileLock:free()
-    self:unlock()
-end
+local ELI_FILE_LOCK_ID = "ELI_FILE_LOCK"
 
 ---#DES 'fs.lock_file'
 ---
 ---Locks access to file
 ---@param pathOrFile string|file*
----@param mode '"r"'|'"w"'
+---@param mode '"rb"'|'"wb"'
 ---@param start integer?
 ---@param len integer?
----@return EliFileLock?, string?
+---@return EliFileLock?, string?, integer?
 function fs.lock_file(pathOrFile, mode, start, len)
     _check_efs_available('lock_file')
-
-    if type(mode) ~= 'string' then mode = "w" end
-    if type(start) ~= 'number' then start = 0 end
-    if type(len) ~= 'number' then len = 0 end
-
-    if type(pathOrFile) == "string" then
-        local _f, _error = io.open(pathOrFile, mode)
-        if _f == nil then return nil, _error end
-        local _ok, _error = efs.lock_file(_f, mode, start, len)
-        if _ok then return EliFileLock:new(_f, start, len) end
-        return _ok, _error
-    else
-        local _ok, _error = efs.lock_file(pathOrFile, mode, start, len)
-        if _ok then return EliFileLock:new(pathOrFile, start, len) end
-        return _ok, _error
-    end
+    return efs.lock_file(pathOrFile, mode, start, len)
 end
 
 ---#DES 'fs.unlock_file'
 ---
 ---Unlocks access to file
----@param pathOrFileLock string|EliFileLock
----@param start integer?
----@param len integer?
----@return boolean?, string
-function fs.unlock_file(pathOrFileLock, start, len)
+---@param fsLock EliFileLock
+---@return boolean?, string?
+function fs.unlock_file(fsLock)
     _check_efs_available('unlock_file')
 
-    if type(start) ~= 'number' then start = 0 end
-    if type(len) ~= 'number' then len = 0 end
-
-    if type(pathOrFileLock) == "string" then
-        return efs.unlock_file(io.open(pathOrFileLock, "r"), start, len)
-    elseif type(pathOrFileLock) == "ELI_FILE_LOCK" or (type(pathOrFileLock) == "userdata" and pathOrFileLock.__type == "ELI_FILE_LOCK") then
-        return efs.unlock_file(pathOrFileLock.__file, pathOrFileLock.__start, pathOrFileLock.__len)
-    else 
-        return efs.unlock_file(pathOrFileLock, start, len)
+    if type(fsLock) == ELI_FILE_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type == ELI_FILE_LOCK_ID) then
+        return fsLock:unlock()
+    else
+        return false, "Invalid " .. ELI_FILE_LOCK_ID .. " type! '".. ELI_FILE_LOCK_ID .."' expected, got: " .. type(fsLock) .. "!"
     end
 end
 
----@class FsLock
----@field free fun(fsLock: FsLock):nil
----@field unlock fun(fsLock: FsLock):nil
----@field __type '"ELI_LOCK"'
+---#DES fs.EliDirLock'
+---
+---@class EliDirLock
+---@field free fun(eliDirLock: EliDirLock):nil
+---@field unlock fun(eliDirLock: EliDirLock):nil
+---@field is_active fun(eliDirLock: EliDirLock): boolean
+---@field __type '"ELI_DIR_LOCK"'
+
+local ELI_DIR_LOCK_ID = "ELI_DIR_LOCK"
 
 ---#DES 'fs.lock_directory'
 ---
 ---Locks access to directory
 ---@param path string
----@return FsLock|nil, string
-function fs.lock_directory(path)
+---@param lockFileName string?
+---@return EliDirLock|nil, string?
+function fs.lock_directory(path, lockFileName)
     _check_efs_available('lock_dir')
-    return efs.lock_dir(path)
+    return efs.lock_dir(path, lockFileName)
 end
 
 ---#DES 'fs.unlock_directory'
 ---
 ---Unlocks access to directory
----@param fsLock FsLock
----@return boolean|nil, string
+---@param fsLock EliDirLock
+---@return boolean|nil, string?
 function fs.unlock_directory(fsLock)
-    if type(fsLock) == "ELI_LOCK" or (type(fsLock) == "userdata" and fsLock.__type == "ELI_LOCK") then
+    if type(fsLock) == ELI_DIR_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type == ELI_DIR_LOCK_ID) then
         return fsLock:unlock()
     else
-        return false, "Invalid fsLock type! 'FsLock' expected, got: " .. type(fsLock) .. "!"
+        return false, "Invalid " .. ELI_DIR_LOCK_ID .. " type! '".. ELI_DIR_LOCK_ID .."' expected, got: " .. type(fsLock) .. "!"
     end
+end
+
+---#DES 'fs.file_type'
+---
+---returns type of file
+---@param path string
+---@return boolean|nil, string
+function fs.file_type(path)
+    local _last = path:sub(#path, #path)
+    if _last == "/" or _last == "\\" then
+        path = path:sub(1, #path - 1)
+    end
+    return efs.file_type(path)
 end
 
 if efsLoaded then

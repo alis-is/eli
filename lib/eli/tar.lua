@@ -93,7 +93,7 @@ function tar.extract(source, destination, options)
          goto files_loop
       end
 
-      local _targetPath = _path.filename(_entryPath)
+      local _targetPath = _path.file(_entryPath)
       if type(_transform_path) == "function" then -- if supplied transform with transform functions
          _targetPath = _transform_path(_entryPath:sub(_il), destination)
       elseif type(_mkdirp) == "function" and type(destination) == "string" then --mkdir supported we can use path as is :)
@@ -123,8 +123,8 @@ function tar.extract(source, destination, options)
             _chmod(_targetPath, _mode)
          else -- we use built in chmod
             local _valid, _permissions = pcall(string.format, "%o", _mode)
-            if _valid and tonumber(_permissions) ~= 0 then
-               pcall(_chmod, _targetPath, tonumber(_permissions))
+            if _valid and tonumber(_permissions) ~= 0 then -- asign only valid permissions
+               pcall(_chmod, _targetPath, tonumber(_mode))
             end
          end
       end

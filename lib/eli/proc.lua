@@ -1,6 +1,7 @@
 local _util = require "eli.util"
 local eprocLoaded, eproc = pcall(require, "eli.proc.extra")
 local _sx = require "eli.extensions.string"
+local _sep = package.config:sub(1,1) 
 
 local proc = {
     ---#DES os.EPROC
@@ -14,25 +15,11 @@ local proc = {
 ---@field stderrRedirectTemplate nil | string
 ---@field stdinRedirectTemplate nil | string
 
-local settings = {
+proc.settings = {
     stdoutRedirectTemplate = '> "<file>"',
     stderrRedirectTemplate = '2> "<file>"',
-    stdinRedirectTemplate = 'type "<file>" |'
+    stdinRedirectTemplate = _sep == "\\" and 'type "<file>" |' or 'cat "<file>" |'
 }
-
----@alias EProcSettingsKind '"stdoutRedirectTemplate"'|'"stderrRedirectTemplate"'|'"stdinRedirectTemplate"'
-
----#DES proc.set_settings
----
----@param option EProcSettingsKind
----@param value string
-function proc.set_settings(option, value)
-    if type(option) == "string" then
-        settings[option] = value
-    elseif type(option) == "table" then
-        settings = _util.merge_tables(settings, option)
-    end
-end
 
 ---Compiles std option into exec template
 ---@param stdname string
@@ -52,7 +39,7 @@ local function _get_stdstream_cmd_part(stdname, file, options)
     end
     if file == "ignore" then return "", nil end
     local _template = options[stdname .. "RedirectTemplate"] or
-                          settings[stdname .. "RedirectTemplate"]
+                            proc.settings[stdname .. "RedirectTemplate"]
     if type(_template) == "function" then
         return _template(file), file, _tmpMode
     elseif type(_template) == "string" then
@@ -72,7 +59,7 @@ ExecTmpFile.__index = ExecTmpFile
 function ExecTmpFile:new(path)
     local _tmpFile = {}
     _tmpFile.path = path
-    _tmpFile.__file = io.open(path)
+    _tmpFile.__file = io.open(path, "rb")
 
     setmetatable(_tmpFile, self)
     self.__index = self
@@ -174,8 +161,8 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field __type '"ELI_PROCESS"'
 ---@field __tostring fun(self: EliProcess): string
 ---@field pid fun(self: EliProcess): integer
----@field wait fun(self: EliProcess, intervalSeconds: integer, unitsDivider: integer): integer
----@field kill fun(self: EliProcess, signal: integer): integer
+---@field wait fun(self: EliProcess, intervalSeconds: integer?, unitsDivider: integer?): integer
+---@field kill fun(self: EliProcess, signal: integer?): integer
 ---@field get_exitcode fun(self: EliProcess): integer
 ---@field exited fun(self: EliProcess): boolean
 ---@field get_stdout fun(self: EliProcess): EliWritableStream | nil
@@ -203,15 +190,19 @@ end
 ---
 ---Spawn process from executable in path (wont wait unless wait set to true)
 ---@param path string
----@param args string[]
+---@param argsOrOptions string[]|SpawnOptions?
 ---@param options SpawnOptions?
 ---@return EliProcess | SpawnResult
-function proc.spawn(path, args, options)
+function proc.spawn(path, argsOrOptions, options)
+    if type(argsOrOptions) == "table" and not _util.is_array(argsOrOptions) and type(options) ~= "table" then
+        options = argsOrOptions
+        argsOrOptions = nil
+    end
     if type(options) ~= "table" then options = {} end
 
     local _proc, err = eproc.spawn {
         command = path,
-        args = args,
+        args = argsOrOptions,
         env = options.env,
         stdio = options.stdio
     }

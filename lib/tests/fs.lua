@@ -59,14 +59,14 @@ end
 _test["mkdir"] = function()
     local _ok, _error = _eliFs.safe_mkdir("tmp/test-dir")
     _test.assert(_ok, _error)
-    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir")
+    local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir")
     _test.assert(_exists, (_exists or "not exists"))
 end
 
 _test["mkdirp"] = function()
     local _ok = _eliFs.safe_mkdirp("tmp/test-dir/test/test")
     _test.assert(_ok)
-    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir/test/test")
+    local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir/test/test")
     _test.assert(_ok and _exists, (_exists or "not exists"))
 end
 
@@ -74,17 +74,17 @@ _test["create_dir"] = function()
     _eliFs.safe_remove("tmp/test-dir", {recurse = true})
     local _ok, _error = _eliFs.safe_create_dir("tmp/test-dir")
     _test.assert(_ok, _error)
-    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir")
+    local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir")
     _test.assert(_exists, (_exists or "not exists"))
 
     local _ok = _eliFs.safe_create_dir("tmp/test-dir/test/test")
     _test.assert(_ok)
-    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir/test/test")
+    local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir/test/test")
     _test.assert(_ok and not _exists, (_exists or "exists"))
 
     local _ok = _eliFs.safe_create_dir("tmp/test-dir/test/test", true)
     _test.assert(_ok)
-    local _ok, _exists = _eliFs.safe_exists("tmp/test-dir/test/test")
+    local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir/test/test")
     _test.assert(_ok and _exists, (_exists or "not exists"))
 end
 
@@ -144,6 +144,7 @@ if not _eliFs.EFS then
 end
 
 _test["file_type (file)"] = function()
+    _eliFs.safe_remove("tmp/test.file")
     local _ok, _type = _eliFs.safe_file_type("tmp/test.file")
     _test.assert(_ok and _type == nil)
     local _ok, _error = _eliFs.safe_copy_file("assets/test.file",
@@ -173,55 +174,72 @@ _test["read_dir & iter_dir"] = function()
 end
 
 local function _external_lock(file)
-    local _ok, _, _code = os.execute((os.getenv"QEMU" or "") .. " ".. arg[-1] .. " -e 'x, err = fs.lock_file(\"" .. file.. "\",\"w\"); if type(x) == \"ELI_FILE_LOCK\" then os.exit(0); end; os.exit(err == \"Resource temporarily unavailable\" and 11 or 12)'")
+    local _ok, _, _code = os.execute((os.getenv "QEMU" or "") ..
+        " " .. arg[-1] .. " -e \"x, err = fs.lock_file('" .. file .. "','w'); " ..
+        "if type(x) == 'ELI_FILE_LOCK' then os.exit(0); end; os.exit((tostring(err):match('Resource temporarily unavailable') or " ..
+        "tostring(err):match('locked a portion of the file')) and 11 or 12)\"")
     return _ok, _code
 end
 
-local _lockedFile
-_test["lock_file"] = function()
-    _lockedFile = io.open("tmp/test.file", "w")
-    local _ok, _error = _eliFs.lock_file(_lockedFile, "w")
-    _test.assert(_ok, _error)
+local _lock
+local _lockedFile = io.open("tmp/test.file", "ab")
+_test["lock_file (passed file)"] = function()
+    local _error
+    _lock, _error = _eliFs.lock_file(_lockedFile, "w")
+    _test.assert(_lock ~= nil, _error)
     local _ok, _code, _ = _external_lock("tmp/test.file")
     _test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
 end
-
-_test["unlock_file"] = function()
-    _lockedFile = io.open("tmp/test.file")
-    local _ok, _code, _ = _external_lock("tmp/test.file")
-    _test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
-    local _ok, _error = _eliFs.unlock_file(_lockedFile)
-    _test.assert(_ok, _error)
-    local _ok, _code, _ = _external_lock("tmp/test.file")
-    _test.assert(_ok and _code == 0, "Should not be able to lock twice!")
+_test["lock (active - passed file)"] = function()
+    _test.assert(_lock:is_active(), "Lock should be active")
 end
 
-local _lockedFile2
-_test["lock_file (path)"] = function()
-    _lockedFile2, _error = _eliFs.lock_file("tmp/test.file", "w")
-    _test.assert(_lockedFile2 ~= nil, _error)
+_test["unlock_file (passed file)"] = function()
+    local _ok, _code, _ = _external_lock("tmp/test.file")
+    _test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
+    local _ok, _error = _eliFs.unlock_file(_lock)
+    _test.assert(_ok, _error)
+    local _ok, _code, _ = _external_lock("tmp/test.file")
+    _test.assert(_ok and _code == 0, "Should be able to lock now!")
+end
+
+_test["lock (not active - passed file)"] = function()
+    _test.assert(not _lock:is_active(), "Lock should not be active")
+end
+if _lockedFile ~= nil then _lockedFile:close() end
+
+local _lock
+_test["lock_file (owned file)"] = function()
+    local _error
+    _lock, _error = _eliFs.lock_file("tmp/test.file", "w")
+    _test.assert(_lock ~= nil, _error)
     local _ok, _code, _ = _external_lock("tmp/test.file")
     _test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
 end
-
-_test["unlock_file (path)"] = function()
+_test["lock (active - owned file)"] = function()
+    _test.assert(_lock:is_active(), "Lock should be active")
+end
+_test["unlock_file (owned file)"] = function()
     local _ok, _code, _ = _external_lock("tmp/test.file")
     _test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
-    local _ok, _error = _eliFs.unlock_file("tmp/test.file")
+    local _ok, _error = _eliFs.unlock_file(_lock)
     _test.assert(_ok, _error)
     local _ok, _code, _ = _external_lock("tmp/test.file")
-    _test.assert(_ok and _code == 0, "Should not be able to lock twice!")
-    local _ok, _error = _eliFs.unlock_file("tmp/test.file")
-    _test.assert(_ok, _error)
+    _test.assert(_ok and _code == 0, "Should be able to lock now!")
+end
+_test["lock (not active - owned file)"] = function()
+    _test.assert(not _lock:is_active(), "Lock should not be active")
 end
 
 _test["lock_dir & unlock_dir"] = function()
-    local _ok, _lock, _error = _eliFs.safe_lock_dir("tmp")
-    _test.assert(_ok, _lock)
+    local _lock, _error = _eliFs.lock_dir("tmp")
+    _test.assert(_lock, _error)
+    _test.assert(_lock:is_active(), "Lock should be active")
     local _ok, _locked = _eliFs.safe_link_info("tmp/lockfile")
     _test.assert(_ok and _locked)
     local _ok, _error = _eliFs.safe_unlock_dir(_lock)
     _test.assert(_ok, _error)
+    _test.assert(not _lock:is_active(), "Lock should not be active")
     local _ok, _locked = _eliFs.safe_link_info("tmp/lockfile")
     _test.assert(_ok and not _locked)
 end

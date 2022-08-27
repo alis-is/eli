@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.9)
 project (lcurl)  # project here actually means solution in premake
 
 file(GLOB lcurl_sources ./src/**.c)
-SET(lcurl ${lcurl_sources})
+set(lcurl ${lcurl_sources})
 
-ADD_LIBRARY (lcurl  ${lcurl})
-TARGET_LINK_LIBRARIES (lcurl)
+add_library (lcurl  ${lcurl})
+target_link_libraries (lcurl)

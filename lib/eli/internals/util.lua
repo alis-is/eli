@@ -6,12 +6,12 @@ local function _get_root_dir(paths)
    local _rootDirSegments = {}
    for _, _path in ipairs(paths) do
       if #_rootDirSegments == 0 then
-         for _segment in string.gmatch(_path, "(.-)" .. _separator) do
+         for _segment in string.gmatch(_path, "(.-)[/\\]") do
             table.insert(_rootDirSegments, _segment)
          end
       else
          local j = 0
-         for _segment in string.gmatch(_path, "(.-)" .. _separator) do
+         for _segment in string.gmatch(_path, "(.-)[/\\]") do
             if _segment ~= _rootDirSegments[j + 1] then
                break
             end
@@ -27,7 +27,7 @@ local function _get_root_dir(paths)
       end
    end
    local _rootDir = _join(package.config:sub(1,1), table.unpack(_rootDirSegments))
-   if type(_rootDir) == "string" and #_rootDir > 0 and _rootDir:sub(#_rootDir, #_rootDir) ~= _separator then
+   if type(_rootDir) == "string" and #_rootDir > 0 and not _rootDir:sub(#_rootDir, #_rootDir):match("[/\\]") then
       _rootDir = _rootDir .. _separator
    end
    return _rootDir or ""

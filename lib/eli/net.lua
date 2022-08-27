@@ -5,7 +5,15 @@ local _hjson = require "hjson"
 local _exString = require "eli.extensions.string"
 local _exTable = require "eli.extensions.table"
 
-if not _curlLoaded then return nil end
+local net = {
+    ---#DES 'CURL_AVAILABLE'
+    ---@type boolean
+    ENET = _curlLoaded
+}
+
+if not _curlLoaded then
+    return net
+end
 
 local function _encode_headers(headers)
     local _result = {}
@@ -155,8 +163,8 @@ end
 ---@field __options RestClientOptions
 ---@field __host string
 ---@field __shortcuts table<string, RestClient>
-local RestClient = {}
-RestClient.__index = RestClient
+net.RestClient = {}
+net.RestClient.__index = net.RestClient
 
 ---#DES 'net.RestClient:new'
 ---
@@ -165,7 +173,7 @@ RestClient.__index = RestClient
 ---@param parentOrOptions (RestClient|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return RestClient
-function RestClient:new(hostOrId, parentOrOptions, options)
+function net.RestClient:new(hostOrId, parentOrOptions, options)
     local _restClient = {
         host = nil,
         __resources = {},
@@ -214,7 +222,7 @@ function RestClient:new(hostOrId, parentOrOptions, options)
     self.__index = function(t, k)
         local _result = rawget(self, k)
         if _result == nil and type(k) == "string" and not k:match "^__.*" then
-            return RestClient:new(k, _restClient)
+            return net.RestClient:new(k, _restClient)
         end
         return _result
     end
@@ -225,7 +233,7 @@ end
 ---
 ---@param self RestClient
 ---@return string
-function RestClient:__tostring() return "ELI_REST_CLIENT " .. (self.__host or self.__id or "unknown host or id") end
+function net.RestClient:__tostring() return "ELI_REST_CLIENT " .. (self.__host or self.__id or "unknown host or id") end
 
 ---Merges two parts of URL
 ---@param p1 string
@@ -241,7 +249,7 @@ end
 ---
 ---@param self RestClient
 ---@return string
-function RestClient:get_url()
+function net.RestClient:get_url()
     if not self.__is_child then return self.__host end
     local _url = self.__parent:get_url()
     if type(self.__id) == "string" then _url = _join_url(_url, self.__id) end
@@ -254,7 +262,7 @@ end
 ---@param self RestClient
 ---@param options RestClientOptions
 ---@return RestClientOptions
-function RestClient:conf(options)
+function net.RestClient:conf(options)
     if options == nil then return self.__options end
     self.__options = _util.merge_tables(options, self.__options)
     return self.__options
@@ -270,7 +278,7 @@ end
 ---@overload fun(self: RestClient, resources: string, options: ResourceCreationOptions?):RestClient?
 ---@overload fun(self: RestClient, resources: string[], options: ResourceCreationOptions?):RestClient[]?
 ---@overload fun(self: RestClient, resources: {k:string, v:string}, options: ResourceCreationOptions?):{k:string, v:RestClient}?
-function RestClient:res(resources, options)
+function net.RestClient:res(resources, options)
     if options == nil then options = {} end
     local _shortcut = options.shortcut
     if _shortcut == nil then _shortcut = self.__options.shortcut end
@@ -283,7 +291,7 @@ function RestClient:res(resources, options)
         if type(self.__resources) ~= "table" then self.__resources = {} end
         if self.__resources[path] then return self.__resources[path] end
 
-        local _result = RestClient:new(tostring(path), self)
+        local _result = net.RestClient:new(tostring(path), self)
         self.__resources[path] = _result
         if _shortcut then
             self.__shortcuts[name] = _result
@@ -339,7 +347,7 @@ end
 ---@overload fun(self: RestClient, resources: string, options: RestClientOptions?):boolean, RestClient?
 ---@overload fun(self: RestClient, resources: string[], options: RestClientOptions?):boolean, RestClient[]?
 ---@overload fun(self: RestClient, resources: {k:string, v:string}, options: RestClientOptions?):boolean, {k:string, v:RestClient}?
-function RestClient:safe_res(resources, options)
+function net.RestClient:safe_res(resources, options)
     return pcall(self.res, self, resources, options)
 end
 
@@ -382,7 +390,7 @@ end
 ---@param pathOrOptions (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return BaseResponse
-function RestClient:get(pathOrOptions, options)
+function net.RestClient:get(pathOrOptions, options)
     local _url, _options = _get_request_url_n_options(self, pathOrOptions,
         options)
     return _request('GET', _url, _options)
@@ -394,7 +402,7 @@ end
 ---@param pathOrOptions (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return boolean, BaseResponse
-function RestClient:safe_get(pathOrOptions, options)
+function net.RestClient:safe_get(pathOrOptions, options)
     return pcall(self.get, self, pathOrOptions, options)
 end
 
@@ -405,7 +413,7 @@ end
 ---@param pathOrOptions (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return BaseResponse
-function RestClient:post(data, pathOrOptions, options)
+function net.RestClient:post(data, pathOrOptions, options)
     local _url, _options = _get_request_url_n_options(self, pathOrOptions,
         options)
     return _request('POST', _url, _options, data)
@@ -418,7 +426,7 @@ end
 ---@param pathOrOptions (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return boolean, BaseResponse
-function RestClient:safe_post(data, pathOrOptions, options)
+function net.RestClient:safe_post(data, pathOrOptions, options)
     return pcall(self.post, self, data, pathOrOptions, options)
 end
 
@@ -429,7 +437,7 @@ end
 ---@param pathOrOptions (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return BaseResponse
-function RestClient:put(data, pathOrOptions, options)
+function net.RestClient:put(data, pathOrOptions, options)
     local _url, _options = _get_request_url_n_options(self, pathOrOptions,
         options)
     return _request('PUT', _url, _options, data)
@@ -442,7 +450,7 @@ end
 ---@param pathOrOptions (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return boolean, BaseResponse
-function RestClient:safe_put(data, pathOrOptions, options)
+function net.RestClient:safe_put(data, pathOrOptions, options)
     return pcall(self.put, self, data, pathOrOptions, options)
 end
 
@@ -453,7 +461,7 @@ end
 ---@param pathOrOptions (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return BaseResponse
-function RestClient:patch(data, pathOrOptions, options)
+function net.RestClient:patch(data, pathOrOptions, options)
     local _url, _options = _get_request_url_n_options(self, pathOrOptions,
         options)
     return _request('PATCH', _url, _options, data)
@@ -466,7 +474,7 @@ end
 ---@param pathOrOptions (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return boolean, BaseResponse
-function RestClient:safe_patch(data, pathOrOptions, options)
+function net.RestClient:safe_patch(data, pathOrOptions, options)
     return pcall(self.patch, self, data, pathOrOptions, options)
 end
 
@@ -476,7 +484,7 @@ end
 ---@param pathOrOptions (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return BaseResponse
-function RestClient:delete(pathOrOptions, options)
+function net.RestClient:delete(pathOrOptions, options)
     local _url, _options = _get_request_url_n_options(self, pathOrOptions,
         options)
     return _request('DELETE', _url, _options, _options.data)
@@ -488,7 +496,7 @@ end
 ---@param pathOrOptions (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return boolean, BaseResponse
-function RestClient:safe_delete(pathOrOptions, options)
+function net.RestClient:safe_delete(pathOrOptions, options)
     return pcall(self.delete, self, pathOrOptions, options)
 end
 
@@ -503,7 +511,7 @@ local function _download(url, write_function, options)
     local verifyPeer = options.verifyPeer
     if verifyPeer == nil then verifyPeer = true end
 
-    local _client = RestClient:new(url, util.merge_tables(options, {
+    local _client = net.RestClient:new(url, util.merge_tables(options, {
         followRedirects = followRedirects,
         verifyPeer = verifyPeer,
         timeout = options.timeout,
@@ -532,7 +540,7 @@ end
 ---@param url string
 ---@param destination string
 ---@param options BaseRequestOptions?
-local function download_file(url, destination, options)
+function net.download_file(url, destination, options)
     local _tries = 0
     local _retryLimit = _get_retry_limit(options)
 
@@ -561,7 +569,7 @@ end
 ---@param url string
 ---@param options BaseRequestOptions?
 ---@return string?, number?
-local function download_string(url, options)
+function net.download_string(url, options)
     local _tries = 0
     local _retryLimit = _get_retry_limit(options)
 
@@ -579,8 +587,4 @@ local function download_string(url, options)
     end
 end
 
-return _util.generate_safe_functions({
-    download_file = download_file,
-    download_string = download_string,
-    RestClient = RestClient
-})
+return _util.generate_safe_functions(net)

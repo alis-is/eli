@@ -44,8 +44,11 @@ function util.merge_tables(t1, t2, overwrite)
    if t1 == nil then
       return t2
    end
-   if t2 == nil then
+   if t2 == nil or type(t2) ~= "table" then
       return t1
+   end
+   if type(t1) ~= "table" then
+      return t2
    end
    local _result = {}
    if util.is_array(t1) and util.is_array(t2) then

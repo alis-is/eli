@@ -41,7 +41,7 @@ jobs:
         with:
           image: ghcr.io/alis-is/eli-build:latest
           run: ./eli tools/build.lua
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross;x86_64-w64-mingw32-cross;i686-w64-mingw32-cross
 
       - name: build the test container
         uses: docker/build-push-action@v2
@@ -50,10 +50,10 @@ jobs:
           file: 'tools/containers/test/Dockerfile'
           push: false
 
-      - name: test
+      - name: test-linux
         uses: addnab/docker-run-action@v3
         with:
-          image: elitest
+          image: ghcr.io/alis-is/eli-test:latest
           run: ./tools/test.sh
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
 

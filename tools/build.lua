@@ -72,7 +72,7 @@ local function buildWithChain(id, buildDir)
          print("Mirror not found. Downloading from upstream.")
          net.download_file("https://more.musl.cc/11/x86_64-linux-musl/" .. id .. ".tgz", tmp)
       end
-      -- eli.tar can not handle links annd long links so we use system tar for now
+      -- eli.tar can not handle links and long links so we use system tar for now
       assert(os.execute("tar -xzvf " .. tmp .. " && mv " .. id .. " /opt/cross/"))
       --      lz.extract(tmp, tmp2)
       --      tar.extract(tmp2, "/opt/cross/" --[[.. id]], { flattenRootDir = true, filter = function (f)
@@ -94,17 +94,24 @@ local function buildWithChain(id, buildDir)
    local _, ar = execute_collect_stdout('find -H /opt/cross/' .. id .. '/bin -name "*-ar" -type f ! -name "*-gcc-ar"')
    local _, ranlib = execute_collect_stdout('find -H /opt/cross/' .. id .. ' -name "*-ranlib" -type f')
    local _, rc = execute_collect_stdout('find -H /opt/cross/' .. id .. ' -name "*-windres" -type f')
+   local _, strip = execute_collect_stdout('find -H /opt/cross/' .. id .. ' -name "*-strip" -type f')
+   local _, objdump = execute_collect_stdout('find -H /opt/cross/' .. id .. ' -name "*-objdump" -type f')
+   local _, as = execute_collect_stdout('find -H /opt/cross/' .. id .. ' -name "*-as" -type f')
 
    local _cmd = lustache:render(_templates.buildConfigureTemplate, {
       ld = ld:gsub("\n", ""),
       ranlib = ranlib:gsub("\n", ""),
       ar = ar:gsub("\n", ""),
+      as = as:gsub("\n", ""),
+      objdump = objdump:gsub("\n", ""),
       gcc = gcc:gsub("\n", ""),
       gpp = gpp:gsub("\n", ""),
+      strip = strip:gsub("\n", ""),
       rootDir = _oldCwd,
       rc = rc:gsub("\n", ""),
       BUILD_TYPE = BUILD_TYPE,
       ccf = BUILD_TYPE == "MINSIZEREL" and "-s" or "",
+      SYSTEM_NAME = id:match("mingw") and "Windows" or "Linux",
       ch = id:gsub("%-cross", "")
    })
 
@@ -113,7 +120,12 @@ local function buildWithChain(id, buildDir)
    log_info("Building (make)...")
    os.execute "make"
    os.chdir(_oldCwd)
-   fs.copy_file(path.combine(buildDir, "eli"), "release/eli-unix-" .. id:gsub("%-linux%-musl%-cross", ""))
+   fs.mkdirp("release")
+   if id:match("mingw") or id:match("mingw") then
+      fs.copy_file(path.combine(buildDir, "eli.exe"), "release/eli-win-" .. id:gsub("%-w64%-mingw32%-cross", "") .. ".exe")
+   else
+      fs.copy_file(path.combine(buildDir, "eli"), "release/eli-unix-" .. id:gsub("%-linux%-musl%-cross", ""))
+   end
 end
 
 if _config.inject_CA then
