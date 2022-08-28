@@ -74,6 +74,11 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v2
+      - name: Use GNU tar to enable zstd for actions/cache
+        run: |
+          echo "Adding GNU tar to PATH"
+          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+        shell: cmd
       - name: Cache release
         uses: actions/cache@v3
         env:
