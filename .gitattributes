@@ -1,2 +1,4 @@
 *.lua text eol=lf
 *.sh text eol=lf
+
+lib/tests/assets/** binary
