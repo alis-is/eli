@@ -545,7 +545,7 @@ function net.download_file(url, destination, options)
     local _retryLimit = _get_retry_limit(options)
 
     while _tries <= _retryLimit do
-        local _didOpenFile, _df = pcall(io.open, destination, "w+b")
+        local _didOpenFile, _df = pcall(io.open, destination, "wb")
         if not _didOpenFile or _df == nil then error(_df) end
         local _write = function(data) _df:write(data) end
 
