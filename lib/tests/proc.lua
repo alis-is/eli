@@ -184,9 +184,11 @@ _test["spawn (file as stdin)"] = function()
     local _stdinFile = io.open("assets/test.script", "r");
     local _options = {wait = true, stdio = { stdin = _stdinFile }}
     local _result = _isUnixLike and
-        _eliProc.spawn("sh", {}, _options) or
-        _eliProc.spawn("cmd", {}, _options)
-    _test.assert(_result.exitcode == 0 and _result.stdoutStream:read("a"):match("13354"))
+        _eliProc.spawn("sh", _options) or
+        _eliProc.spawn("cmd", _options)
+    local _stdout = _result.stdoutStream:read("a")
+    print(_result.exitcode, _stdout)
+    _test.assert(_result.exitcode == 0 and _stdout:match("13354"))
 end
 
 _test["spawn (stdin/stdout/stderr as path)"] = function()
@@ -199,10 +201,11 @@ _test["spawn (stdin/stdout/stderr as path)"] = function()
         }
     }
     local _result = _isUnixLike and
-        _eliProc.spawn("sh", {}, _options) or
-        _eliProc.spawn("cmd", {}, _options)
-
-    _test.assert(_result.exitcode == 0 and _result.stdoutStream:read("a"):match("13354"))
+        _eliProc.spawn("sh", _options) or
+        _eliProc.spawn("cmd", _options)
+    local _stdout = _result.stdoutStream:read("a")
+    print(_result.exitcode, _stdout)
+    _test.assert(_result.exitcode == 0 and _stdout:match("13354"))
 end
 
 if not TEST then
