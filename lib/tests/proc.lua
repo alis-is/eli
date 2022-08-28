@@ -96,9 +96,10 @@ _test["spawn (cleanup)"] = function()
 end
 
 _test["spawn (not found)"] = function()
-    local _testExecutable = not _isUnixLike and "sh" or "cmd"
+    local _testExecutable = "nonExistentExecutable"
     local _ok, _err = _eliProc.safe_spawn(_testExecutable)
-    _test.assert(not _ok and _err:match("The system cannot find the file specified") or _err:match("No such file or directory"))
+    print("error:", _err)
+    _test.assert(not _ok)
 end
 
 _test["spawn (args)"] = function()
@@ -187,7 +188,6 @@ _test["spawn (file as stdin)"] = function()
         _eliProc.spawn("sh", _options) or
         _eliProc.spawn("cmd", _options)
     local _stdout = _result.stdoutStream:read("a")
-    print(_result.exitcode, _stdout)
     _test.assert(_result.exitcode == 0 and _stdout:match("13354"))
 end
 
@@ -204,7 +204,6 @@ _test["spawn (stdin/stdout/stderr as path)"] = function()
         _eliProc.spawn("sh", _options) or
         _eliProc.spawn("cmd", _options)
     local _stdout = _result.stdoutStream:read("a")
-    print(_result.exitcode, _stdout)
     _test.assert(_result.exitcode == 0 and _stdout:match("13354"))
 end
 
