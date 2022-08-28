@@ -103,6 +103,22 @@ jobs:
         with:
           path: ./release
           key: build#${{ github.sha }}
+      - name: prepare
+        id: prep
+        run: |
+          PLATFORM=$(uname -m) && echo "::set-output name=PLATFORM::$PLATFORM"
+          ROOT=$(pwd) && echo "::set-output name=ROOT::$ROOT"
+          rm -rf release .meta
+          mkdir -p "$ROOT/release"
+          VERSION=$(./eli -e 'io.write(require"hjson".parse(fs.read_file"config.hjson").version)')
+          echo "::set-output name=VERSION::$VERSION"
+          if git tag -l "$VERSION" | grep "$VERSION"; then
+            echo "Version $VERSION already exists";
+          else
+            NEEDS_RELEASE=true
+            echo "::set-output name=NEEDS_RELEASE::true"
+          fi
+          echo "Building eli $VERSION (RELEASE_REQUIRE: $NEEDS_RELEASE)"
       - name: publish
         uses: ncipollo/release-action@v1
         if: ${{ steps.prep.outputs.NEEDS_RELEASE == 'true' }}
