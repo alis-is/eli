@@ -181,7 +181,7 @@ _test["spawn (stdio=ignore stdout and stderr only)"] = function()
 end
 
 _test["spawn (file as stdin)"] = function()
-    local _stdinFile = io.open("assets/test.script", "r");
+    local _stdinFile = io.open("assets/test" .. (_isUnixLike and ".unix" or ".win") .. ".script", "r");
     local _options = {wait = true, stdio = { stdin = _stdinFile }}
     local _result = _isUnixLike and
         _eliProc.spawn("sh", _options) or
@@ -195,7 +195,7 @@ _test["spawn (stdin/stdout/stderr as path)"] = function()
     local _options = {
         wait = true,
         stdio = {
-            stdin = "assets/test.script",
+            stdin = "assets/test" .. (_isUnixLike and ".unix" or ".win") .. ".script",
             stdout = "tmp/stdout.log",
             stderr = "tmp/stderr.log"
         }
