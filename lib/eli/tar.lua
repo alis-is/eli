@@ -106,7 +106,7 @@ function tar.extract(source, destination, options)
       else
          _mkdirp(_path.dir(_targetPath))
 
-         local _f, _error = _open_file(_targetPath, "w+b")
+         local _f, _error = _open_file(_targetPath, "wb")
          assert(_f, "Failed to open file: " .. _targetPath .. " because of: " .. (_error or ""))
 
          while true do

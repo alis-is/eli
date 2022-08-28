@@ -125,7 +125,7 @@ function zip.extract(source, destination, options)
          _mkdirp(dir)
 
          local b = 0
-         local _f, _error = _open_file(_targetPath, "w+b")
+         local _f, _error = _open_file(_targetPath, "wb")
          assert(_f, "Failed to open file: " .. _targetPath .. " because of: " .. (_error or ""))
          local chunkSize = 2 ^ 13 -- 8K
          while b < stat.size do
