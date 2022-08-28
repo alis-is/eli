@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       NEEDS_RELEASE: ${{ steps.prep.outputs.NEEDS_RELEASE }}
+      VERSION: ${{ steps.prep.outputs.VERSION }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -109,6 +110,6 @@ jobs:
         if: ${{ needs.build.outputs.NEEDS_RELEASE == 'true' }}
         with:
           artifacts: ./release/*
-          tag: ${{ steps.prep.outputs.VERSION }}
+          tag: ${{ needs.build.outputs.VERSION }}
           commit: ${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
