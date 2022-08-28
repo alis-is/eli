@@ -28,7 +28,7 @@ _test["extract"] = function ()
      _test.assert(_ok, _hash)
     local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.file", {hex = true})
     _test.assert(_ok, _hash2)
-    _test.assert(_hash == _hash2, "hashes dont match")
+    _test.assert(_eliHash.equals(_hash, _hash2, true), "hashes dont match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
 
 _test["extract_file"] = function ()
@@ -38,7 +38,7 @@ _test["extract_file"] = function ()
     local _ok, _hash = _eliFs.safe_hash_file("tmp/test.file.unzipped", {hex = true})
     local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.file", {hex = true})
     _test.assert(_ok, _hash2)
-    _test.assert(_hash == _hash2, "hashes dont match")
+    _test.assert(_eliHash.equals(_hash, _hash2, true), "hashes dont match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
 
 _test["extract_string"] = function ()
@@ -48,7 +48,7 @@ _test["extract_string"] = function ()
     _test.assert(_ok, _hash)
     local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.file", {hex = true})
     _test.assert(_ok, _hash2)
-    _test.assert(_hash == _hash2, "hashes dont match")
+    _test.assert(_eliHash.equals(_hash, _hash2, true), "hashes dont match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
 
 _test["compress"] = function ()
@@ -61,7 +61,7 @@ _test["compress"] = function ()
     local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.file", {hex = true})
     local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.file", {hex = true})
     _test.assert(_ok, _hash2)
-    _test.assert(_hash == _hash2, "hashes dont match")
+    _test.assert(_eliHash.equals(_hash, _hash2, true), "hashes dont match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
 
 if not TEST then
