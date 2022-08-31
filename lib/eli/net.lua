@@ -109,7 +109,7 @@ local function _request(method, url, options, data)
         if (tonumber(_code) < 200 or tonumber(_code) > 299) and
             not options.ignoreHttpErrors then
             _easy:close()
-            error("Request failed with code " .. tostring(_code) .. "!")
+            error("request failed with code " .. tostring(_code))
         end
         local _data = nil
         local _decode = _exTable.get(options, { _type, "decode" })
@@ -555,7 +555,7 @@ function net.download_file(url, destination, options)
             return _response.code
         elseif (_tries >= _retryLimit) then
             os.remove(destination)
-            error(_response.code)
+            error(_response)
         end
 
         _tries = _tries + 1
@@ -581,7 +581,7 @@ function net.download_string(url, options)
         if _ok then
             return _result, _response.code
         elseif (_tries >= _retryLimit) then
-            error(_response.code)
+            error(_response)
         end
         _tries = _tries + 1
     end
