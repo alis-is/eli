@@ -182,11 +182,15 @@ end
 ---@param self Logger
 ---@param msg LogMessage
 ---@param level LogLevel
-function Logger:log(msg, level)
+---@param vars table?
+function Logger:log(msg, level, vars)
     msg = wrap_msg(msg)
     if level ~= nil then
         msg.level = level
     end
+
+    msg.msg = string.interpolate(msg.msg, vars)
+
     if _level_value(self.options.level) > _level_value(level) then
         return
     end
@@ -203,48 +207,54 @@ end
 ---
 ---@param self Logger
 ---@param msg LogMessage
-function Logger:success(msg)
-    self:log(msg, "success")
+---@param vars table?
+function Logger:success(msg, vars)
+    self:log(msg, "success", vars)
 end
 
 ---#DES 'Logger:debug'
 ---
 ---@param self Logger
 ---@param msg LogMessage
-function Logger:debug(msg)
-    self:log(msg, "debug")
+---@param vars table?
+function Logger:debug(msg, vars)
+    self:log(msg, "debug", vars)
 end
 
 ---#DES 'Logger:trace'
 ---
 ---@param self Logger
 ---@param msg LogMessage
-function Logger:trace(msg)
-    self:log(msg, "trace")
+---@param vars table?
+function Logger:trace(msg, vars)
+    self:log(msg, "trace", vars)
 end
 
 ---#DES 'Logger:info'
 ---
 ---@param self Logger
 ---@param msg LogMessage
-function Logger:info(msg)
-    self:log(msg, "info")
+---@param vars table?
+function Logger:info(msg, vars)
+    self:log(msg, "info", vars)
 end
 
 ---#DES 'Logger:warn'
 ---
 ---@param self Logger
 ---@param msg LogMessage
-function Logger:warn(msg)
-    self:log(msg, "warn")
+---@param vars table?
+function Logger:warn(msg, vars)
+    self:log(msg, "warn", vars)
 end
 
 ---#DES 'Logger:error'
 ---
 ---@param self Logger
 ---@param msg LogMessage
-function Logger:error(msg)
-    self:log(msg, "error")
+---@param vars table?
+function Logger:error(msg, vars)
+    self:log(msg, "error", vars)
 end
 
 return Logger
