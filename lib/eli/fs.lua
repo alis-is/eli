@@ -290,9 +290,9 @@ end
 ---@field asDirEntries boolean
 
 ---@class DirEntry
----@field name string
----@field type string
----@field fullpath string
+---@field name fun(self: DirEntry): string
+---@field type fun(self: DirEntry): string
+---@field fullpath fun(self: DirEntry): string
 ---@field __type '"ELI_DIRENTRY"'
 
 ---#DES 'fs.read_dir'
