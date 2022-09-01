@@ -93,6 +93,12 @@ _test["remove (file)"] = function()
     _test.assert(_ok, _file1)
     local _ok, _file2 = _eliFs.safe_read_file("tmp/test.file2")
     _test.assert(not _ok, _file2)
+    local _ok, _error = _eliFs.safe_move("tmp/test.file", "tmp/test.file2")
+    _test.assert(_ok, _error)
+    local _ok, _file1 = _eliFs.safe_remove("tmp/test.file2", { recurse = true })
+    _test.assert(_ok, _file1)
+    local _ok, _file2 = _eliFs.safe_read_file("tmp/test.file2")
+    _test.assert(not _ok, _file2)
 end
 
 _test["remove (dir)"] = function()

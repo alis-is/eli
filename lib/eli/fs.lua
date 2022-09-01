@@ -171,6 +171,7 @@ function fs.remove(path, options)
     if _type_check(path) == 'file' then
         local _ok, _error = os.remove(path)
         assert(_ok, _error or '')
+        return
     end
     if recurse then
         for o in efs.iter_dir(path) do

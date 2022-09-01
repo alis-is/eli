@@ -1,8 +1,8 @@
 {
-   version: 0.25.0
+   version: 0.25.1
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
-   compress: true // TODO
+   compress: true
    inject_CA: true
    cache_dir: .CACHE
    build_type: MINSIZEREL
