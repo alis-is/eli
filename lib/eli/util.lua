@@ -174,12 +174,12 @@ function util.global_log_factory(module, ...)
    for _, lvl in ipairs({...}) do
       table.insert(
          _result,
-         function(msg)
+         function(msg, vars)
             if type(msg) ~= "table" then
                msg = {msg = msg}
             end
             msg.module = module
-            return GLOBAL_LOGGER:log(msg, lvl)
+            return GLOBAL_LOGGER:log(msg, lvl, vars)
          end
       )
    end

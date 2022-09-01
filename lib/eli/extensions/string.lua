@@ -92,7 +92,7 @@ local function _interpolate(format, data)
             return w:sub(2)
         end
         local _v = data[w:sub(3, -2)]
-        if _v == "nil" then _v = "" end
+        if _v == nil then _v = "" end
         return tostring(_v) or w
     end
     local _result = format:gsub('(\\?$%b{})', _interpolater)

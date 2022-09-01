@@ -25,7 +25,7 @@ Predefined variables:
 
 ### Install latest binary release (currently unix only)
 
-`wget -q https://raw.githubusercontent.com/alis-is/eli/master/install.sh -O /tmp/install.sh && sh /tmp/install.sh`
+`wget -q https://raw.githubusercontent.com/alis-is/eli/master/install.sh -O /tmp/install.sh && sudo sh /tmp/install.sh`
 
 ### Build eli
 
