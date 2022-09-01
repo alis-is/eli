@@ -80,7 +80,7 @@ end
 ---Interpolates string with data from table. If table is not provided uses _G as source for interpolation.
 ---WARNING: _G does not contain local variables or upvalues in such scenario provide them through data parameter as table.
 ---@param format string
----@param data table
+---@param data table?
 ---@return string
 local function _interpolate(format, data)
     if data == nil then data = _G end
@@ -91,7 +91,9 @@ local function _interpolate(format, data)
         if w:sub(1, 1) == '\\' then
             return w:sub(2)
         end
-        return tostring(data[w:sub(3, -2)]) or w
+        local _v = data[w:sub(3, -2)]
+        if _v == "nil" then _v = "" end
+        return tostring(_v) or w
     end
     local _result = format:gsub('(\\?$%b{})', _interpolater)
     return _result
