@@ -19,7 +19,7 @@ end
 
 local RestClient = _eliNet.RestClient
 _test["download_string"] = function()
-    local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com/alis-is/eli/master/LICENSE")
+    local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com/alis-is/eli/main/LICENSE")
     _test.assert(_ok and _s:match("Copyright %(c%) %d%d%d%d alis%.is"), "copyright not found")
 end
 
@@ -30,17 +30,17 @@ _test["download (progress)"] = function()
         _printed = _printed .. msg
     end
     print = new_print
-    local _, _ = _eliNet.safe_download_string("https://raw.githubusercontent.com/alis-is/eli/master/LICENSE", { showDefaultProgress = 5 })
+    local _, _ = _eliNet.safe_download_string("https://github.com/alis-is/eli/raw/main/eli", { followRedirects=true, showDefaultProgress = 5, curlOptions = { [net.curl.OPT_BUFFERSIZE] = 1024 * 100, [net.curl.OPT_MAX_RECV_SPEED_LARGE] = 1024 * 100 } })
     print = _print -- restore
     _test.assert(_printed:match("5%%") and _printed:match("15%%"), "no progress detected")
     print = new_print
-    local _, _ = _eliNet.safe_download_string("https://raw.githubusercontent.com/alis-is/eli/master/LICENSE", { showDefaultProgress = true })
+    local _, _ = _eliNet.safe_download_string("https://github.com/alis-is/eli/raw/main/eli", { followRedirects=true, showDefaultProgress = 5, curlOptions = { [net.curl.OPT_BUFFERSIZE] = 1024 * 100, [net.curl.OPT_MAX_RECV_SPEED_LARGE] = 1024 * 100 } })
     print = _print -- restore
     _test.assert(_printed:match("10%%") and _printed:match("20%%"), "no progress detected")
 end
 
 _test["download_file"] = function()
-    local _ok, _error = _eliNet.safe_download_file("https://raw.githubusercontent.com/alis-is/eli/master/LICENSE",
+    local _ok, _error = _eliNet.safe_download_file("https://raw.githubusercontent.com/alis-is/eli/main/LICENSE",
         "tmp/LICENSE")
     _test.assert(_ok, _error)
     local _ok, _file = pcall(io.open, "tmp/LICENSE", "r")
@@ -51,14 +51,14 @@ _test["download_file"] = function()
 end
 
 _test["download_timeout"] = function()
-    local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com:81/alis-is/eli/master/LICENSE",
+    local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com:81/alis-is/eli/main/LICENSE",
         { timeout = 1 })
     _test.assert(not _ok, "should fail")
 end
 
 _test["RestClient get"] = function()
     local _client = RestClient:new("https://raw.githubusercontent.com/")
-    local _ok, _response = _client:safe_get("alis-is/eli/master/LICENSE")
+    local _ok, _response = _client:safe_get("alis-is/eli/main/LICENSE")
     _test.assert(_ok, "request failed")
     _test.assert(_response.raw:match("Copyright %(c%) %d%d%d%d alis%.is"), "copyright not found")
 

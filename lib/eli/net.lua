@@ -8,7 +8,8 @@ local _exTable = require "eli.extensions.table"
 local net = {
     ---#DES 'CURL_AVAILABLE'
     ---@type boolean
-    ENET = _curlLoaded
+    ENET = _curlLoaded,
+    curl = curl
 }
 
 if not _curlLoaded then

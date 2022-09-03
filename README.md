@@ -3,7 +3,7 @@
 Contains libs and function necessary for basic server side scripting.
 
 Embedded libraries: 
-- [eli](https://github.com/alis-is/eli/tree/master/lib)
+- [eli](https://github.com/alis-is/eli/tree/main/lib)
 - [eli.fs.extra](https://github.com/alis-is/eli-fs-extra)
 - [eli.proc.extra](https://github.com/alis-is/eli-proc-extra)
 - [eli.env.extra](https://github.com/alis-is/eli-env-extra)
@@ -25,7 +25,7 @@ Predefined variables:
 
 ### Install latest binary release (currently unix only)
 
-`wget -q https://raw.githubusercontent.com/alis-is/eli/master/install.sh -O /tmp/install.sh && sudo sh /tmp/install.sh`
+`wget -q https://raw.githubusercontent.com/alis-is/eli/main/install.sh -O /tmp/install.sh && sudo sh /tmp/install.sh`
 
 ### Build eli
 
