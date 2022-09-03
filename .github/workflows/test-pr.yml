@@ -60,7 +60,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/alis-is/eli-test:latest
-          run: ./tools/test.sh
+          run: ./tools/test.sh x86_64
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
   test-windows:
     runs-on: windows-latest
@@ -82,4 +82,4 @@ jobs:
       - name: test
         shell: pwsh
         run: |
-          .\tools\test.ps1
+          .\tools\test.ps1 x86_64

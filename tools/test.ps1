@@ -1,3 +1,5 @@
+param ([string]$platform_choice)
+
 $ROOT=$(pwd).Path
 
 function test_build {
@@ -8,8 +10,12 @@ function test_build {
 }
 
 try {
-    test_build "x86_64"
-    test_build "i686"
+    if ("$platform_choice" -ne "") {
+        test_build "$platform_choice"
+    } else {
+        test_build "x86_64"
+        test_build "i686"
+    }
 } catch {
     exit 1
 }
