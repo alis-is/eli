@@ -233,8 +233,20 @@ _test["unlock_file (owned file)"] = function()
     local _ok, _code, _ = _external_lock("tmp/test.file")
     _test.assert(_ok and _code == 0, "Should be able to lock now!")
 end
+
 _test["lock (not active - owned file)"] = function()
     _test.assert(not _lock:is_active(), "Lock should not be active")
+end
+
+_test["lock (cleanup)"] = function()
+    function _t()
+        local _lock, _error = _eliFs.lock_file("tmp/test.file", "w")
+        _test.assert(_lock ~= nil, _error)
+        _lock:unlock()
+    end
+    _t()
+    -- we would segfault/sigbus here if cleanup does not work properly
+    _test.assert(true)
 end
 
 _test["lock_dir & unlock_dir"] = function()
