@@ -25,6 +25,10 @@ test_platform() {
 }
 
 chmod +x ./release/eli-unix-*
-test_platform "x86_64"
-test_platform "i686" "i386"
-test_platform "aarch64"
+if [ -n "$1" ]; then
+    test_platform "$1"
+else
+    test_platform "x86_64"
+    test_platform "i686" "i386"
+    test_platform "aarch64"
+fi
