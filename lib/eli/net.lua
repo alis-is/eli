@@ -26,6 +26,23 @@ local function _encode_headers(headers)
     return _result
 end
 
+---comment
+---@param step number
+---@return function
+local function _generate_progress_function(step)
+    local _lastWritten = 0
+    if type(step) ~= "number" then step = 10 end
+    return function(total, current)
+        local _progress = math.floor(current / total * 100)
+        if math.fmod(_progress, step) == 0 and _lastWritten ~= _progress then
+            _lastWritten = _progress
+            io.write(_progress .. "%...")
+            io.flush()
+            if _progress == 100 then print() end
+        end
+    end
+end
+
 ---@class BaseRequestOptions
 ---@field retryLimit integer
 ---@field followRedirects boolean
@@ -35,6 +52,7 @@ end
 ---@field curlOptions table --- // TODO: expose as class possibly
 ---@field ignoreHttpErrors boolean
 ---@field progressFunction (fun(total: number, current: number))?
+---@field showDefaultProgress boolean|number respected only if progressFunction not defined
 
 ---@class RequestOptions: BaseRequestOptions
 ---@field write_function (fun(data: string))?
@@ -69,6 +87,10 @@ local function _request(method, url, options, data)
     local followRedirects = options.followRedirects or false
     local verifyPeer = options.verifyPeer
     if verifyPeer == nil then verifyPeer = true end
+    if options.showDefaultProgress == true or (type(options.showDefaultProgress) == "number" and options.showDefaultProgress > 0) then
+        local _step = type(options.showDefaultProgress) == "boolean" and 10 or options.showDefaultProgress --[[@as number]]
+        options = _util.merge_tables(options, { progressFunction = _generate_progress_function(_step) }) -- no overwrite so if progressFunction defined it wont be changed
+    end
 
     if type(options.curlOptions) ~= "table" then options.curlOptions = {} end
     local _easyOpts = {
@@ -79,7 +101,7 @@ local function _request(method, url, options, data)
         [curl.OPT_SSL_VERIFYPEER] = verifyPeer,
         [curl.OPT_TIMEOUT] = options.timeout or 0,
         httpheader = _encode_headers(_headers),
-        noprogress = type(options.progressFunction) ~= "function",
+        noprogress = type(options.progressFunction) ~= "function", -- showDefaultProgress injects default progressFunction
         progressfunction = options.progressFunction
     }
     for k, v in pairs(options.curlOptions) do
@@ -330,7 +352,7 @@ function net.RestClient:res(resources, options)
                 local _parent = makeResource(k, v.__root or k)
                 local _options = util.clone(options, true)
                 _options.shortcut = true
-                _parent:res(table.filter(v, function (k) return k ~= "__root" end), _options)
+                _parent:res(table.filter(v, function(k) return k ~= "__root" end), _options)
                 _resources = _parent
             elseif type(v) == "number" or type(v) == "string" then
                 _resources = makeResource(k, v)

@@ -3,14 +3,14 @@
 Contains libs and function necessary for basic server side scripting.
 
 Embedded libraries: 
-- [eli](https://github.com/cryon-io/eli/tree/master/lib)
-- [eli.fs.extra](https://github.com/cryon-io/eli-fs-extra)
-- [eli.proc.extra](https://github.com/cryon-io/eli-proc-extra)
-- [eli.env.extra](https://github.com/cryon-io/eli-env-extra)
-- [eli.os.extra](https://github.com/cryon-io/eli-os-extra)
-- [eli.pipe.extra](https://github.com/cryon-io/eli-pipe-extra)
-- [eli.stream.extra](https://github.com/cryon-io/eli-stream-extra)
-- [eli.extra.utils](https://github.com/cryon-io/eli-extra-utils)
+- [eli](https://github.com/alis-is/eli/tree/master/lib)
+- [eli.fs.extra](https://github.com/alis-is/eli-fs-extra)
+- [eli.proc.extra](https://github.com/alis-is/eli-proc-extra)
+- [eli.env.extra](https://github.com/alis-is/eli-env-extra)
+- [eli.os.extra](https://github.com/alis-is/eli-os-extra)
+- [eli.pipe.extra](https://github.com/alis-is/eli-pipe-extra)
+- [eli.stream.extra](https://github.com/alis-is/eli-stream-extra)
+- [eli.extra.utils](https://github.com/alis-is/eli-extra-utils)
 - [hjson ](https://github.com/cryi/hjson-lua)
 - [lustache](https://github.com/Olivine-Labs/lustache)
 - [lua-cURLv3](https://github.com/Lua-cURL/Lua-cURLv3)

@@ -1,6 +1,5 @@
 local _test = TEST or require 'u-test'
 local _ok, _eliNet = pcall(require, "eli.net")
-local _sha256sum = require "lmbed_hash".sha256sum
 
 if not _ok then
     _test["eli.net available"] = function()
@@ -20,38 +19,48 @@ end
 
 local RestClient = _eliNet.RestClient
 _test["download_string"] = function()
-    local _expected = "d11ca745153a3d9c54a79840e2dc7abd7bde7ff33fb0723517282abeea23e393"
-    local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com/cryon-io/eli/master/LICENSE")
-    local _result = _sha256sum(_s, true)
-    _test.assert(_expected == _result, "hashes do not match")
+    local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com/alis-is/eli/master/LICENSE")
+    _test.assert(_ok and _s:match("Copyright %(c%) %d%d%d%d alis%.is"), "copyright not found")
+end
+
+_test["download (progress)"] = function()
+    local _print = print
+    local _printed = ""
+    local function new_print(msg)
+        _printed = _printed .. msg
+    end
+    print = new_print
+    local _, _ = _eliNet.safe_download_string("https://raw.githubusercontent.com/alis-is/eli/master/LICENSE", { showDefaultProgress = 5 })
+    print = _print -- restore
+    _test.assert(_printed:match("5%") and _printed:match("15%"), "no progress detected")
+    print = new_print
+    local _, _ = _eliNet.safe_download_string("https://raw.githubusercontent.com/alis-is/eli/master/LICENSE", { showDefaultProgress = true })
+    print = _print -- restore
+    _test.assert(_printed:match("10%") and _printed:match("20%"), "no progress detected")
 end
 
 _test["download_file"] = function()
-    local _expected = "d11ca745153a3d9c54a79840e2dc7abd7bde7ff33fb0723517282abeea23e393"
-    local _ok, _error = _eliNet.safe_download_file("https://raw.githubusercontent.com/cryon-io/eli/master/LICENSE",
+    local _ok, _error = _eliNet.safe_download_file("https://raw.githubusercontent.com/alis-is/eli/master/LICENSE",
         "tmp/LICENSE")
     _test.assert(_ok, _error)
     local _ok, _file = pcall(io.open, "tmp/LICENSE", "r")
     _test.assert(_ok, _file)
     local _ok, _s = pcall(_file.read, _file, "a")
     _test.assert(_ok, _s)
-    local _result = _sha256sum(_s, true)
-    _test.assert(_expected == _result, "hashes do not match")
+    _test.assert(_s:match("Copyright %(c%) %d%d%d%d alis%.is"), "copyright not found")
 end
 
 _test["download_timeout"] = function()
-    local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com:81/cryon-io/eli/master/LICENSE",
+    local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com:81/alis-is/eli/master/LICENSE",
         { timeout = 1 })
     _test.assert(not _ok, "should fail")
 end
 
 _test["RestClient get"] = function()
-    local _expected = "d11ca745153a3d9c54a79840e2dc7abd7bde7ff33fb0723517282abeea23e393"
     local _client = RestClient:new("https://raw.githubusercontent.com/")
-    local _ok, _response = _client:safe_get("cryon-io/eli/master/LICENSE")
+    local _ok, _response = _client:safe_get("alis-is/eli/master/LICENSE")
     _test.assert(_ok, "request failed")
-    local _result = _sha256sum(_response.raw, true)
-    _test.assert(_expected == _result, "hashes do not match")
+    _test.assert(_response.raw:match("Copyright %(c%) %d%d%d%d alis%.is"), "copyright not found")
 
     _client = RestClient:new("https://httpbin.org/")
     _ok, _response = _client:safe_get("get", { params = { test = "aaa", test2 = "bbb" } })

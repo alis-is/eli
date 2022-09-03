@@ -50,7 +50,7 @@ local function _to_array(t)
     table.sort(_keys)
 
     for _, k in ipairs(_keys) do
-        table.insert(arr, {key = k, value = t[k]})
+        table.insert(arr, { key = k, value = t[k] })
     end
     return arr
 end
@@ -160,6 +160,39 @@ local function _map(arr, mapFn)
     return _result
 end
 
+---#DES 'table.includes'
+---
+--- checks whether table includes value
+--- if provided arrOrTable is not a table returns false
+--- for nil val always returns false (lua returns nil for values not in table)
+---@param arrOrTable table
+---@param val any
+---@param useDeepComparison boolean? compares content of tables
+---@return boolean
+local function _includes(arrOrTable, val, useDeepComparison)
+    if type(arrOrTable) ~= "table" or val == nil then return false end
+    for _, v in pairs(arrOrTable) do
+        if _util.equals(v, val, useDeepComparison) then return true end
+    end
+    return false
+end
+
+---#DES 'table.has_key'
+---
+--- checks whether table includes value
+--- if provided arrOrTable is not a table returns false
+--- for nil k always returns false (lua returns nil for values not in table)
+---@param arrOrTable table
+---@param key any
+---@return boolean
+local function _has_key(arrOrTable, key)
+    if type(arrOrTable) ~= "table" or key == nil then return false end
+    for k, _ in pairs(arrOrTable) do
+        if k == key then return true end
+    end
+    return false
+end
+
 local function _globalize()
     table.get = _get
     table.set = _set
@@ -169,6 +202,8 @@ local function _globalize()
     table.values = _values
     table.filter = _filter
     table.is_array = _util.is_array
+    table.includes = _includes
+    table.has_key = _has_key
 end
 
 return {
@@ -179,9 +214,9 @@ return {
     keys = _keys,
     values = _values,
     filter = _filter,
-	---#DES 'util.is_array'
-	---@param t table
-	---@return boolean
+    ---#DES 'util.is_array'
+    ---@param t table
+    ---@return boolean
     is_array = _util.is_array,
     globalize = _globalize
 }

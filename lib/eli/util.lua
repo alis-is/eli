@@ -282,6 +282,4 @@ function util.equals(v, v2, deep)
   end
 end
 
--- // TODO: map
-
 return util
