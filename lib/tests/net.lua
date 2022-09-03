@@ -32,11 +32,11 @@ _test["download (progress)"] = function()
     print = new_print
     local _, _ = _eliNet.safe_download_string("https://raw.githubusercontent.com/alis-is/eli/master/LICENSE", { showDefaultProgress = 5 })
     print = _print -- restore
-    _test.assert(_printed:match("5%") and _printed:match("15%"), "no progress detected")
+    _test.assert(_printed:match("5%%") and _printed:match("15%%"), "no progress detected")
     print = new_print
     local _, _ = _eliNet.safe_download_string("https://raw.githubusercontent.com/alis-is/eli/master/LICENSE", { showDefaultProgress = true })
     print = _print -- restore
-    _test.assert(_printed:match("10%") and _printed:match("20%"), "no progress detected")
+    _test.assert(_printed:match("10%%") and _printed:match("20%%"), "no progress detected")
 end
 
 _test["download_file"] = function()
