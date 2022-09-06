@@ -74,21 +74,28 @@ return _util.generate_safe_functions({
     Sha512 = Sha512,
     ---#DES hash.sha256sum
     ---
+    ---@diagnostic disable-next-line: undefined-doc-param
     ---@param data string
+    ---@diagnostic disable-next-line: undefined-doc-param
     ---@param hex boolean?
     ---@return string
     sha256sum = _hash.sha256sum,
     ---#DES hash.sha512sum
     ---
+    ---@diagnostic disable-next-line: undefined-doc-param
     ---@param data string
+    ---@diagnostic disable-next-line: undefined-doc-param
     ---@param hex boolean?
     ---@return string
     sha512sum = _hash.sha512sum,
     ---#DES 'hash.equals'
     ---
     ---Compares two strings (if hex true - compares as hex strings)
+    ---@diagnostic disable-next-line: undefined-doc-param
     ---@param hash1 string
+    ---@diagnostic disable-next-line: undefined-doc-param
     ---@param hash2 string
+    ---@diagnostic disable-next-line: undefined-doc-param
     ---@param hex boolean?
     ---@return boolean
     equals = _hash.equals,
