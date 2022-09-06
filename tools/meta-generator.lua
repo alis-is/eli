@@ -1,4 +1,5 @@
-local _exclude = {"eli.internals.util", "eli.pipe.extra", "eli.proc.extra", "eli.stream.extra", "eli.fs.extra"}
+local _exclude = { "eli.internals.util", "eli.pipe.extra", "eli.proc.extra", "eli.stream.extra", "eli.fs.extra",
+    "eli.os.extra", "eli.env.extra" }
 
 ---comment
 ---@param code string
@@ -9,15 +10,15 @@ local function _get_next_doc_block(code, libName, position)
     local _blockStart, _blockEnd = code:find("%s-%-%-%-.-\n[^%S\n]*", position)
     if _blockStart == nil then return nil end
     _blockContent = _blockContent ..
-                        code:sub(_blockStart, _blockEnd):match "^%s*(.-)%s*$" ..
-                        "\n"
+        code:sub(_blockStart, _blockEnd):match "^%s*(.-)%s*$" ..
+        "\n"
 
     -- extension libs are overriding existing libs so we need to remove extensions part
     if libName:match("extensions%.([%w_]*)") then
         libName = libName:match("extensions%.([%w_]*)")
     end
     local _field = code:sub(_blockStart, _blockEnd):match(
-                       "%-%-%-[ ]?#DES '?" .. libName .. ".([%w_:]+)'?.-\n%s*")
+        "%-%-%-[ ]?#DES '?" .. libName .. ".([%w_:]+)'?.-\n%s*")
     -- lib level class export
     if _field == nil and
         code:sub(_blockStart, _blockEnd):match(
@@ -28,7 +29,7 @@ local function _get_next_doc_block(code, libName, position)
         local _start, _end = code:find("%-%-%-.-\n[^%S\n]*", _blockEnd)
         if _start == nil or _start ~= _blockEnd + 1 then break end
         _blockContent = _blockContent ..
-                            code:sub(_start, _end):match "^%s*(.-)%s*$" .. "\n"
+            code:sub(_start, _end):match "^%s*(.-)%s*$" .. "\n"
         _blockEnd = _end
     end
     return _blockContent, _blockEnd, _field
@@ -64,19 +65,19 @@ local function _collect_function(code, libName, docBlock, isGlobal)
         libName = libName:match("extensions%.([%w_]*)")
     end
     local _functionDef = "function " .. libName .. docBlock.libFieldSeparator ..
-                             docBlock.name
+        docBlock.name
     if _start ~= docBlock.blockEnd + 1 then
         local _start =
-            code:find("local%s-function.-%((.-)%)", docBlock.blockEnd)
+        code:find("local%s-function.-%((.-)%)", docBlock.blockEnd)
         if _start ~= docBlock.blockEnd + 1 then
             local _params = {}
             for _paramName in string.gmatch(docBlock.content,
-                                            "%-%-%-[ ]?@param%s+([%w_]*)%s+.-\n") do
+                "%-%-%-[ ]?@param%s+([%w_]*)%s+.-\n") do
                 table.insert(_params, _paramName)
             end
             return docBlock.content .. _functionDef .. "(" ..
-                       string.join_strings(", ", table.unpack(_params)) ..
-                       ") end\n"
+                string.join_strings(", ", table.unpack(_params)) ..
+                ") end\n"
         end
     end
     local _params = code:match("function.-%((.-)%)", docBlock.blockEnd)
@@ -92,15 +93,15 @@ end
 local function _collect_safe_function(code, libName, docBlock, isGlobal)
     local _content = _collect_function(code, libName, docBlock, isGlobal)
     _content = _content:gsub("#DES '?" .. libName .. "%." ..
-                                 docBlock.name:match("safe_(.*)") .. "'?",
-                             "#DES '" .. libName .. "." .. docBlock.name .. "'")
+        docBlock.name:match("safe_(.*)") .. "'?",
+        "#DES '" .. libName .. "." .. docBlock.name .. "'")
     -- fix content for safe function
     if _content:find("---[ ]?@return") then
         _content = _content:gsub("---[ ]?@return", "---@return boolean, string|")
     else
         local _, _end = _get_next_doc_block(_content, libName)
         _content = _content:sub(1, _end) .. "---@return boolean, string?\n" ..
-                       _content:sub(_end + 1)
+            _content:sub(_end + 1)
     end
     return _content
 end
@@ -115,12 +116,11 @@ local function _collect_class(_, libName, docBlock, isGlobal)
     if docBlock.isPublic then
         if docBlock.name == libName and
             docBlock.content:match("%-%-%-[ ]?#DES '?" .. libName .. "'?%s-\n") then
-            return
-                docBlock.content .. (isGlobal and "" or "local ") .. libName ..
-                    " = {}\n"
+            return docBlock.content .. (isGlobal and "" or "local ") .. libName ..
+                " = {}\n"
         end
         return docBlock.content .. (isGlobal and "" or "local ") .. libName ..
-                   "." .. docBlock.name .. " = {}\n"
+            "." .. docBlock.name .. " = {}\n"
     else
         return docBlock.content .. "\n"
     end
@@ -151,8 +151,8 @@ local function _collect_field(_, libName, docBlock, isGlobal)
 
     if docBlock.isPublic then
         return docBlock.content .. (isGlobal and "" or "local ") .. libName ..
-                   "." .. docBlock.name .. " = " .. _defaultValues[_type] ..
-                   "\n"
+            "." .. docBlock.name .. " = " .. _defaultValues[_type] ..
+            "\n"
     else
         return docBlock.content .. "\n"
     end
@@ -184,9 +184,9 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 
     local _generatedDoc = ""
     --- @type string | table
-    local _sourcePaths = {"lib/eli/" .. _libName:gsub('%.', '/') .. ".lua"}
+    local _sourcePaths = { "lib/eli/" .. _libName:gsub('%.', '/') .. ".lua" }
     if type(sourceFiles) == "string" then
-        _sourcePaths = {sourceFiles}
+        _sourcePaths = { sourceFiles }
     elseif type(sourceFiles) == "table" and util.is_array(sourceFiles) then
         _sourcePaths = sourceFiles
     end
@@ -204,7 +204,7 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
     while true do
         local _docBlock, _field
         _docBlock, _blockEnds, _field = _get_next_doc_block(_code, _libName,
-                                                            _blockEnds)
+            _blockEnds)
         if _docBlock == nil then break end
         if _field == nil then -- dangling
             if _docBlock:match("@class") or _docBlock:match("@alias") then -- only classes and aliases are allowed into danglings
@@ -248,7 +248,7 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
     for _, v in ipairs(_docsBlocks) do
         if v.kind == "field" then
             local _className, _fieldName =
-                v.name:match("(%w+)%s*[:%.]%s*([%w_]+)")
+            v.name:match("(%w+)%s*[:%.]%s*([%w_]+)")
             if _lib[_className] ~= nil and type(_lib[_className][_fieldName]) ==
                 "function" then v.kind = "function" end
         end
@@ -258,18 +258,18 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
         local _collector = _collectors[v.kind]
         if _collector ~= nil then
             _generatedDoc = _generatedDoc .. _collector(_code, _libName, v, isGlobal) ..
-                                "\n"
+                "\n"
             if v.kind == "function" and not v.name:match("^safe_") then
                 local _safeFnName = "safe_" .. v.name
                 if type(_lib[_safeFnName]) == "function" then
                     local _saveV = util.clone(v, true)
                     _saveV.name = _safeFnName
                     _generatedDoc = _generatedDoc ..
-                                        _collectors["safe_function"](_code,
-                                                                     _libName,
-                                                                     _saveV,
-                                                                     isGlobal) ..
-                                        "\n"
+                        _collectors["safe_function"](_code,
+                            _libName,
+                            _saveV,
+                            isGlobal) ..
+                        "\n"
                 end
             end
         end
@@ -281,7 +281,7 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
             local _part = nil
             for _match in _libName:gmatch("([^%.]+)") do
                 _toInject = _toInject .. (_part or "local ") .. _match ..
-                                " = {}\n"
+                    " = {}\n"
                 _part = (_part or "") .. _match .. "."
             end
             _generatedDoc = _toInject .. "\n" .. _generatedDoc
@@ -299,17 +299,17 @@ for _, _docs in ipairs(_config.inject_docs) do
     local _source = _docs.source
     for _, _file in ipairs(_docs.files) do
         local _generatedDocs = _generate_meta(_file.lib, require(_file.lib),
-                                              path.combine(_source, _file.name),
-                                              _file.isGlobal)
+            path.combine(_source, _file.name),
+            _file.isGlobal)
         local _libDir = ".meta"
         if type(_file.destination) == "string" then
             _libDir = path.combine(_libDir, path.dir(_file.destination or ""))
         end
         fs.mkdirp(_libDir)
         fs.write_file(path.combine(_libDir,
-                                   type(_file.destination) == "string" and
-                                       path.file(_file.destination) or _file.lib ..
-                                       ".lua"), _generatedDocs)
+            type(_file.destination) == "string" and
+            path.file(_file.destination) or _file.lib ..
+            ".lua"), _generatedDocs)
     end
 end
 
