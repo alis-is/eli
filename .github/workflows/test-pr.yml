@@ -10,8 +10,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      
+      - uses: actions/checkout@v3
       - name: build
         uses: addnab/docker-run-action@v3
         with:
@@ -28,8 +27,7 @@ jobs:
   build-win:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      
+      - uses: actions/checkout@v3
       - name: build
         uses: addnab/docker-run-action@v3
         with:
@@ -48,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-linux
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Cache release
         uses: actions/cache@v3
         env:
@@ -66,7 +64,7 @@ jobs:
     runs-on: windows-latest
     needs: build-win
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use GNU tar to enable zstd for actions/cache
         run: |
           echo "Adding GNU tar to PATH"
