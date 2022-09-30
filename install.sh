@@ -3,14 +3,14 @@
 TMP_NAME="/tmp/$(head -n 1 -c 32 /dev/urandom | tr -dc 'a-zA-Z0-9'| fold -w 32)"
 
 if which curl > /dev/null; then
-    if curl --help | grep "--progress-bar"; then
+    if curl --help 2>&1 | grep "--progress-bar" > /dev/null; then
         PROGRESS="--progress-bar"
     fi
 
     set -- curl -L $PROGRESS -o "$TMP_NAME"
     LATEST=$(curl -sL https://api.github.com/repos/alis-is/eli/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g')
 else
-    if wget --help | grep "--show-progress"; then
+    if wget --help 2>&1 | grep "--show-progress" > /dev/null; then
         PROGRESS="--show-progress"
     fi
     set -- wget -q $PROGRESS -O "$TMP_NAME"
