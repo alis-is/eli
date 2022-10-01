@@ -1,5 +1,5 @@
 {
-   version: 0.25.5
+   version: 0.25.6
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    compress: true
@@ -177,8 +177,8 @@
       },
       {
          id: lcurl
-         repository: Lua-cURL/Lua-cURLv3
-         version: v0.3.13
+         repository: alis-is/Lua-cURLv3
+         version: 0.3.14
          destination: modules/lcurl
          omitRoot: true
          cmakelists: { source: "lcurl_CMakeLists.txt", destination: "modules/lcurl/CMakeLists.txt" }
