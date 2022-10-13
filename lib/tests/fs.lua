@@ -15,15 +15,44 @@ end
 
 _test["eli.fs available"] = function() _test.assert(true) end
 
-_test["copy file"] = function()
+_test["copy file (path)"] = function()
     local _ok, _error = _eliFs.safe_copy_file("assets/test.file",
-                                              "tmp/test.file")
+        "tmp/test.file")
     _test.assert(_ok, _error)
     local _ok, _hash = _eliFs.safe_hash_file("assets/test.file",
-                                             {type = "sha256"})
+        { type = "sha256" })
     _test.assert(_ok, _hash)
     local _ok, _hash2 =
-        _eliFs.safe_hash_file("tmp/test.file", {type = "sha256"})
+    _eliFs.safe_hash_file("tmp/test.file", { type = "sha256" })
+    _test.assert(_ok, _hash)
+    _test.assert(_hash == _hash2, "hashes do not match")
+end
+
+_test["copy file (file*)"] = function()
+    local _src = io.open("assets/test.file", "rb")
+    local _dst = io.open("tmp/test.file2", "wb")
+    local _ok, _error = _eliFs.safe_copy_file(_src, _dst)
+    _test.assert(_ok, _error)
+    local _ok, _hash = _eliFs.safe_hash_file("assets/test.file",
+        { type = "sha256" })
+    _test.assert(_ok, _hash)
+    local _ok, _hash2 =
+    _eliFs.safe_hash_file("tmp/test.file2", { type = "sha256" })
+    _test.assert(_ok, _hash)
+    _test.assert(_hash == _hash2, "hashes do not match")
+end
+
+_test["copy file (mixed)"] = function()
+    local _src = io.open("assets/test.file", "rb")
+    local _dst = io.open("tmp/test.file2", "wb")
+    local _ok, _error = _eliFs.safe_copy_file(_src, _dst)
+    _test.assert(_ok, _error)
+    local _ok, _hash = _eliFs.safe_hash_file("assets/test.file",
+        { type = "sha256" })
+    _test.assert(_ok, _hash)
+    local _ok, _hash2 =
+    _eliFs.safe_hash_file("tmp/test.file2", { type = "sha256" })
+    _test.assert(_ok, _hash)
     _test.assert(_hash == _hash2, "hashes do not match")
 end
 
@@ -71,7 +100,7 @@ _test["mkdirp"] = function()
 end
 
 _test["create_dir"] = function()
-    _eliFs.safe_remove("tmp/test-dir", {recurse = true})
+    _eliFs.safe_remove("tmp/test-dir", { recurse = true })
     local _ok, _error = _eliFs.safe_create_dir("tmp/test-dir")
     _test.assert(_ok, _error)
     local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir")
@@ -110,14 +139,14 @@ end
 
 _test["move (dir)"] = function()
     local _ok, _error = _eliFs.safe_move("tmp/test-dir/test",
-                                         "tmp/test-dir/test2")
+        "tmp/test-dir/test2")
     _test.assert(_ok, _error)
     local _ok, _exists = _eliFs.safe_exists("tmp/test-dir/test2")
     _test.assert(_ok and _exists, _exists)
 end
 
 _test["remove (recurse)"] = function()
-    local _ok, _error = _eliFs.safe_remove("tmp/test-dir", {recurse = true})
+    local _ok, _error = _eliFs.safe_remove("tmp/test-dir", { recurse = true })
     _test.assert(_ok, _error)
     local _ok, _exists = _eliFs.safe_exists("tmp/test-dir")
     _test.assert(_ok and not _exists, _exists)
@@ -127,10 +156,10 @@ _test["remove (contentOnly)"] = function()
     local _ok, _error = _eliFs.safe_mkdir("tmp/test-dir")
     _test.assert(_ok, _error)
     local _ok, _error = _eliFs.safe_copy_file("assets/test.file",
-                                              "tmp/test-dir/test.file")
+        "tmp/test-dir/test.file")
     _test.assert(_ok, _error)
     local _ok, _error = _eliFs.safe_remove("tmp/test-dir",
-                                           {contentOnly = true, recurse = true})
+        { contentOnly = true, recurse = true })
     _test.assert(_ok, _error)
     local _ok, _exists = _eliFs.safe_exists("tmp/test-dir")
     _test.assert(_ok and _exists, _exists)
@@ -154,7 +183,7 @@ _test["file_type (file)"] = function()
     local _ok, _type = _eliFs.safe_file_type("tmp/test.file")
     _test.assert(_ok and _type == nil)
     local _ok, _error = _eliFs.safe_copy_file("assets/test.file",
-                                              "tmp/test.file")
+        "tmp/test.file")
     _test.assert(_ok, _error)
     local _ok, _type = _eliFs.safe_file_type("tmp/test.file")
     _test.assert(_ok and _type == "file")
@@ -182,7 +211,8 @@ end
 local function _external_lock(file)
     local _ok, _, _code = os.execute((os.getenv "QEMU" or "") ..
         " " .. arg[-1] .. " -e \"x, err = fs.lock_file('" .. file .. "','w'); " ..
-        "if type(x) == 'ELI_FILE_LOCK' then os.exit(0); end; os.exit((tostring(err):match('Resource temporarily unavailable') or " ..
+        "if type(x) == 'ELI_FILE_LOCK' then os.exit(0); end; os.exit((tostring(err):match('Resource temporarily unavailable') or "
+        ..
         "tostring(err):match('locked a portion of the file')) and 11 or 12)\"")
     return _ok, _code
 end
@@ -244,6 +274,7 @@ _test["lock (cleanup)"] = function()
         _test.assert(_lock ~= nil, _error)
         _lock:unlock()
     end
+
     _t()
     -- we would segfault/sigbus here if cleanup does not work properly
     _test.assert(true)

@@ -33,7 +33,7 @@ local fs = {
 function fs.read_file(path, options)
     ---@type AccessFileOptions
     options = _util.merge_tables({ binaryMode = true }, options, true)
-    local f = assert(io.open(path, options.binaryMode and "rb" or "r" ), 'No such a file or directory - ' .. path)
+    local f = assert(io.open(path, options.binaryMode and "rb" or "r"), 'No such a file or directory - ' .. path)
     local result = f:read('a*')
     f:close()
     return result
@@ -48,7 +48,7 @@ end
 function fs.write_file(path, content, options)
     ---@type AccessFileOptions
     options = _util.merge_tables({ binaryMode = true }, options, true)
-    local f = assert(io.open(path,  options.binaryMode and "wb" or "w"), 'No such a file or directory - ' .. path)
+    local f = assert(io.open(path, options.binaryMode and "wb" or "w"), 'No such a file or directory - ' .. path)
     f:write(content)
     f:close()
 end
@@ -56,14 +56,31 @@ end
 ---#DES 'fs.copy_file'
 ---
 ---Copies file from src to dst
----@param src string
----@param dst string
+---@param src string | file*
+---@param dst string | file*
 ---@param options AccessFileOptions?
 function fs.copy_file(src, dst, options)
     assert(src ~= dst, 'Identical source and destiontion path!')
+    assert(type(src) == "string" or (type(src) == "userdata" and tostring(src):find("file") == 1),
+        'Invalid type of source! (Has to be string or file*)')
+    assert(type(dst) == "string" or (type(dst) == "userdata" and tostring(dst):find("file") == 1),
+        'Invalid type of destination! (Has to be string or file*)')
+
     options = _util.merge_tables({ binaryMode = true }, options, true)
-    local srcf = assert(io.open(src, options.binaryMode and "rb" or "r"), 'No such a file or directory - ' .. src)
-    local dstf = assert(io.open(dst, options.binaryMode and "wb" or "w"), 'Failed to open file for write - ' .. dst)
+    ---@type file*, file*
+    local srcf, dstf
+    if type(src) == "userdata" then
+        srcf = src --[[@as file*]]
+    else
+        srcf = assert(io.open(src--[[@as string]] , options.binaryMode and "rb" or "r"),
+            'No such a file or directory - ' .. src)
+    end
+    if type(dst) == "userdata" then
+        dstf = dst --[[@as file*]]
+    else
+        dstf = assert(io.open(dst--[[@as string]] , options.binaryMode and "wb" or "w"),
+            'Failed to open file for write - ' .. dst)
+    end
 
     local size = 2 ^ 12 -- 4K
     while true do
@@ -73,8 +90,8 @@ function fs.copy_file(src, dst, options)
         end
         dstf:write(block)
     end
-    srcf:close()
-    dstf:close()
+    if type(src) ~= "userdata" then srcf:close() end
+    if type(dst) ~= "userdata" then dstf:close() end
 end
 
 ---Creates directory
@@ -205,8 +222,8 @@ end
 ---Returns true if specified path exists
 ---@param path string
 function fs.exists(path)
-	local _ok, _, _code = os.rename(path, path)
-	return _ok or _code == 13
+    local _ok, _, _code = os.rename(path, path)
+    return _ok or _code == 13
 end
 
 ---#DES 'fs.exists'
@@ -214,8 +231,8 @@ end
 ---Returns true if specified path exists
 ---@param path string
 function fs.dir_exists(path)
-	path = path:sub(#path, #path) == "/" and path or path .. "/"
-	return fs.exists(path)
+    path = path:sub(#path, #path) == "/" and path or path .. "/"
+    return fs.exists(path)
 end
 
 ---@class FsHashFileOptions: AccessFileOptions
@@ -305,7 +322,7 @@ end
 function fs.read_dir(path, options)
     _check_efs_available('read_dir')
     options = _util.merge_tables({}, options, true)
-    
+
     if options.recurse then
         local _lenOfPathToRemove = path:match('.*/$') and #path or #path + 1
         if options.returnFullPaths then
@@ -346,14 +363,14 @@ function fs.chown(path, uid, gid, options)
         return _ok, _error, _errno
     end
 
-    local _paths = fs.read_dir(path, {recurse = true, returnFullPaths = true})
+    local _paths = fs.read_dir(path, { recurse = true, returnFullPaths = true })
     for _, _path in ipairs(_paths) do
-		_ok, _error, _errno = efs.chown(_path, uid, gid)
-		if not _ok and not options.recurseIgnoreErrors then
-			return _ok, _error, _errno
-		end
+        _ok, _error, _errno = efs.chown(_path, uid, gid)
+        if not _ok and not options.recurseIgnoreErrors then
+            return _ok, _error, _errno
+        end
     end
-	return true
+    return true
 end
 
 ---@class FsChmodOptions
@@ -387,14 +404,14 @@ function fs.chmod(path, mode, options)
         return _ok, _error, _errno
     end
 
-    local _paths = fs.read_dir(path, {recurse = true, returnFullPaths = true})
+    local _paths = fs.read_dir(path, { recurse = true, returnFullPaths = true })
     for _, _path in ipairs(_paths) do
-		_ok, _error, _errno = efs.chmod(_path, mode)
-		if not _ok and not options.recurseIgnoreErrors then
-			return _ok, _error, _errno
-		end
-	end
-	return true
+        _ok, _error, _errno = efs.chmod(_path, mode)
+        if not _ok and not options.recurseIgnoreErrors then
+            return _ok, _error, _errno
+        end
+    end
+    return true
 end
 
 ---#DES fs.EliFileLock'
@@ -431,7 +448,9 @@ function fs.unlock_file(fsLock)
     if type(fsLock) == ELI_FILE_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type == ELI_FILE_LOCK_ID) then
         return fsLock:unlock()
     else
-        return false, "Invalid " .. ELI_FILE_LOCK_ID .. " type! '".. ELI_FILE_LOCK_ID .."' expected, got: " .. type(fsLock) .. "!"
+        return false,
+            "Invalid " .. ELI_FILE_LOCK_ID .. " type! '" .. ELI_FILE_LOCK_ID ..
+            "' expected, got: " .. type(fsLock) .. "!"
     end
 end
 
@@ -465,7 +484,8 @@ function fs.unlock_directory(fsLock)
     if type(fsLock) == ELI_DIR_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type == ELI_DIR_LOCK_ID) then
         return fsLock:unlock()
     else
-        return false, "Invalid " .. ELI_DIR_LOCK_ID .. " type! '".. ELI_DIR_LOCK_ID .."' expected, got: " .. type(fsLock) .. "!"
+        return false,
+            "Invalid " .. ELI_DIR_LOCK_ID .. " type! '" .. ELI_DIR_LOCK_ID .. "' expected, got: " .. type(fsLock) .. "!"
     end
 end
 
