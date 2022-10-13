@@ -61,25 +61,25 @@ end
 ---@param options AccessFileOptions?
 function fs.copy_file(src, dst, options)
     assert(src ~= dst, 'Identical source and destiontion path!')
-    assert(type(src) == "string" or (type(src) == "userdata" and tostring(src):find("file") == 1),
+    assert(type(src) == "string" or (tostring(src):find("file") == 1),
         'Invalid type of source! (Has to be string or file*)')
-    assert(type(dst) == "string" or (type(dst) == "userdata" and tostring(dst):find("file") == 1),
+    assert(type(dst) == "string" or (tostring(dst):find("file") == 1),
         'Invalid type of destination! (Has to be string or file*)')
 
     options = _util.merge_tables({ binaryMode = true }, options, true)
     ---@type file*, file*
     local srcf, dstf
-    if type(src) == "userdata" then
-        srcf = src --[[@as file*]]
-    else
-        srcf = assert(io.open(src--[[@as string]] , options.binaryMode and "rb" or "r"),
+    if type(src) == "string" then
+        srcf = assert(io.open(src, options.binaryMode and "rb" or "r"),
             'No such a file or directory - ' .. src)
-    end
-    if type(dst) == "userdata" then
-        dstf = dst --[[@as file*]]
     else
-        dstf = assert(io.open(dst--[[@as string]] , options.binaryMode and "wb" or "w"),
+        srcf = src
+    end
+    if type(dst) == "string" then
+        dstf = assert(io.open(dst, options.binaryMode and "wb" or "w"),
             'Failed to open file for write - ' .. dst)
+    else
+        dstf = dst
     end
 
     local size = 2 ^ 12 -- 4K
@@ -90,8 +90,8 @@ function fs.copy_file(src, dst, options)
         end
         dstf:write(block)
     end
-    if type(src) ~= "userdata" then srcf:close() end
-    if type(dst) ~= "userdata" then dstf:close() end
+    if type(src) == "string" then srcf:close() end
+    if type(dst) == "string" then dstf:close() end
 end
 
 ---Creates directory
@@ -242,13 +242,19 @@ end
 ---#DES 'fs.hash_file'
 ---
 ---Hashes file in specified path
----@param path string
+---@param pathOrFile string | file*
 ---@param options? FsHashFileOptions
 ---@return string
-function fs.hash_file(path, options)
+function fs.hash_file(pathOrFile, options)
     local _hash = require 'lmbed_hash'
     options = _util.merge_tables({ type = "sha256", binaryMode = true }, options, true)
-    local srcf = assert(io.open(path, options.binaryMode and "rb" or "r"), 'No such a file or directory - ' .. path)
+    local srcf
+    if type(pathOrFile) == "string" then
+        srcf = assert(io.open(pathOrFile, options.binaryMode and "rb" or "r"), 'No such a file or directory - ' .. path)
+    else
+        assert(tostring(pathOrFile):find("file") == 1, "Not a file* - (" .. tostring(pathOrFile) .. ")")
+        srcf = pathOrFile
+    end
     local size = 2 ^ 12 -- 4K
 
     if options.type == 'sha256' then
