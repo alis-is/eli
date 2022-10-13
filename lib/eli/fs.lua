@@ -250,7 +250,7 @@ function fs.hash_file(pathOrFile, options)
     options = _util.merge_tables({ type = "sha256", binaryMode = true }, options, true)
     local srcf
     if type(pathOrFile) == "string" then
-        srcf = assert(io.open(pathOrFile, options.binaryMode and "rb" or "r"), 'No such a file or directory - ' .. path)
+        srcf = assert(io.open(pathOrFile, options.binaryMode and "rb" or "r"), 'No such a file or directory - ' .. pathOrFile)
     else
         assert(tostring(pathOrFile):find("file") == 1, "Not a file* - (" .. tostring(pathOrFile) .. ")")
         srcf = pathOrFile
