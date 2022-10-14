@@ -177,6 +177,7 @@ ExternalProject_Add(
                     --host=${CURL_HOST}
                     --disable-smb
                     --disable-mqtt
+                    --disable-ntlm
                     --disable-ntlm-wb
                     --disable-shared
                     --without-ca-bundle
