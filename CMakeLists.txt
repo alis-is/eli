@@ -176,6 +176,7 @@ ExternalProject_Add(
                     --host=${CURL_HOST}
                     --disable-smb
                     --disable-mqtt
+                    --disable-ntlm
                     --disable-ntlm-wb
                     --disable-shared
                     --without-ca-bundle
@@ -200,7 +201,7 @@ target_include_directories(lcurl PUBLIC ${CURL_INCLUDE})
 add_executable (eli lua/src/onelua.c)
 target_link_libraries(eli lis_tty lcurl lua_zip ltar eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_os_extra eli_env_extra eli_extra_utils curl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic "-static")
 if(WIN32 OR MINGW)
-  target_link_libraries (eli advapi32 ws2_32)
+  target_link_libraries (eli bcrypt advapi32 ws2_32 )
 endif()
 set_target_properties(eli PROPERTIES OUTPUT_NAME "eli") 
 
