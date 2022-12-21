@@ -134,9 +134,9 @@ set(CURL_LIB_LDFLAGS "-L${CMAKE_CURRENT_BINARY_DIR}/modules/mbedtls/library -L${
 ExternalProject_Add(
   curl_lib
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/
-  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/configure "CFLAGS=${CMAKE_C_FLAGS}" CPPFLAGS=${CURL_LIB_CPPFLAGS} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} LD=${CMAKE_LINKER} AR=${CMAKE_AR} AS=${CMAKE_AS} RANLIB=${CMAKE_RANLIB} LD_LIBRARY_PATH=${ZLIB_INCLUDE_DIR} LDFLAGS=${CURL_LIB_LDFLAGS}
+  CONFIGURE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/modules/curl/configure "CFLAGS=${CMAKE_C_FLAGS}" CPPFLAGS=${CURL_LIB_CPPFLAGS} CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} LD=${CMAKE_LINKER} AR=${CMAKE_AR} AS=${CMAKE_AS} RANLIB=${CMAKE_RANLIB} RC=${CMAKE_RC_COMPILER} LD_LIBRARY_PATH=${ZLIB_INCLUDE_DIR} LDFLAGS=${CURL_LIB_LDFLAGS}
                     --prefix=${CMAKE_BINARY_DIR}/modules/curl/
-                    --without-ssl
+                    #--without-ssl
                     --with-mbedtls=${CMAKE_BINARY_DIR}/modules/mbedtls
                     --without-libpsl
                     --without-libidn2

@@ -1,5 +1,5 @@
 {
-   version: 0.25.8
+   version: 0.25.9
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    compress: true
@@ -208,7 +208,7 @@
       {
          id: mbedtls
          repository: Mbed-TLS/mbedtls
-         version: v3.2.1
+         version: v3.3.0
          destination: modules/mbedtls
          omitRoot: true
       }
