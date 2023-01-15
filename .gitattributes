@@ -1,4 +1,6 @@
 *.lua text eol=lf
+*.h text eol=lf
+*.c text eol=lf
 *.sh text eol=lf
 
 lib/tests/assets/** binary

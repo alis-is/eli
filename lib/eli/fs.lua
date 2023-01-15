@@ -162,6 +162,7 @@ end
 ---@field recurse boolean
 ---@field contentOnly boolean
 ---@field followLinks boolean
+---@field keep (fun(path: string): boolean)? whitelist function for files to keep
 
 ---#DES 'fs.remove'
 ---
@@ -170,13 +171,15 @@ end
 ---@param path string
 ---@param options FsRemoveOptions?
 function fs.remove(path, options)
-    if not efsLoaded then
-        -- fallback to os delete
+    options = _util.merge_tables({}, options, true)
+    if not efsLoaded then -- fallback to os delete
+        if type(options.keep) == 'function' and options.keep(path) then
+            return
+        end
         local _ok, _error = os.remove(path)
         assert(_ok, _error or '')
     end
 
-    options = _util.merge_tables({}, options, true)
     local recurse = options.recurse
     local contentOnly = options.contentOnly
     options.contentOnly = false -- for recursive calls
@@ -186,6 +189,9 @@ function fs.remove(path, options)
         return
     end
     if _type_check(path) == 'file' then
+        if type(options.keep) == 'function' and options.keep(path) then
+            return
+        end
         local _ok, _error = os.remove(path)
         assert(_ok, _error or '')
         return
@@ -195,12 +201,19 @@ function fs.remove(path, options)
             local fullPath = combine(path, o)
             if o ~= '.' and o ~= '..' then
                 if _type_check(fullPath) == 'file' then
+                    if type(options.keep) == 'function' and options.keep(fullPath) then
+                        goto CONTINUE
+                    end
                     local _ok, _error = os.remove(fullPath)
                     assert(_ok, _error or '')
                 elseif _type_check(fullPath) == 'directory' then
+                    if type(options.keep) == 'function' and options.keep(fullPath) then
+                        goto CONTINUE
+                    end
                     fs.remove(fullPath, options)
                 end
             end
+            ::CONTINUE::
         end
     end
     if not contentOnly then
