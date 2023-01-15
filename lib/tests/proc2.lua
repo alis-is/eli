@@ -113,6 +113,7 @@ function proc.exec(cmd, options)
 
     local _cmd =
     _sx.join_strings(" ", _stdinPart, cmd, _stdoutPart, _stderrPart)
+    print(_cmd)
     local _, _exitType, _code = os.execute(_cmd)
 
     return {

@@ -23,8 +23,8 @@ for _, download in ipairs(config.downloads) do
       fs.mkdirp(download.destination)
       zip.extract(_cached, download.destination, { flattenRootDir = download.omitRoot })
       if download.cmakelists then
-         log_info("Copying " .. path.combine("tools/cmake_files", download.cmakelists.source) .. " to " .. download.cmakelists.destination)
-         fs.copy_file(path.combine("tools/cmake_files", download.cmakelists.source), download.cmakelists.destination)
+         log_info("Copying " .. path.combine("misc/cmake_files", download.cmakelists.source) .. " to " .. download.cmakelists.destination)
+         fs.copy_file(path.combine("misc/cmake_files", download.cmakelists.source), download.cmakelists.destination)
       end
       log_success("Download of " .. download.id .. " completed.")
    end
