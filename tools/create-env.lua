@@ -44,20 +44,24 @@ end)
 log_info("Building linit.c...")
 assert(fs.read_file("lua/src/linit.c"):match("\nLUALIB_API void luaL_openlibs.-\n}"))
 rebuild_file("lua/src/linit.c", function(file)
-   local _embedableLibs = generate_embedable_module(config.lua_libs, { minify = config.minify, escape = not config.compress, escapeForLuaGsub = not config.compress })
+   local _embedableLibs = generate_embedable_module(config.lua_libs,
+      { minify = config.minify, escape = not config.compress, escapeForLuaGsub = not config.compress })
    local _compressedLibs = ""
    if config.compress then
       _compressedLibs = _buildUtil.compress_string_to_c_bytes(_embedableLibs)
    end
    local _renderedLibs = lustache:render(templates.libsListTemplate,
-      { keys = table.keys(config.c_libs), pairs = table.to_array(config.c_libs), embedableLibs = config.compress and _compressedLibs or _embedableLibs, compress = config.compress })
+      { keys = table.keys(config.c_libs), pairs = table.to_array(config.c_libs),
+         embedableLibs = config.compress and _compressedLibs or _embedableLibs, compress = config.compress })
    local _newLinit = file:gsub("/%* eli additional libs %*/.-/%* end eli additional libs %*/\n", "")
        -- cleanup potential old init
        :gsub("\nLUALIB_API void luaL_openlibs", _renderedLibs) -- inject libs
    local _start, _end = _newLinit:find("\nLUALIB_API void luaL_openlibs.*$")
    return _newLinit:sub(1, _start - 1) ..
        _newLinit:sub(_start, _end):gsub("\n}",
-          '\n' .. lustache:render(templates.loadLibsTemplate, { embedableLibsLength = #_embedableLibs, compress = config.compress  }))
+          '\n' ..
+          lustache:render(templates.loadLibsTemplate,
+             { embedableLibsLength = #_embedableLibs, compress = config.compress }))
 end)
 
 -- build new lua.c
@@ -97,6 +101,15 @@ if not config.global_modules then
       ['\n\t\tLUA_SHRDIR"%?%.lua;" LUA_SHRDIR"%?\\\\init%.lua;" \\'] = ""
    })
 end
+
+--- inject eliconf.h
+log_info("Injecting eliconf.h...")
+fs.copy_file("misc/conf/eliconf.h", "lua/src/eliconf.h")
+rebuild_file("lua/src/luaconf.h", function(file)
+   return "#include <eliconf.h>\n" .. file
+end, function(file)
+   return not file:match("eliconf%.h")
+end)
 
 -- fix lzip
 log_info("Renaming luaopen_brimworks_zip to luaopen_lzip in lua_zip.c...")

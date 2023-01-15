@@ -19,7 +19,7 @@ jobs:
           run: ./eli tools/build.lua
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-linux-musl-cross
       - name: Cache release
-        uses: actions/cache@v3
+        uses: actions/cache@v3.2.0
         env:
           cache-name: cache-binaries
         with:
@@ -36,7 +36,7 @@ jobs:
           run: ./eli tools/build.lua
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-w64-mingw32-cross
       - name: Cache release
-        uses: actions/cache@v3
+        uses: actions/cache@v3.2.0
         env:
           cache-name: cache-binaries
         with:
@@ -49,7 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Cache release
-        uses: actions/cache@v3
+        uses: actions/cache@v3.2.0
         env:
           cache-name: cache-binaries
         with:
@@ -72,7 +72,7 @@ jobs:
           echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
         shell: cmd
       - name: Cache release
-        uses: actions/cache@v3
+        uses: actions/cache@v3.2.0
         env:
           cache-name: cache-binaries
         with:

@@ -36,13 +36,13 @@ function util.merge_arrays(t1, t2)
 end
 
 ---#DES 'util.merge_tables'
----@param t1 table
----@param t2 table
+---@param t1? table
+---@param t2? table
 ---@param overwrite? boolean
 ---@return table
 function util.merge_tables(t1, t2, overwrite)
    if t1 == nil then
-      return t2
+      return t2 or {}
    end
    if t2 == nil or type(t2) ~= "table" then
       return t1
@@ -157,7 +157,7 @@ function util.print_table(t, deep)
    end
 end
 
----@type Logger? 
+---@type Logger?
 GLOBAL_LOGGER = GLOBAL_LOGGER or nil
 
 ---#DES 'util.global_log_factory'
@@ -167,16 +167,17 @@ GLOBAL_LOGGER = GLOBAL_LOGGER or nil
 function util.global_log_factory(module, ...)
    ---@type fun(msg: string)[]
    local _result = {}
-   if (type(GLOBAL_LOGGER) ~= "table" and type(GLOBAL_LOGGER) ~= "ELI_LOGGER") or getmetatable(GLOBAL_LOGGER).__type ~= "ELI_LOGGER" then
-      GLOBAL_LOGGER = (require"eli.Logger"):new()
+   if (type(GLOBAL_LOGGER) ~= "table" and type(GLOBAL_LOGGER) ~= "ELI_LOGGER") or
+       getmetatable(GLOBAL_LOGGER).__type ~= "ELI_LOGGER" then
+      GLOBAL_LOGGER = (require "eli.Logger"):new()
    end
 
-   for _, lvl in ipairs({...}) do
+   for _, lvl in ipairs({ ... }) do
       table.insert(
          _result,
          function(msg, vars)
             if type(msg) ~= "table" then
-               msg = {msg = msg}
+               msg = { msg = msg }
             end
             msg.module = module
             return GLOBAL_LOGGER:log(msg, lvl, vars)
@@ -237,18 +238,18 @@ local function _internal_clone(v, cache, deep)
 
    cache = cache or {}
    if type(v) == 'table' then
-       if cache[v] then
-           return cache[v]
-       else
-           local _clone_fn = _go_deeper and _internal_clone or function (v) return v end
-           local copy = {}
-           cache[v] = copy
-           for k, _v in next, v, nil do
-               copy[_clone_fn(k, cache, deep)] = _clone_fn(_v, cache, deep)
-           end
-           setmetatable(copy, _clone_fn(getmetatable(v), cache, deep))
-           return copy
-       end
+      if cache[v] then
+         return cache[v]
+      else
+         local _clone_fn = _go_deeper and _internal_clone or function(v) return v end
+         local copy = {}
+         cache[v] = copy
+         for k, _v in next, v, nil do
+            copy[_clone_fn(k, cache, deep)] = _clone_fn(_v, cache, deep)
+         end
+         setmetatable(copy, _clone_fn(getmetatable(v), cache, deep))
+         return copy
+      end
    else -- number, string, boolean, etc
       return v
    end
@@ -277,9 +278,9 @@ function util.equals(v, v2, deep)
          if not _result then return false end
       end
       return true
-  else -- number, string, boolean, etc
-     return v == v2
-  end
+   else -- number, string, boolean, etc
+      return v == v2
+   end
 end
 
 return util
