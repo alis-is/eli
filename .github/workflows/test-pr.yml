@@ -72,7 +72,7 @@ jobs:
           echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
         shell: cmd
       - name: Cache release
-        uses: actions/cache@v3
+        uses: actions/cache@v3.2.0
         env:
           cache-name: cache-binaries
         with:
@@ -81,13 +81,4 @@ jobs:
       - name: test
         shell: pwsh
         run: |
-          $ROOT=$(pwd).Path
-
-          function test_build {
-              param ([string]$platform)
-              Set-Location "lib\tests" &&
-              & "$ROOT\release\eli-win-$platform.exe" "all.lua" &&
-              Set-Location "$ROOT" || throw "failed"
-          }
-
-          test_build "x86_64"
+          .\tools\test.ps1 x86_64
