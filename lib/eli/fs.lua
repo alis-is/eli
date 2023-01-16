@@ -198,6 +198,11 @@ function fs.remove(path, options)
         assert(_ok, _error or '')
         return true
     end
+
+    -- do not process directory if it is meant to be kept
+    if type(options.keep) == 'function' and options.keep(path .. "/") then
+        return false
+    end
     local _allChildrenRemoved = true
     if recurse then
         for o in efs.iter_dir(path) do
@@ -206,13 +211,11 @@ function fs.remove(path, options)
             end
         end
     end
-    if not contentOnly then
-        if not _allChildrenRemoved or type(options.keep) == 'function' and options.keep(path .. "/") then
-            return false
-        end
+    if not contentOnly or not _allChildrenRemoved then
         efs.rmdir(path)
+        return true
     end
-    return true
+    return false
 end
 
 ---#DES 'fs.move'
