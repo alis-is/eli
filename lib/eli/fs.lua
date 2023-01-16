@@ -198,25 +198,15 @@ function fs.remove(path, options)
     end
     if recurse then
         for o in efs.iter_dir(path) do
-            local fullPath = combine(path, o)
             if o ~= '.' and o ~= '..' then
-                if _type_check(fullPath) == 'file' then
-                    if type(options.keep) == 'function' and options.keep(fullPath) then
-                        goto CONTINUE
-                    end
-                    local _ok, _error = os.remove(fullPath)
-                    assert(_ok, _error or '')
-                elseif _type_check(fullPath) == 'directory' then
-                    if type(options.keep) == 'function' and options.keep(fullPath) then
-                        goto CONTINUE
-                    end
-                    fs.remove(fullPath, options)
-                end
+                fs.remove(combine(path, o), options)
             end
-            ::CONTINUE::
         end
     end
     if not contentOnly then
+        if type(options.keep) == 'function' and options.keep(path .. "/") then
+            return
+        end
         efs.rmdir(path)
     end
 end
@@ -263,7 +253,8 @@ function fs.hash_file(pathOrFile, options)
     options = _util.merge_tables({ type = "sha256", binaryMode = true }, options, true)
     local srcf
     if type(pathOrFile) == "string" then
-        srcf = assert(io.open(pathOrFile, options.binaryMode and "rb" or "r"), 'No such a file or directory - ' .. pathOrFile)
+        srcf = assert(io.open(pathOrFile, options.binaryMode and "rb" or "r"),
+            'No such a file or directory - ' .. pathOrFile)
     else
         assert(tostring(pathOrFile):find("file") == 1, "Not a file* - (" .. tostring(pathOrFile) .. ")")
         srcf = pathOrFile
