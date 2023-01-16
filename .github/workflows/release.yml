@@ -90,8 +90,7 @@ jobs:
           path: ./release
           key: build#${{ github.sha }}
       - name: test
-        shell: |
-          pwsh -noninteractive -command "try {{ $ErrorActionPreference='Stop'; . '{0}' }} catch {{ Write-Error ""FAILED: $_""; throw; }} if ((Test-Path -LiteralPath variable:\LASTEXITCODE)) {{ exit $LASTEXITCODE }}"
+        shell: pwsh
         run: |
           .\tools\test.ps1
 
