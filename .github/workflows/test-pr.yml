@@ -71,11 +71,7 @@ jobs:
     needs: build-win
     steps:
       - uses: actions/checkout@v3
-      # - name: Use GNU tar to enable zstd for actions/cache
-      #   run: |
-      #     echo "Adding GNU tar to PATH"
-      #     echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
-      #   shell: cmd
+
       - name: restore cache
         uses: actions/cache@v3
         env:
@@ -84,6 +80,7 @@ jobs:
           path: ./release
           key: build-win#${{ github.sha }}
           enableCrossOsArchive: true
+
       - name: test
         shell: pwsh
         run: |

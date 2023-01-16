@@ -170,14 +170,16 @@ end
 ---(if EFS is false dir has to be empty and options are ignored)
 ---@param path string
 ---@param options FsRemoveOptions?
+---@return boolean 
 function fs.remove(path, options)
     options = _util.merge_tables({}, options, true)
     if not efsLoaded then -- fallback to os delete
         if type(options.keep) == 'function' and options.keep(path) then
-            return
+            return false
         end
         local _ok, _error = os.remove(path)
         assert(_ok, _error or '')
+        return true
     end
 
     local recurse = options.recurse
@@ -186,39 +188,34 @@ function fs.remove(path, options)
 
     local _type_check = options.followLinks and efs.file_type or efs.link_type
     if _type_check(path) == nil then
-        return
+        return true
     end
     if _type_check(path) == 'file' then
         if type(options.keep) == 'function' and options.keep(path) then
-            return
+            return false
         end
         local _ok, _error = os.remove(path)
         assert(_ok, _error or '')
-        return
+        return true
     end
+
+    -- do not process directory if it is meant to be kept
+    if type(options.keep) == 'function' and options.keep(path .. "/") then
+        return false
+    end
+    local _allChildrenRemoved = true
     if recurse then
         for o in efs.iter_dir(path) do
-            local fullPath = combine(path, o)
             if o ~= '.' and o ~= '..' then
-                if _type_check(fullPath) == 'file' then
-                    if type(options.keep) == 'function' and options.keep(fullPath) then
-                        goto CONTINUE
-                    end
-                    local _ok, _error = os.remove(fullPath)
-                    assert(_ok, _error or '')
-                elseif _type_check(fullPath) == 'directory' then
-                    if type(options.keep) == 'function' and options.keep(fullPath) then
-                        goto CONTINUE
-                    end
-                    fs.remove(fullPath, options)
-                end
+                _allChildrenRemoved = fs.remove(combine(path, o), options) and _allChildrenRemoved
             end
-            ::CONTINUE::
         end
     end
-    if not contentOnly then
+    if not contentOnly or not _allChildrenRemoved then
         efs.rmdir(path)
+        return true
     end
+    return false
 end
 
 ---#DES 'fs.move'
@@ -263,7 +260,8 @@ function fs.hash_file(pathOrFile, options)
     options = _util.merge_tables({ type = "sha256", binaryMode = true }, options, true)
     local srcf
     if type(pathOrFile) == "string" then
-        srcf = assert(io.open(pathOrFile, options.binaryMode and "rb" or "r"), 'No such a file or directory - ' .. pathOrFile)
+        srcf = assert(io.open(pathOrFile, options.binaryMode and "rb" or "r"),
+            'No such a file or directory - ' .. pathOrFile)
     else
         assert(tostring(pathOrFile):find("file") == 1, "Not a file* - (" .. tostring(pathOrFile) .. ")")
         srcf = pathOrFile
