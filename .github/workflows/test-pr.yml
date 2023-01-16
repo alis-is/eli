@@ -18,13 +18,15 @@ jobs:
           image: ghcr.io/alis-is/eli-build:latest
           run: ./eli tools/build.lua
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-linux-musl-cross
-      - name: Cache release
-        uses: actions/cache@v3.2.0
+      - name: cache release
+        uses: actions/cache@v3
         env:
           cache-name: cache-binaries
         with:
           path: ./release
           key: build-linux#${{ github.sha }}
+          enableCrossOsArchive: true
+
   build-win:
     runs-on: ubuntu-latest
     steps:
@@ -35,49 +37,53 @@ jobs:
           image: ghcr.io/alis-is/eli-build:latest
           run: ./eli tools/build.lua
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-w64-mingw32-cross
-      - name: Cache release
-        uses: actions/cache@v3.2.0
+      - name: cache release
+        uses: actions/cache@v3
         env:
           cache-name: cache-binaries
         with:
           path: ./release
           key: build-win#${{ github.sha }}
+          enableCrossOsArchive: true
 
   test-linux:
     runs-on: ubuntu-latest
     needs: build-linux
     steps:
       - uses: actions/checkout@v3
-      - name: Cache release
-        uses: actions/cache@v3.2.0
+      - name: restore cache
+        uses: actions/cache@v3
         env:
           cache-name: cache-binaries
         with:
           path: ./release
           key: build-linux#${{ github.sha }}
+          enableCrossOsArchive: true
       - name: test
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/alis-is/eli-test:latest
           run: ./tools/test.sh x86_64
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
+          
   test-windows:
     runs-on: windows-latest
     needs: build-win
     steps:
       - uses: actions/checkout@v3
-      - name: Use GNU tar to enable zstd for actions/cache
-        run: |
-          echo "Adding GNU tar to PATH"
-          echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
-        shell: cmd
-      - name: Cache release
-        uses: actions/cache@v3.2.0
+      # - name: Use GNU tar to enable zstd for actions/cache
+      #   run: |
+      #     echo "Adding GNU tar to PATH"
+      #     echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+      #   shell: cmd
+      - name: restore cache
+        uses: actions/cache@v3
         env:
           cache-name: cache-binaries
         with:
           path: ./release
           key: build-win#${{ github.sha }}
+          enableCrossOsArchive: true
       - name: test
         shell: pwsh
         run: |
