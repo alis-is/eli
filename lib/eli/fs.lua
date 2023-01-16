@@ -170,14 +170,16 @@ end
 ---(if EFS is false dir has to be empty and options are ignored)
 ---@param path string
 ---@param options FsRemoveOptions?
+---@return boolean 
 function fs.remove(path, options)
     options = _util.merge_tables({}, options, true)
     if not efsLoaded then -- fallback to os delete
         if type(options.keep) == 'function' and options.keep(path) then
-            return
+            return false
         end
         local _ok, _error = os.remove(path)
         assert(_ok, _error or '')
+        return true
     end
 
     local recurse = options.recurse
@@ -186,29 +188,31 @@ function fs.remove(path, options)
 
     local _type_check = options.followLinks and efs.file_type or efs.link_type
     if _type_check(path) == nil then
-        return
+        return true
     end
     if _type_check(path) == 'file' then
         if type(options.keep) == 'function' and options.keep(path) then
-            return
+            return false
         end
         local _ok, _error = os.remove(path)
         assert(_ok, _error or '')
-        return
+        return true
     end
+    local _allChildrenRemoved = true
     if recurse then
         for o in efs.iter_dir(path) do
             if o ~= '.' and o ~= '..' then
-                fs.remove(combine(path, o), options)
+                _allChildrenRemoved = fs.remove(combine(path, o), options) and _allChildrenRemoved
             end
         end
     end
     if not contentOnly then
-        if type(options.keep) == 'function' and options.keep(path .. "/") then
-            return
+        if not _allChildrenRemoved or type(options.keep) == 'function' and options.keep(path .. "/") then
+            return false
         end
         efs.rmdir(path)
     end
+    return true
 end
 
 ---#DES 'fs.move'

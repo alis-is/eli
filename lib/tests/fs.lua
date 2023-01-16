@@ -157,6 +157,29 @@ _test["remove (dir)"] = function()
     _test.assert(_ok and not _exists)
 end
 
+_test["remove (keep)"] = function()
+    _eliFs.safe_create_dir("tmp/test-dir")
+
+    _eliFs.safe_create_dir("tmp/test-dir/test/test", true)
+    _eliFs.safe_create_dir("tmp/test-dir/test/test-another", true)
+
+    _eliFs.safe_create_dir("tmp/test-dir/test2/test2", true)
+    _eliFs.safe_create_dir("tmp/test-dir/test2/test2-another", true)
+
+    fs.write_file("tmp/test-dir/test/test/test.file", "test")
+    fs.write_file("tmp/test-dir/test2/test2/test2.file", "test")
+
+    _eliFs.safe_remove("tmp/test-dir", { recurse = true, keep = function(path)
+        return path == "tmp/test-dir/test/test/" or path == "tmp/test-dir/test2/test2/test2.file"
+    end })
+    _test.assert(_eliFs.exists("tmp/test-dir/test2/test2/test2.file"))
+    _test.assert(_eliFs.exists("tmp/test-dir/test/test/"))
+    _test.assert(_eliFs.exists("tmp/test-dir/test/test/test.file"))
+
+    _test.assert(not _eliFs.exists("tmp/test-dir/test/test-another/"))
+    _test.assert(not _eliFs.exists("tmp/test-dir/test2/test2-another/"))
+end
+
 _test["move (dir)"] = function()
     local _ok, _error = _eliFs.safe_move("tmp/test-dir/test",
         "tmp/test-dir/test2")
