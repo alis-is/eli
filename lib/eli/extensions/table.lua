@@ -240,5 +240,7 @@ return {
     ---@param t table
     ---@return boolean
     is_array = _util.is_array,
+    includes = _includes,
+    has_key = _has_key,
     globalize = _globalize
 }
