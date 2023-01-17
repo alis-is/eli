@@ -2,6 +2,7 @@ local io = require 'io'
 local _eliPath = require 'eli.path'
 local dir = _eliPath.dir
 local combine = _eliPath.combine
+local default_sep = _eliPath.default_sep
 local _extTable = require 'eli.extensions.table'
 local _util = require 'eli.util'
 local efsLoaded, efs = pcall(require, 'eli.fs.extra')
@@ -207,7 +208,7 @@ function fs.remove(path, options)
     end
 
     -- do not process directory if it is meant to be kept
-    if not _extTable.includes({ "/" , "\\"},  _pathRelativeToRoot:sub(-1)) then _pathRelativeToRoot = _pathRelativeToRoot .. _eliPath.default_sep() end
+    if not _extTable.includes({ "/" , "\\"},  _pathRelativeToRoot:sub(-1)) then _pathRelativeToRoot = _pathRelativeToRoot ..  (_eliPath.detect_sep(_pathRelativeToRoot) or _eliPath.default_sep()) end
     if type(options.keep) == 'function' and options.keep(_pathRelativeToRoot, path) then
         return false
     end
