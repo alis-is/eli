@@ -2,6 +2,8 @@ local io = require 'io'
 local _eliPath = require 'eli.path'
 local dir = _eliPath.dir
 local combine = _eliPath.combine
+local default_sep = _eliPath.default_sep
+local _extTable = require 'eli.extensions.table'
 local _util = require 'eli.util'
 local efsLoaded, efs = pcall(require, 'eli.fs.extra')
 
@@ -162,7 +164,8 @@ end
 ---@field recurse boolean
 ---@field contentOnly boolean
 ---@field followLinks boolean
----@field keep (fun(path: string): boolean)? whitelist function for files to keep
+---@field keep (fun(path: string, fullPath: string): boolean)? whitelist function for files to keep
+---@field root string path to strip from path before passing to keep function, this is usually done internally
 
 ---#DES 'fs.remove'
 ---
@@ -170,11 +173,16 @@ end
 ---(if EFS is false dir has to be empty and options are ignored)
 ---@param path string
 ---@param options FsRemoveOptions?
----@return boolean 
+---@return boolean
 function fs.remove(path, options)
-    options = _util.merge_tables({}, options, true)
+    assert(type(path) == 'string', 'Invalid path type!')
+    options = _util.merge_tables({ root = path }, options, true)
+    local _pathRelativeToRoot = path:sub(#options.root + 1) -- strip root
+    if _pathRelativeToRoot:sub(1, 1) == '/' then _pathRelativeToRoot = _pathRelativeToRoot:sub(2) end
+    if _pathRelativeToRoot == '' then _pathRelativeToRoot = '.' end
+
     if not efsLoaded then -- fallback to os delete
-        if type(options.keep) == 'function' and options.keep(path) then
+        if type(options.keep) == 'function' and options.keep(_pathRelativeToRoot, path) then
             return false
         end
         local _ok, _error = os.remove(path)
@@ -191,7 +199,7 @@ function fs.remove(path, options)
         return true
     end
     if _type_check(path) == 'file' then
-        if type(options.keep) == 'function' and options.keep(path) then
+        if type(options.keep) == 'function' and options.keep(_pathRelativeToRoot, path) then
             return false
         end
         local _ok, _error = os.remove(path)
@@ -200,7 +208,8 @@ function fs.remove(path, options)
     end
 
     -- do not process directory if it is meant to be kept
-    if type(options.keep) == 'function' and options.keep(path .. "/") then
+    _pathRelativeToRoot = _eliPath.normalize(_pathRelativeToRoot, nil, { endsep = true }) --[[@as string]]
+    if type(options.keep) == 'function' and options.keep(_pathRelativeToRoot, path) then
         return false
     end
     local _allChildrenRemoved = true
@@ -513,7 +522,7 @@ end
 ---@return boolean|nil, string
 function fs.file_type(path)
     local _last = path:sub(#path, #path)
-    if _last == "/" or _last == "\\" then
+    if _extTable.includes({ "/", "\\" }, _last) then
         path = path:sub(1, #path - 1)
     end
     return efs.file_type(path)
