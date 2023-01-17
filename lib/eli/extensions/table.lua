@@ -217,6 +217,7 @@ local function _globalize()
     table.get = _get
     table.set = _set
     table.map = _map
+    table.reduce = _reduce
     table.to_array = _to_array
     table.keys = _keys
     table.values = _values
