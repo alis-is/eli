@@ -172,6 +172,7 @@ _test["remove (keep)"] = function()
 
     _eliFs.safe_remove("tmp/test-dir", { recurse = true, keep = function(path, fullpath)
         path = _eliPath.normalize(path, "unix")
+        print(path)
         return path == "test/test/" or path == "test2/test2/test2.file"
     end })
     _test.assert(_eliFs.exists("tmp/test-dir/test2/test2/test2.file"))
