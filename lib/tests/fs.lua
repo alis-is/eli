@@ -1,5 +1,6 @@
 local _test = require 'u-test'
 local _ok, _eliFs = pcall(require, "eli.fs")
+local _eliPath = require "eli.path"
 
 if not _ok then
     _test["eli.fs not available"] = function()
@@ -170,6 +171,7 @@ _test["remove (keep)"] = function()
     fs.write_file("tmp/test-dir/test2/test2/test2.file", "test")
 
     _eliFs.safe_remove("tmp/test-dir", { recurse = true, keep = function(path, fullpath)
+        path = _eliPath.normalize(path, "unix")
         return path == "test/test/" or path == "test2/test2/test2.file"
     end })
     _test.assert(_eliFs.exists("tmp/test-dir/test2/test2/test2.file"))
