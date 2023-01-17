@@ -163,6 +163,7 @@ end
 ---@field contentOnly boolean
 ---@field followLinks boolean
 ---@field keep (fun(path: string): boolean)? whitelist function for files to keep
+---@field root string path to strip from path before passing to keep function, this is usually done internally
 
 ---#DES 'fs.remove'
 ---
@@ -172,9 +173,13 @@ end
 ---@param options FsRemoveOptions?
 ---@return boolean 
 function fs.remove(path, options)
-    options = _util.merge_tables({}, options, true)
+    assert(type(path) == 'string', 'Invalid path type!')
+    options = _util.merge_tables({ root = path }, options, true)
+    local _pathRelativeToRoot = path:sub(#options.root)
+    if _pathRelativeToRoot == '' then _pathRelativeToRoot = '.' end
+
     if not efsLoaded then -- fallback to os delete
-        if type(options.keep) == 'function' and options.keep(path) then
+        if type(options.keep) == 'function' and options.keep(_pathRelativeToRoot) then
             return false
         end
         local _ok, _error = os.remove(path)
@@ -191,7 +196,7 @@ function fs.remove(path, options)
         return true
     end
     if _type_check(path) == 'file' then
-        if type(options.keep) == 'function' and options.keep(path) then
+        if type(options.keep) == 'function' and options.keep(_pathRelativeToRoot) then
             return false
         end
         local _ok, _error = os.remove(path)
@@ -200,7 +205,7 @@ function fs.remove(path, options)
     end
 
     -- do not process directory if it is meant to be kept
-    if type(options.keep) == 'function' and options.keep(path .. "/") then
+    if type(options.keep) == 'function' and options.keep(_pathRelativeToRoot .. "/") then
         return false
     end
     local _allChildrenRemoved = true
