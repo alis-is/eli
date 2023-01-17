@@ -147,10 +147,10 @@ end
 --- can be used to map dictionary like tables BUT value is passed as first argument and key as second
 ---@generic T
 ---@param arr T[]|table<string|number, T>
----@param mapFn fun(element: T, k: string| number): T
+---@param mapFn fun(element: T, k: string| number): any
 ---@return T[]|table<string|number, T>
 local function _map(arr, mapFn)
-    if not _util.is_array(arr) or type(mapFn) ~= "function" then
+    if type(mapFn) ~= "function" then
         return arr
     end
     local _result = {}
@@ -158,6 +158,26 @@ local function _map(arr, mapFn)
         _result[k] = mapFn(v, k)
     end
     return _result
+end
+
+---#DES 'table.reduce'
+---
+---reduces array like table to single value
+--- can be used to reduce dictionary like tables BUT value is passed as first argument and key as second
+---@generic T, U
+---@param arr T[]|table<string|number, T>
+---@param reduceFn fun(acc: U, element: T, k: string| number): U
+---@param initial U
+---@return T
+local function _reduce(arr, reduceFn, initial)
+    if type(reduceFn) ~= "function" then
+        return initial
+    end
+    local _acc = initial
+    for k, v in pairs(arr) do
+        _acc = reduceFn(_acc, v, k)
+    end
+    return _acc
 end
 
 ---#DES 'table.includes'
@@ -197,6 +217,7 @@ local function _globalize()
     table.get = _get
     table.set = _set
     table.map = _map
+    table.reduce = _reduce
     table.to_array = _to_array
     table.keys = _keys
     table.values = _values
@@ -210,6 +231,7 @@ return {
     get = _get,
     set = _set,
     map = _map,
+    reduce = _reduce,
     to_array = _to_array,
     keys = _keys,
     values = _values,

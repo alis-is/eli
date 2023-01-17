@@ -109,6 +109,39 @@ _test["set"] = function()
     _test.assert(_exTable.get(_t2, { "2" }) == "zzz")
 end
 
+_test["map"] = function()
+    local _t = {
+        t2 = {
+            v1 = "aaa"
+        },
+        v2 = "bbb"
+    }
+    local _result = _exTable.map(_t, function(v, k) return tostring(k) .. " = " .. tostring(v) end)
+    _test.assert(_result.t2:match("t2 = table:"))
+    _test.assert(_result.v2 == "v2 = bbb")
+end
+
+_test["reduce"] = function()
+    local _t = {
+        t2 = {
+            v1 = "aaa"
+        },
+        v2 = "bbb"
+    }
+    local _result = _exTable.reduce(_t, function(acc, v, k)
+        acc[k] = true
+        return acc
+    end, {})
+    _test.assert(_result.t2 == true)
+    _test.assert(_result.v2 == true)
+
+    local _t2 = { "aaa", "bbb", "ccc" }
+    local _result2 = _exTable.reduce(_t2, function(acc, v)
+        return acc .. v
+    end, "")
+    _test.assert(_result2 == "aaabbbccc")
+end
+
 _test["includes"] = function()
     local _nested = {
         v1 = "aaa"
