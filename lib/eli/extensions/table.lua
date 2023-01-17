@@ -150,7 +150,7 @@ end
 ---@param mapFn fun(element: T, k: string| number): any
 ---@return T[]|table<string|number, T>
 local function _map(arr, mapFn)
-    if not _util.is_array(arr) or type(mapFn) ~= "function" then
+    if type(mapFn) ~= "function" then
         return arr
     end
     local _result = {}
