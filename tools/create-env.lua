@@ -83,7 +83,7 @@ local _copyrightPattern = '#define LUA_COPYRIGHT[\t ]-LUA_RELEASE "  Copyright %
 rebuild_file("lua/src/lua.h", function(file)
    local _copyright = file:match(_copyrightPattern)
    local _newCopyright = _copyright:sub(1, _copyright:len() - 1) ..
-       '\\nEli ' .. config.version .. '  Copyright (C) 2019-2022 alis-is"'
+       '\\nEli ' .. config.version .. '  Copyright (C) 2019-2023 alis-is"'
    local _start, _end = file:find(_copyright, 1, true)
    return file:sub(1, _start - 1) .. _newCopyright .. file:sub(_end + 1, file:len())
 end, function(file)
