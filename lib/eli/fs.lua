@@ -173,12 +173,12 @@ end
 ---(if EFS is false dir has to be empty and options are ignored)
 ---@param path string
 ---@param options FsRemoveOptions?
----@return boolean 
+---@return boolean
 function fs.remove(path, options)
     assert(type(path) == 'string', 'Invalid path type!')
     options = _util.merge_tables({ root = path }, options, true)
     local _pathRelativeToRoot = path:sub(#options.root + 1) -- strip root
-    if _pathRelativeToRoot:sub(1,1) == '/' then _pathRelativeToRoot = _pathRelativeToRoot:sub(2) end
+    if _pathRelativeToRoot:sub(1, 1) == '/' then _pathRelativeToRoot = _pathRelativeToRoot:sub(2) end
     if _pathRelativeToRoot == '' then _pathRelativeToRoot = '.' end
 
     if not efsLoaded then -- fallback to os delete
@@ -208,7 +208,7 @@ function fs.remove(path, options)
     end
 
     -- do not process directory if it is meant to be kept
-    if not _extTable.includes({ "/" , "\\"},  _pathRelativeToRoot:sub(-1)) then _pathRelativeToRoot = _pathRelativeToRoot ..  (_eliPath.detect_sep(_pathRelativeToRoot) or _eliPath.default_sep()) end
+    _pathRelativeToRoot = _eliPath.normalize(_pathRelativeToRoot, nil, { endsep = true }) --[[@as string]]
     if type(options.keep) == 'function' and options.keep(_pathRelativeToRoot, path) then
         return false
     end
@@ -522,7 +522,7 @@ end
 ---@return boolean|nil, string
 function fs.file_type(path)
     local _last = path:sub(#path, #path)
-    if _extTable.includes({ "/" , "\\"}, _last) then
+    if _extTable.includes({ "/", "\\" }, _last) then
         path = path:sub(1, #path - 1)
     end
     return efs.file_type(path)
