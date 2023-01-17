@@ -164,7 +164,7 @@ end
 ---@field recurse boolean
 ---@field contentOnly boolean
 ---@field followLinks boolean
----@field keep (fun(path: string, fullPath: string): boolean)? whitelist function for files to keep
+---@field keep (fun(path: string, fullPath: string): boolean?)? whitelist function for files to keep
 ---@field root string path to strip from path before passing to keep function, this is usually done internally
 
 ---#DES 'fs.remove'
