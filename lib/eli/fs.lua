@@ -25,6 +25,7 @@ local fs = {
 
 ---@class AccessFileOptions
 ---@field binaryMode boolean
+---@field append boolean
 
 ---#DES 'fs.read_file'
 ---
@@ -49,8 +50,12 @@ end
 ---@param options AccessFileOptions?
 function fs.write_file(path, content, options)
     ---@type AccessFileOptions
-    options = _util.merge_tables({ binaryMode = true }, options, true)
-    local f = assert(io.open(path, options.binaryMode and "wb" or "w"), 'No such a file or directory - ' .. path)
+    options = _util.merge_tables({ binaryMode = true, append = false }, options, true)
+    local _mode = options.binaryMode and "wb" or "w"
+    if options.append then
+        _mode = options.binaryMode and "ab" or "a"
+    end
+    local f = assert(io.open(path, _mode), 'No such a file or directory - ' .. path)
     f:write(content)
     f:close()
 end
@@ -107,7 +112,7 @@ local function _internal_mkdir(path, mkdir, scopeName)
     end
     if type(_mkdir) ~= 'function' then
         -- we do not have any mkdir avaialble
-        -- we can siletntly ignore this if dir already exists
+        -- we can silently ignore this if dir already exists
         local f = io.open(path)
         if f == nil then
             _check_efs_available(scopeName)
