@@ -43,19 +43,19 @@ _test["add_abs"] = function ()
 	local _a = _eliBigint.new("123456789012345678901234567890")
 	local _b = _eliBigint.new("123456789012345678901234567890") * -1
 	local _c = _eliBigint.new("246913578024691357802469135780")
-	_test.assert(_a:add_abs(_b) == _c)	
+	_test.assert(bigint.add_abs(_a, _b) == _c)
 
 	-- add bigint and number
 	_a = _eliBigint.new("123456789012345678901234567890")
 	_b = -110
 	_c = _eliBigint.new("123456789012345678901234568000")
-	_test.assert(_a:add_abs(_b) == _c)
+	_test.assert(bigint.add_abs(_a, _b) == _c)
 
 	-- add bigint and string
 	_a = _eliBigint.new("123456789012345678901234567890")
 	_b = "-110"
 	_c = _eliBigint.new("123456789012345678901234568000")
-	_test.assert(_a:add_abs(_b) == _c)
+	_test.assert(bigint.add_abs(_a, _b) == _c)
 end
 
 _test["sub"] = function ()
@@ -83,19 +83,19 @@ _test["sub_abs"] = function ()
 	local _a = _eliBigint.new("123456789012345678901234567890")
 	local _b = _eliBigint.new("123456789012345678901234567890") * -1
 	local _c = _eliBigint.new("0")
-	_test.assert(_a:sub_abs(_b) == _c)	
+	_test.assert(bigint.sub_abs(_a, _b) == _c)
 
 	-- sub bigint and number
 	_a = _eliBigint.new("123456789012345678901234567890")
 	_b = -110
 	_c = _eliBigint.new("123456789012345678901234567780")
-	_test.assert(_a:sub_abs(_b) == _c)
+	_test.assert(bigint.sub_abs(_a, _b) == _c)
 
 	-- sub bigint and string
 	_a = _eliBigint.new("123456789012345678901234567890")
 	_b = "-110"
 	_c = _eliBigint.new("123456789012345678901234567780")
-	_test.assert(_a:sub_abs(_b) == _c)
+	_test.assert(bigint.sub_abs(_a, _b) == _c)
 end
 
 _test["mul"] = function ()
@@ -122,19 +122,19 @@ _test["div"] = function ()
 	-- div 2 bigints
 	local _a = _eliBigint.new("123456789012345678901234567890")
 	local _b = _eliBigint.new("4")
-	local _c = _eliBigint.new("30864197530864197530864197531")
+	local _c = _eliBigint.new("30864197253086419725308641972")
 	_test.assert(_a / _b == _c)
 
 	-- div bigint and number
 	_a = _eliBigint.new("123456789012345678901234567890")
 	_b = 4
-	_c = _eliBigint.new("30864197530864197530864197531")
+	_c = _eliBigint.new("30864197253086419725308641972")
 	_test.assert(_a / _b == _c)
 
 	-- div bigint and string
 	_a = _eliBigint.new("123456789012345678901234567890")
 	_b = "4"
-	_c = _eliBigint.new("30864197530864197530864197531")
+	_c = _eliBigint.new("30864197253086419725308641972")
 	_test.assert(_a / _b == _c)
 end
 
