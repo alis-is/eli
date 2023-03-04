@@ -144,7 +144,7 @@
       {
          id: eli_fs_extra
          repository: alis-is/eli-fs-extra
-         version: 0.6.1
+         version: 0.6.2
          destination: modules/eli-fs-extra
          omitRoot: true
       },
@@ -172,7 +172,7 @@
       {
          id: eli_bigint
          repository: alis-is/eli-bigint
-         version: 0.0.1
+         version: 0.0.2
          destination: modules/eli-bigint
          omitRoot: true
       },
