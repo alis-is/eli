@@ -62,6 +62,8 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-proc-extra/)
 target_include_directories(eli_proc_extra PUBLIC ${ELI_EXTRA_UTILS_INCLUDE} ${ELI_STREAM_EXTRA_INCLUDE})
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-stream-extra/)
 target_include_directories(eli_stream_extra PUBLIC ${ELI_EXTRA_UTILS_INCLUDE})
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/eli-bigint/)
+target_include_directories(eli_bigint PUBLIC ${ELI_EXTRA_UTILS_INCLUDE})
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/modules/tar/)
 target_include_directories(ltar PUBLIC ${ELI_EXTRA_UTILS_INCLUDE})
 
@@ -199,7 +201,7 @@ target_include_directories(lcurl PUBLIC ${CURL_INCLUDE})
 # ELI
 # 1. eli interpreter
 add_executable (eli lua/src/onelua.c)
-target_link_libraries(eli lis_tty lcurl lua_zip ltar eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_os_extra eli_env_extra eli_extra_utils curl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic "-static")
+target_link_libraries(eli lis_tty lcurl lua_zip ltar eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_os_extra eli_env_extra eli_extra_utils eli_bigint curl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic "-static")
 if(WIN32 OR MINGW)
   target_link_libraries (eli bcrypt advapi32 ws2_32 )
 endif()

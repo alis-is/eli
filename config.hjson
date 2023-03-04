@@ -1,5 +1,5 @@
 {
-   version: 0.27.3
+   version: 0.28.0
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    compress: true
@@ -13,6 +13,7 @@
       eli_pipe_extra: "eli.pipe.extra"
       eli_stream_extra: "eli.stream.extra"
       eli_os_extra: "eli.os.extra"
+      eli_bigint: "eli.bigint"
       ltar: "ltar"
       lzip: lzip
       zlib: zlib
@@ -143,7 +144,7 @@
       {
          id: eli_fs_extra
          repository: alis-is/eli-fs-extra
-         version: 0.6.1
+         version: 0.6.2
          destination: modules/eli-fs-extra
          omitRoot: true
       },
@@ -166,6 +167,13 @@
          repository: alis-is/eli-env-extra
          version: 0.2.0
          destination: modules/eli-env-extra
+         omitRoot: true
+      },
+      {
+         id: eli_bigint
+         repository: alis-is/eli-bigint
+         version: 0.0.3
+         destination: modules/eli-bigint
          omitRoot: true
       },
       {
