@@ -1,6 +1,8 @@
 local _test = TEST or require 'u-test'
 local _ok, _eliNet = pcall(require, "eli.net")
 
+local HTTPBIN_URL = os.getenv("HTTPBIN_URL") or "https://httpbin.org/"
+
 if not _ok then
     _test["eli.net available"] = function()
         _test.assert(false, "eli.net not available")
@@ -65,13 +67,13 @@ _test["RestClient get"] = function()
     _test.assert(_ok, "request failed")
     _test.assert(_response.raw:match("Copyright %(c%) %d%d%d%d alis%.is"), "copyright not found")
 
-    _client = RestClient:new("https://httpbin.org/")
+    _client = RestClient:new(HTTPBIN_URL)
     _ok, _response = _client:safe_get("get", { params = { test = "aaa", test2 = "bbb" } })
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
-    _client = RestClient:new("https://httpbin.org/get")
+    _client = RestClient:new(HTTPBIN_URL .. "get")
     _ok, _response = _client:safe_get({ params = { "test=aaa", "test2=bbb" } })
     _test.assert(_ok, "request failed")
     _data = _response.data
@@ -79,7 +81,7 @@ _test["RestClient get"] = function()
 end
 
 _test["RestClient post"] = function()
-    local _client = RestClient:new("https://httpbin.org/")
+    local _client = RestClient:new(HTTPBIN_URL)
     local _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
         { params = { test = "aaa", test2 = "bbb" } })
     _test.assert(_ok, "request failed")
@@ -87,7 +89,7 @@ _test["RestClient post"] = function()
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
-    _client = RestClient:new("https://httpbin.org/post")
+    _client = RestClient:new(HTTPBIN_URL .. "post")
     _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } },
         { params = { "test=aaa", "test2=bbb" } })
     _test.assert(_ok, "request failed")
@@ -97,7 +99,7 @@ _test["RestClient post"] = function()
 end
 
 _test["RestClient put"] = function()
-    local _client = RestClient:new("https://httpbin.org/")
+    local _client = RestClient:new(HTTPBIN_URL)
     local _ok, _response = _client:safe_put({ test = "data", test2 = { other = "data2" } }, "put",
         { params = { test = "aaa", test2 = "bbb" } })
     _test.assert(_ok, "request failed")
@@ -105,7 +107,7 @@ _test["RestClient put"] = function()
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
-    _client = RestClient:new("https://httpbin.org/put")
+    _client = RestClient:new(HTTPBIN_URL .. "put")
     _ok, _response = _client:safe_put({ test = "data", test2 = { other = "data2" } },
         { params = { "test=aaa", "test2=bbb" } })
     _test.assert(_ok, "request failed")
@@ -113,7 +115,7 @@ _test["RestClient put"] = function()
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
-    _client = RestClient:new("https://httpbin.org/put")
+    _client = RestClient:new(HTTPBIN_URL .. "put")
     _ok, _response = _client:safe_put(io.open("assets/put.txt"), { params = { "test=aaa", "test2=bbb" } })
     _test.assert(_ok, "request failed")
     _data = _response.data
@@ -122,7 +124,7 @@ _test["RestClient put"] = function()
 end
 
 _test["RestClient patch"] = function()
-    local _client = RestClient:new("https://httpbin.org/")
+    local _client = RestClient:new(HTTPBIN_URL)
     local _ok, _response = _client:safe_patch({ test = "data", test2 = { other = "data2" } }, "patch",
         { params = { test = "aaa", test2 = "bbb" } })
     _test.assert(_ok, "request failed")
@@ -130,7 +132,7 @@ _test["RestClient patch"] = function()
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
-    _client = RestClient:new("https://httpbin.org/patch")
+    _client = RestClient:new(HTTPBIN_URL .. "patch")
     _ok, _response = _client:safe_patch({ test = "data", test2 = { other = "data2" } },
         { params = { "test=aaa", "test2=bbb" } })
     _test.assert(_ok, "request failed")
@@ -140,13 +142,13 @@ _test["RestClient patch"] = function()
 end
 
 _test["RestClient delete"] = function()
-    local _client = RestClient:new("https://httpbin.org/")
+    local _client = RestClient:new(HTTPBIN_URL)
     local _ok, _response = _client:safe_delete("delete", { params = { test = "aaa", test2 = "bbb" } })
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
-    _client = RestClient:new("https://httpbin.org/delete")
+    _client = RestClient:new(HTTPBIN_URL .. "delete")
     _ok, _response = _client:safe_delete({ params = { "test=aaa", "test2=bbb" } })
     _test.assert(_ok, "request failed")
     _data = _response.data
@@ -154,7 +156,7 @@ _test["RestClient delete"] = function()
 end
 
 _test["RestClient conf"] = function()
-    local _client = RestClient:new("https://httpbin.org/", { contentType = "text/plain" })
+    local _client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain" })
     local _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
         { params = { test = "aaa", test2 = "bbb" } })
     _test.assert(_ok, "request failed")
@@ -172,20 +174,20 @@ _test["RestClient conf"] = function()
 end
 
 _test["RestClient get_url and res"] = function()
-    local _client = RestClient:new("https://httpbin.org/", { contentType = "text/plain" })
-    _test.assert(_client:get_url() == "https://httpbin.org/")
+    local _client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain" })
+    _test.assert(_client:get_url() == HTTPBIN_URL)
     _client = _client:res("test")
-    _test.assert(_client:get_url() == "https://httpbin.org/test")
+    _test.assert(_client:get_url() == HTTPBIN_URL .. "test")
     _client = _client:res("test2/test3")
-    _test.assert(_client:get_url() == "https://httpbin.org/test/test2/test3")
+    _test.assert(_client:get_url() == HTTPBIN_URL .. "test/test2/test3")
 end
 
 _test["RestClient res (advanced)"] = function()
-    local _client = RestClient:new("https://httpbin.org/", { contentType = "text/plain" })
-    _test.assert(_client:get_url() == "https://httpbin.org/")
+    local _client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain" })
+    _test.assert(_client:get_url() == HTTPBIN_URL)
     local _arrayClients = _client:res({ "test", "test2/test3" })
-    _test.assert(_arrayClients[1]:get_url() == "https://httpbin.org/test")
-    _test.assert(_arrayClients[2]:get_url() == "https://httpbin.org/test2/test3")
+    _test.assert(_arrayClients[1]:get_url() == HTTPBIN_URL .. "test")
+    _test.assert(_arrayClients[2]:get_url() == HTTPBIN_URL .. "test2/test3")
     local _objectClientsTemplate = {
         test = "test",
         test2 = { "test3", "test4" },
@@ -196,22 +198,22 @@ _test["RestClient res (advanced)"] = function()
         }
     }
     local _objectClients = _client:res(_objectClientsTemplate)
-    _test.assert(_objectClients.test:get_url() == "https://httpbin.org/test")
-    _test.assert(_objectClients.test2[1]:get_url() == "https://httpbin.org/test2/test3")
-    _test.assert(_objectClients.test2[2]:get_url() == "https://httpbin.org/test2/test4")
-    _test.assert(_objectClients.test3:get_url() == "https://httpbin.org/test5")
-    _test.assert(_objectClients.test3.test1:get_url() == "https://httpbin.org/test5/test1")
-    _test.assert(_objectClients.test3.test2:get_url() == "https://httpbin.org/test5/test2")
+    _test.assert(_objectClients.test:get_url() == HTTPBIN_URL .. "test")
+    _test.assert(_objectClients.test2[1]:get_url() == HTTPBIN_URL .. "test2/test3")
+    _test.assert(_objectClients.test2[2]:get_url() == HTTPBIN_URL .. "test2/test4")
+    _test.assert(_objectClients.test3:get_url() == HTTPBIN_URL .. "test5")
+    _test.assert(_objectClients.test3.test1:get_url() == HTTPBIN_URL .. "test5/test1")
+    _test.assert(_objectClients.test3.test2:get_url() == HTTPBIN_URL .. "test5/test2")
 
     local _notOverrideClientsTemplate = { test = { __root = "t", get = "test" } }
     local _notOverrideClients = _client:res(_notOverrideClientsTemplate)
     _test.assert(type(_notOverrideClients.test.get) ~= "function")
-    _test.assert(_notOverrideClients.test:get_url() == "https://httpbin.org/t")
+    _test.assert(_notOverrideClients.test:get_url() == HTTPBIN_URL .. "t")
 
     local _overrideClientsTemplate = { test = { __root = "t", get = "test" } }
     local _notOverrideClients = _client:res(_overrideClientsTemplate, { allowRestclientPropertyOverride = true })
     _test.assert(type(_notOverrideClients.test.get) ~= "function")
-    _test.assert(_notOverrideClients.test:get_url() == "https://httpbin.org/t")
+    _test.assert(_notOverrideClients.test:get_url() == HTTPBIN_URL .. "t")
 end
 
 if not TEST then
