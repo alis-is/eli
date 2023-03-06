@@ -9,7 +9,6 @@ GLOBAL_LOGGER.options.format = "standard"
 local _config = hjson.parse(fs.read_file("config.hjson"))
 local BUILD_TYPE = _config.build_type or "MINSIZEREL"
 
-require "tools.download"
 require "tools.create-env"
 log_info("Building eli...")
 

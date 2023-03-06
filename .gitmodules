@@ -1,0 +1,76 @@
+[submodule "deps/lua"]
+	path = deps/lua
+	url = https://github.com/lua/lua
+	branch = master
+[submodule "lua_is_tty"]
+	path = lua_is_tty
+	url = https://github.com/alis-is/lua_is_tty
+[submodule "deps/lua_is_tty"]
+	path = deps/lua_is_tty
+	url = https://github.com/alis-is/lua_is_tty
+[submodule "deps/lua-mbed-has"]
+	path = deps/lua-mbed-has
+	url = https://github.com/alis-is/lua-mbed-hash
+[submodule "deps/lua-mbed-hash"]
+	path = deps/lua-mbed-hash
+	url = https://github.com/alis-is/lua-mbed-hash
+[submodule "deps/lua-is-tty"]
+	path = deps/lua-is-tty
+	url = https://github.com/alis-is/lua-is-tty
+[submodule "deps/eli-extra-utils"]
+	path = deps/eli-extra-utils
+	url = https://github.com/alis-is/eli-extra-utils
+[submodule "deps/lua-mbed-bigint"]
+	path = deps/lua-mbed-bigint
+	url = https://github.com/alis-is/lua-mbed-bigint
+[submodule "deps/eli-stream-extra"]
+	path = deps/eli-stream-extra
+	url = https://github.com/alis-is/eli-stream-extra
+[submodule "deps/eli-pipe-extra"]
+	path = deps/eli-pipe-extra
+	url = https://github.com/alis-is/eli-pipe-extra
+[submodule "deps/eli-fs-extra"]
+	path = deps/eli-fs-extra
+	url = https://github.com/alis-is/eli-fs-extra
+[submodule "deps/eli-proc-extra"]
+	path = deps/eli-proc-extra
+	url = https://github.com/alis-is/eli-proc-extra
+[submodule "deps/eli-os-extra"]
+	path = deps/eli-os-extra
+	url = https://github.com/alis-is/eli-os-extra
+[submodule "deps/eli-env-extra"]
+	path = deps/eli-env-extra
+	url = https://github.com/alis-is/eli-env-extra
+[submodule "deps/lua-tar-extract-native"]
+	path = deps/lua-tar-extract-native
+	url = https://github.com/alis-is/lua-tar-extract-native
+[submodule "deps/Lua-cURLv3"]
+	path = deps/Lua-cURLv3
+	url = https://github.com/alis-is/Lua-cURLv3
+[submodule "deps/curl"]
+	path = deps/curl
+	url = https://github.com/curl/curl
+[submodule "deps/lua-zip"]
+	path = deps/lua-zip
+	url = https://github.com/brimworks/lua-zip
+[submodule "deps/mbedtls"]
+	path = deps/mbedtls
+	url = https://github.com/Mbed-TLS/mbedtls
+[submodule "deps/zlib"]
+	path = deps/zlib
+	url = https://github.com/madler/zlib
+[submodule "deps/libzip"]
+	path = deps/libzip
+	url = https://github.com/nih-at/libzip
+[submodule "deps/lustache"]
+	path = deps/lustache
+	url = https://github.com/Olivine-Labs/lustache
+[submodule "deps/hjson-lua"]
+	path = deps/hjson-lua
+	url = https://github.com/hjson/hjson-lua
+[submodule "deps/luasrcdiet"]
+	path = deps/luasrcdiet
+	url = https://github.com/cryi/luasrcdiet
+[submodule "deps/lua-zlib"]
+	path = deps/lua-zlib
+	url = https://github.com/brimworks/lua-zlib
