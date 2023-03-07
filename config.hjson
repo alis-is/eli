@@ -3,18 +3,18 @@
    global_modules: false//disables global modules loading (only looks up for modules in cwd)
    minify: true
    compress: true
-   inject_CA: true
+   inject_ca: true
    cache_dir: .CACHE
    build_type: MINSIZEREL
    c_libs: {
-      eli_fs_extra: "eli.fs.extra"
-      eli_proc_extra: "eli.proc.extra"
-      eli_env_extra: "eli.env.extra"
-      eli_pipe_extra: "eli.pipe.extra"
-      eli_stream_extra: "eli.stream.extra"
-      eli_os_extra: "eli.os.extra"
-      eli_bigint: "eli.bigint"
-      ltar: "ltar"
+      eli_fs_extra: eli.fs.extra
+      eli_proc_extra: eli.proc.extra
+      eli_env_extra: eli.env.extra
+      eli_pipe_extra: eli.pipe.extra
+      eli_stream_extra: eli.stream.extra
+      eli_os_extra: eli.os.extra
+      eli_bigint: eli.bigint
+      ltar: ltar
       lzip: lzip
       zlib: zlib
       lcurl: lcurl
@@ -25,16 +25,16 @@
    lua_libs: [
       {
          auto: true
-         path: lua-modules/hjson
+         path: deps/hjson-lua
          ignore: .*test.*
       },
       {
          auto: true
-         path: lua-modules/lustache/src
+         path: deps/lustache/src
       },
       {
          auto: true
-         path: modules/lcurl/src/lua
+         path: deps/Lua-cURLv3/src/lua
       },
       {
          auto: true
@@ -94,7 +94,5 @@
          ] 
       }
    ],
-   init: [
-      lib/init.lua
-   ]
+   init: lib/init.lua
 }

@@ -1,0 +1,22 @@
+/* eli mbedtls overrides */
+{{#overrides}}
+{{{.}}}
+{{/overrides}}
+{{^overrides}}
+#undef MBEDTLS_ERROR_STRERROR_DUMMY
+#undef MBEDTLS_VERSION_FEATURES
+#undef MBEDTLS_X509_CSR_WRITE_C
+#undef MBEDTLS_X509_CSR_READ_C
+#undef MBEDTLS_X509_CSR_PARSE_C
+#undef MBEDTLS_X509_CRL_WRITE_C
+#undef MBEDTLS_X509_CRL_READ_C
+#undef MBEDTLS_X509_CRL_PARSE_C
+#undef MBEDTLS_DEBUG_C
+#undef MBEDTLS_SSL_SRV_C
+#undef MBEDTLS_X509_CREATE_C
+#undef MBEDTLS_PEM_PARSE_C
+#undef MBEDTLS_PEM_WRITE_C
+#undef MBEDTLS_BASE64_C
+#undef MBEDTLS_X509_CRT_WRITE_C
+{{/overrides}}
+/* end eli mbedtls overrides */

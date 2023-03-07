@@ -1,0 +1,22 @@
+/* eli additional libs */
+{{#keys}}
+int luaopen_{{.}}(lua_State *L);
+{{/keys}}
+static const luaL_Reg preloadedlibs[] = {
+{{#pairs}}
+  {"{{value}}", luaopen_{{key}}},
+{{/pairs}}
+  {NULL, NULL}
+};
+
+{{#compress}}
+
+#include "zlib.h"
+const char lua_libs[] = { {{{embedableLibs}}} };
+{{/compress}}
+{{^compress}}
+const char lua_libs[] = "{{{embedableLibs}}}";
+{{/compress}}
+/* end eli additional libs */
+
+LUALIB_API void luaL_openlibs

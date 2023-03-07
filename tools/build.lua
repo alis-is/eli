@@ -9,7 +9,7 @@ GLOBAL_LOGGER.options.format = "standard"
 local _config = hjson.parse(fs.read_file("config.hjson"))
 local BUILD_TYPE = _config.build_type or "MINSIZEREL"
 
-require "tools.create-env"
+require "tools.patches.deps"
 log_info("Building eli...")
 
 --local _tmpname = os.tmpname
@@ -35,27 +35,6 @@ local _isMultitoolchain = _toolchains:find(";")
 local function execute_collect_stdout(cmd)
    local _result = proc.exec(cmd, { stdout = "pipe" })
    return _result.exitcode, _result.stdoutStream:read("a")
-end
-
-local function get_ca_certs()
-   local tmp = os.tmpname()
-   net.download_file("https://curl.se/ca/cacert.pem", tmp, { followRedirects = true })
-   local certs = {}
-   local ca = fs.read_file(tmp)
-   fs.remove(tmp)
-   for cert in ca:gmatch("%-%-%-%-%-BEGIN CERTIFICATE%-%-%-%-%-.-%-%-%-%-%-END CERTIFICATE%-%-%-%-%-") do
-      local tmp = os.tmpname()
-      local resultFile = os.tmpname()
-      fs.write_file(tmp, cert .. '\n')
-      if not os.execute("openssl x509 -outform der -in " .. tmp .. " -out " .. resultFile) then
-         error("Failed to convert certificate to der!")
-      end
-      table.insert(certs, fs.read_file(resultFile))
-      fs.remove(tmp)
-      fs.remove(resultFile)
-   end
-   fs.remove(tmp)
-   return certs
 end
 
 local function buildWithChain(id, buildDir)
@@ -111,7 +90,8 @@ local function buildWithChain(id, buildDir)
       BUILD_TYPE = BUILD_TYPE,
       ccf = BUILD_TYPE == "MINSIZEREL" and "-s" or "",
       SYSTEM_NAME = id:match("mingw") and "Windows" or "Linux",
-      ch = id:gsub("%-cross", "")
+      ch = id:gsub("%-cross", ""),
+		TOOLCHAIN_ROOT = path.combine(os.cwd(), "toolchains/id")
    })
 
    log_info("Configuring (" .. _cmd .. ")...")
@@ -126,44 +106,6 @@ local function buildWithChain(id, buildDir)
       fs.copy_file(path.combine(buildDir, "eli"), "release/eli-unix-" .. id:gsub("%-linux%-musl%-cross", ""))
    end
 end
-
-if _config.inject_CA then
-   local _mbedtls = fs.read_file "modules/curl/lib/vtls/mbedtls.c"
-   local _certs = get_ca_certs()
-   local _certsAsByteArrays = table.map(_certs,
-      function(cert)
-         return table.map(
-            table.filter(
-               table.pack(string.byte(cert, 1, -1)),
-               function(k)
-                  return type(k) == "number"
-               end),
-            function(b)
-               return string.format("0x%02x", b)
-            end)
-      end)
-   local _certsFormatted = string.join(",\n", table.map(_certsAsByteArrays, function(certAsByteArray)
-      return string.join(",", certAsByteArray)
-   end))
-   local _certSizes = string.join(",", table.map(_certsAsByteArrays, function(certAsByteArray) return #certAsByteArray end))
-
-   local _caCerSnippet = lustache:render(_templates.curlMbedTlsCertsLoader, {
-      certs = _certsFormatted,
-      certSizes = _certSizes,
-      certsCount = #_certs,
-   })
-
-   local content = _mbedtls:gsub("mbedtls_x509_crt_init%(&backend%->cacert%);.-if%(ssl_cafile.-%)", _caCerSnippet)
-   fs.write_file("modules/curl/lib/vtls/mbedtls.c", content)
-end
-
--- inject mbedtls overrides
-local _mbedtlsConfigPath = "modules/mbedtls/include/mbedtls/mbedtls_config.h"
-local _mbedtlsConfig = fs.read_file(_mbedtlsConfigPath)
-local _newMbedtlsConfig = _mbedtlsConfig:gsub("/%* eli mbedtls overrides %*/.-/%* end eli mbedtls overrides %*/\n", "")
-_newMbedtlsConfig = _newMbedtlsConfig ..
-    lustache:render(_templates.mbetTlsOverride, { overrides = _config.mbedtlsOverrides })
-fs.write_file(_mbedtlsConfigPath, _newMbedtlsConfig)
 
 if _isMultitoolchain then
    for toolchain in _toolchains:gmatch("[^;]+") do

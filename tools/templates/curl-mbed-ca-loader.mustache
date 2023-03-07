@@ -1,0 +1,19 @@
+mbedtls_x509_crt_init(&backend->cacert);
+/* CA Certificates */
+const char eli_cacerts[] = { {{{certs}}} };
+const long unsigned int eli_cacertSizes[] = { {{{certSizes}}} };
+
+long unsigned int shift = 0;
+for (int i = 0; i < {{{certsCount}}}; i++) {
+  	ret = mbedtls_x509_crt_parse_der_nocopy(&backend->cacert, eli_cacerts + shift, eli_cacertSizes[i]);
+	if (ret) {
+		#ifdef MBEDTLS_ERROR_C
+		mbedtls_strerror(ret, errorbuf, sizeof(errorbuf));
+		#endif /* MBEDTLS_ERROR_C */
+		failf(data, "Error reading ca cert file - mbedTLS: (-0x%%04X) %%s", -ret, errorbuf);
+		if(verifypeer)
+		return CURLE_SSL_CERTPROBLEM;
+	}
+	shift += eli_cacertSizes[i];
+}
+if(ssl_cafile && false)
