@@ -91,7 +91,7 @@ local function buildWithChain(id, buildDir)
       ccf = BUILD_TYPE == "MINSIZEREL" and "-s" or "",
       SYSTEM_NAME = id:match("mingw") and "Windows" or "Linux",
       ch = id:gsub("%-cross", ""),
-		TOOLCHAIN_ROOT = path.combine(os.cwd(), "toolchains/id")
+		TOOLCHAIN_ROOT = path.combine(os.cwd(), path.combine("toolchains", id))
    })
 
    log_info("Configuring (" .. _cmd .. ")...")

@@ -29,7 +29,8 @@ function _util.get_ca_certs()
 		if not os.execute("openssl x509 -outform der -in " .. tmp .. " -out " .. resultFile) then
 			error"Failed to convert certificate to der!"
 		end
-		table.insert(certs, fs.read_file(resultFile))
+		local certData = fs.read_file(resultFile)
+		table.insert(certs, certData)
 		fs.remove(tmp)
 		fs.remove(resultFile)
 	end

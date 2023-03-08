@@ -42,7 +42,7 @@ local patches = {
 	},
 	[LINIT_C] = {
 		validate = function (file)
-			return file:match"\nLUALIB_API void luaL_openlibs.-\n}"
+			return file:match"\nLUALIB_API void luaL_openlibs.-\n%s*}"
 		end,
 		patch = function (file)
 			local _embedableLibs = generate_embedable_module(config.lua_libs, {
@@ -62,7 +62,7 @@ local patches = {
 			local _linit = file:gsub("/%* eli additional libs %*/.-/%* end eli additional libs %*/\n", "") -- cleanup potential old init
 				:gsub("\nLUALIB_API void luaL_openlibs", _rendered)                                   -- inject libs
 			local _start, _end = _linit:find"\nLUALIB_API void luaL_openlibs.*$"
-			return _linit:sub(1, _start - 1) .. _linit:sub(_start, _end):gsub("\n}", "\n" .. lustache:render(
+			return _linit:gsub("\n%s-}%s-$", "\n" .. lustache:render(
 				templates.LINIT_LIBS_LOAD,
 				{ embedableLibsLength = #_embedableLibs, compress = config.compress }
 			))
@@ -76,7 +76,7 @@ local patches = {
 			local _new = file:gsub("/%* eli init %*/.-/%* end eli init %*/\n", "") -- cleanup old init
 			local _, _end = _new:find"createargtable%(L,.-\n"
 
-			local _embedable = generate_embedable_module({ { files = config.init } }, {
+			local _embedable = generate_embedable_module({ { files = { config.init } } }, {
 				amalgate = false,
 				minify = config.minify,
 			})
@@ -86,15 +86,14 @@ local patches = {
 	},
 	[LUA_H] = {
 		validate = function (file)
-			return file:match"LUA_COPYRIGHT" and file:match" Copyright %(C%) .- Lua.org, PUC%-Rio"
+			return file:match"LUA_COPYRIGHT" and file:match"#define LUA_COPYRIGHT[\t ]-LUA_RELEASE \"  Copyright %(C%) .- Lua.org, PUC%-Rio"
 		end,
 		patch = function (file)
 			local COPYRIGHT_LINE_PATTERN = '#define LUA_COPYRIGHT[\t ]-LUA_RELEASE "  Copyright %(C%).-".-\n'
 
 			local _copyright = file:match(COPYRIGHT_LINE_PATTERN)
-			local _luaCopyright = file:match" Copyright %(C%) .- Lua.org, PUC%-Rio"
-			local _newCopyright = _copyright:sub(1, _copyright:len() - 1) ..
-				string.interpolate("\"${lua_copyright}\\neli ${version}  Copyright (C) 2019-${year} alis.is\"", {
+			local _luaCopyright = _copyright:match"#define LUA_COPYRIGHT[\t ]-LUA_RELEASE \"  Copyright %(C%) .- Lua.org, PUC%-Rio"
+			local _newCopyright = string.interpolate("${lua_copyright}\\neli ${version}  Copyright (C) 2019-${year} alis.is\"\n", {
 					lua_copyright = _luaCopyright,
 					version = config.version,
 					year = os.date"%Y",

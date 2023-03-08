@@ -13,7 +13,7 @@
       eli_pipe_extra: eli.pipe.extra
       eli_stream_extra: eli.stream.extra
       eli_os_extra: eli.os.extra
-      eli_bigint: eli.bigint
+      l_mbed_bigint: bigint
       ltar: ltar
       lzip: lzip
       zlib: zlib
