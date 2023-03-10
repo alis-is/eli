@@ -74,3 +74,6 @@
 [submodule "deps/lua-zlib"]
 	path = deps/lua-zlib
 	url = https://github.com/brimworks/lua-zlib
+[submodule "deps/c-ares"]
+	path = deps/c-ares
+	url = https://github.com/c-ares/c-ares.git
