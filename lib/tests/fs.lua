@@ -126,18 +126,19 @@ _test["create_dir"] = function()
     _test.assert(_ok, _error)
     local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir")
     _test.assert(_exists, (_exists or "not exists"))
-
+    
     local _ok = _eliFs.safe_create_dir("tmp/test-dir/test/test")
     _test.assert(_ok)
     local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir/test/test")
     _test.assert(_ok and not _exists, (_exists or "exists"))
-
+    
     local _ok = _eliFs.safe_create_dir("tmp/test-dir/test/test", true)
     _test.assert(_ok)
     local _ok, _exists = _eliFs.safe_dir_exists("tmp/test-dir/test/test")
     _test.assert(_ok and _exists, (_exists or "not exists"))
 end
 
+print"rm"
 _test["remove (file)"] = function()
     local _ok, _file1 = _eliFs.safe_remove("tmp/test.file2")
     _test.assert(_ok, _file1)
@@ -254,11 +255,11 @@ _test["read_dir & iter_dir"] = function()
 end
 
 local function _external_lock(file)
-    local _ok, _, _code = os.execute((os.getenv "QEMU" or "") ..
+    local _cmd = (os.getenv "QEMU" or "") ..
         " " .. arg[-1] .. " -e \"x, err = fs.lock_file('" .. file .. "','w'); " ..
-        "if type(x) == 'ELI_FILE_LOCK' then os.exit(0); end; os.exit((tostring(err):match('Resource temporarily unavailable') or "
-        ..
-        "tostring(err):match('locked a portion of the file')) and 11 or 12)\"")
+        "if type(x) == 'ELI_FILE_LOCK' then os.exit(0); end; notAvailable = tostring(err):match('Resource temporarily unavailable') or tostring(err):match('locked a portion of the file'); ".. 
+        "exitCode = notAvailable and 11 or 12; os.exit(exitCode)\""
+    local _ok, _aaa, _code = os.execute(_cmd)
     return _ok, _code
 end
 

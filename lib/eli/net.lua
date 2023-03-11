@@ -351,7 +351,7 @@ function net.RestClient:res(resources, options)
             local _resources
             if type(v) == "table" then
                 local _parent = makeResource(k, v.__root or k)
-                local _options = util.clone(options, true)
+                local _options = _util.clone(options, true)
                 _options.shortcut = true
                 _parent:res(table.filter(v, function(k) return k ~= "__root" end), _options)
                 _resources = _parent
@@ -534,7 +534,7 @@ local function _download(url, write_function, options)
     local verifyPeer = options.verifyPeer
     if verifyPeer == nil then verifyPeer = true end
 
-    local _client = net.RestClient:new(url, util.merge_tables(options, {
+    local _client = net.RestClient:new(url, _util.merge_tables(options, {
         followRedirects = followRedirects,
         verifyPeer = verifyPeer,
         timeout = options.timeout,

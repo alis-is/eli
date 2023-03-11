@@ -53,7 +53,7 @@ local function eli_init()
       APP_ROOT = path.dir(APP_ROOT_SCRIPT)
    end
 
-   local _elify = true
+   local _shouldElify = true
    for i, v in ipairs(arg) do
       if v == '--lua-env' then
          _elify = false
@@ -61,10 +61,11 @@ local function eli_init()
          break
       end
    end
-   if _elify then
-      require('eli.elify').elify()
+   local _elify = require'eli.elify'.elify
+   if _shouldElify then
+      _elify()
    else -- if not elified initial we make elify global
-      elify = require('eli.elify').elify
+      elify = _elify
    end
 end
 

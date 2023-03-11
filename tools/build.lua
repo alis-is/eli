@@ -75,6 +75,7 @@ local function buildWithChain(id, buildDir)
       local _start = target:find("-")
       local _end = target:find("-", _start + 1) or 0
       local system = target:sub(_start + 1, #target - (#target - _end) - 1)
+      builtBinaryId = system .. "-" .. target:sub(0, _start - 1)
       if system:find("^macos") then
          system = "darwin"
       end
@@ -87,7 +88,7 @@ local function buildWithChain(id, buildDir)
          target = target,
          SYSTEM_NAME = system
       })
-      builtBinaryId = target:sub(0, #target - (#target - _end) - 1)
+      
    else
       local _, gcc = execute_collect_stdout('find -H /opt/cross/' .. id .. ' -name "*-gcc" -type f')
       local _, gpp = execute_collect_stdout('find -H /opt/cross/' .. id .. ' -name "*-g++" -type f')

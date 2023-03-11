@@ -50,6 +50,7 @@ local patches = {
 				escape = not config.compress,
 				escapeForLuaGsub = not config.compress,
 			})
+			local _embedableLibsSize = #_embedableLibs
 			if config.compress then
 				_embedableLibs = _buildUtil.compress_string_to_c_bytes(_embedableLibs)
 			end
@@ -64,7 +65,7 @@ local patches = {
 			local _start, _end = _linit:find"\nLUALIB_API void luaL_openlibs.*$"
 			return _linit:gsub("\n%s-}%s-$", "\n" .. lustache:render(
 				templates.LINIT_LIBS_LOAD,
-				{ embedableLibsLength = #_embedableLibs, compress = config.compress }
+				{ embedableLibsLength = _embedableLibsSize, compress = config.compress }
 			))
 		end,
 	},

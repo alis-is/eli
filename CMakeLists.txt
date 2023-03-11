@@ -14,6 +14,8 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
 
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_LINUX")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_MACOSX")
 endif()
 
 # INCLUDE PATHS & DIRS
@@ -56,6 +58,12 @@ add_subdirectory(deps/lua-mbed-bigint/)
 target_include_directories(lua_mbed_bigint PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 add_subdirectory(deps/lua-tar-extract-native/)
 target_include_directories(ltar PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
+
+OPTION (CARES_STATIC "CARES_STATIC" ON)
+OPTION (CARES_STATIC_PIC "CARES_STATIC_PIC" ON)
+OPTION (CARES_SHARED "CARES_SHARED" OFF)
+OPTION (CARES_BUILD_TOOLS "CARES_BUILD_TOOLS" OFF)
+OPTION (CARES_INSTALL "CARES_INSTALL" OFF)
 add_subdirectory(deps/c-ares/)
 
 # ZLIB
@@ -99,7 +107,6 @@ set(CARES_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/deps/c-ares/include CACHE STRI
 # disabled CA bundling (we inject our own into mbedtls loader)
 option(CURL_CA_BUNDLE "CURL_CA_BUNDLE" "none")
 option(CURL_CA_PATH "CURL_CA_PATH" "none")
-
 option(ENABLE_ARES "ENABLE_ARES" ON)
 
 # disable unecessary protocols and features
@@ -135,7 +142,7 @@ target_include_directories(lcurl PUBLIC ${CURL_INCLUDE})
 # 1. eli interpreter
 add_executable (eli deps/lua/onelua.c)
 # lcurl curl
-target_link_libraries(eli lis_tty lua_zip ltar eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_os_extra eli_env_extra eli_extra_utils lua_mbed_bigint lcurl libcurl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic c-ares "-static")
+target_link_libraries(eli lis_tty lua_zip ltar eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_os_extra eli_env_extra eli_extra_utils lua_mbed_bigint lcurl libcurl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic "-static")
 if(WIN32 OR MINGW)
   target_link_libraries (eli bcrypt advapi32 ws2_32 )
 endif()
