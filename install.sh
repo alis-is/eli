@@ -23,9 +23,9 @@ if eli -v | grep "$LATEST"; then
 fi
 
 PLATFORM=$(uname -m)
-echo "Downloading eli-unix-$PLATFORM $LATEST..."
+echo "Downloading eli-linux-$PLATFORM $LATEST..."
 
-if "$@" "https://github.com/alis-is/eli/releases/download/$LATEST/eli-unix-$PLATFORM" &&
+if "$@" "https://github.com/alis-is/eli/releases/download/$LATEST/eli-linux-$PLATFORM" &&
     mv "$TMP_NAME" /usr/sbin/eli &&
     chmod +x /usr/sbin/eli; then
     echo "eli $LATEST for $PLATFORM successfuly installed."
