@@ -59,12 +59,20 @@ target_include_directories(lua_mbed_bigint PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 add_subdirectory(deps/lua-tar-extract-native/)
 target_include_directories(ltar PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 
-OPTION (CARES_STATIC "CARES_STATIC" ON)
-OPTION (CARES_STATIC_PIC "CARES_STATIC_PIC" ON)
-OPTION (CARES_SHARED "CARES_SHARED" OFF)
-OPTION (CARES_BUILD_TOOLS "CARES_BUILD_TOOLS" OFF)
-OPTION (CARES_INSTALL "CARES_INSTALL" OFF)
-add_subdirectory(deps/c-ares/)
+if (NOT CMAKE_SYSTEM_NAME STREQUAL Windows)
+  OPTION (CARES_STATIC "CARES_STATIC" ON)
+  OPTION (CARES_STATIC_PIC "CARES_STATIC_PIC" ON)
+  OPTION (CARES_SHARED "CARES_SHARED" OFF)
+  OPTION (CARES_BUILD_TOOLS "CARES_BUILD_TOOLS" OFF)
+  OPTION (CARES_INSTALL "CARES_INSTALL" OFF)
+  add_subdirectory(deps/c-ares/)
+  set(CARES_LIBS c-ares)
+
+  # for libcurl
+  option(ENABLE_ARES "ENABLE_ARES" ON)
+  set(CARES_LIBRARY c-ares CACHE INTERNAL "" FORCE)
+  set(CARES_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/deps/c-ares/include CACHE STRING "ares" FORCE)
+endif()
 
 # ZLIB
 add_subdirectory(deps/zlib/ EXCLUDE_FROM_ALL)
@@ -102,12 +110,9 @@ set(MBEDX509_LIBRARY mbedx509 CACHE INTERNAL "" FORCE)
 set(MBEDCRYPTO_LIBRARY mbedcrypto CACHE INTERNAL "" FORCE)
 set(MBEDTLS_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/include CACHE STRING "mbed" FORCE)
 
-set(CARES_LIBRARY c-ares CACHE INTERNAL "" FORCE)
-set(CARES_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/deps/c-ares/include CACHE STRING "ares" FORCE)
 # disabled CA bundling (we inject our own into mbedtls loader)
 option(CURL_CA_BUNDLE "CURL_CA_BUNDLE" "none")
 option(CURL_CA_PATH "CURL_CA_PATH" "none")
-option(ENABLE_ARES "ENABLE_ARES" ON)
 
 # disable unecessary protocols and features
 option(CURL_DISABLE_FTP "Disable FTP" OFF)
@@ -132,17 +137,17 @@ option(USE_LIBIDN2 "USE_LIBIDN2" OFF)
 option(ENABLE_THREADED_RESOLVER "ENABLE_THREADED_RESOLVER" OFF)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/deps/curl/ EXCLUDE_FROM_ALL)
-add_dependencies(libcurl zlibstatic mbedx509 mbedtls mbedcrypto c-ares)
+add_dependencies(libcurl zlibstatic mbedx509 mbedtls mbedcrypto ${CARES_LIBS})
 
 # # LUA-CURL
-add_dependencies(lcurl libcurl zlibstatic mbedx509 mbedtls mbedcrypto c-ares)
+add_dependencies(lcurl libcurl zlibstatic mbedx509 mbedtls mbedcrypto ${CARES_LIBS})
 target_include_directories(lcurl PUBLIC ${CURL_INCLUDE})
 
 # ELI
 # 1. eli interpreter
 add_executable (eli deps/lua/onelua.c)
 # lcurl curl
-target_link_libraries(eli lis_tty lua_zip ltar eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_os_extra eli_env_extra eli_extra_utils lua_mbed_bigint lcurl libcurl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic "-static")
+target_link_libraries(eli lis_tty lua_zip ltar eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_os_extra eli_env_extra eli_extra_utils lua_mbed_bigint lcurl libcurl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic ${CARES_LIBS} "-static")
 if(WIN32 OR MINGW)
   target_link_libraries (eli bcrypt advapi32 ws2_32 )
 endif()
