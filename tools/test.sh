@@ -5,14 +5,14 @@ ROOT=$(pwd)
 
 test_build() {
     cd lib/tests && \
-    "$ROOT/release/eli-unix-$1" all.lua && \
+    "$ROOT/release/eli-linux-$1" all.lua && \
     cd "$ROOT" || exit 1
 }
 
 test_qemu_build() {
     cd lib/tests && \
     export QEMU="$2" && \
-    "$2" "$ROOT/release/eli-unix-$1" all.lua && \
+    "$2" "$ROOT/release/eli-linux-$1" all.lua && \
     cd "$ROOT" || exit 1
 }
 
@@ -24,7 +24,7 @@ test_platform() {
     fi
 }
 
-chmod +x ./release/eli-unix-*
+chmod +x ./release/eli-linux-*
 if [ -n "$1" ]; then
     test_platform "$1"
 else
