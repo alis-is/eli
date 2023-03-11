@@ -19,7 +19,7 @@ jobs:
         with:
           image: ghcr.io/alis-is/eli-build:latest
           run: ./eli tools/build.lua
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-linux-musl-cross
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=zig:x86_64-linux-musl
       - name: cache release
         uses: actions/cache@v3
         env:
@@ -40,7 +40,7 @@ jobs:
         with:
           image: ghcr.io/alis-is/eli-build:latest
           run: ./eli tools/build.lua
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-w64-mingw32-cross
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=zig:x86_64-windows-gnu
       - name: cache release
         uses: actions/cache@v3
         env:
@@ -48,6 +48,27 @@ jobs:
         with:
           path: ./release
           key: build-win#${{ github.sha }}
+          enableCrossOsArchive: true
+
+  build-mac:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: build
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/alis-is/eli-build:latest
+          run: ./eli tools/build.lua
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=zig:x86_64-windows-gnu
+      - name: cache release
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-binaries
+        with:
+          path: ./release
+          key: build-mac#${{ github.sha }}
           enableCrossOsArchive: true
 
   test-linux:
@@ -82,6 +103,25 @@ jobs:
         with:
           path: ./release
           key: build-win#${{ github.sha }}
+          enableCrossOsArchive: true
+
+      - name: test
+        shell: pwsh
+        run: |
+          .\tools\test.ps1 x86_64
+
+  test-macos:
+    runs-on: macos-latest
+    needs: build-mac
+    steps:
+      - uses: actions/checkout@v3
+      - name: restore cache
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-binaries
+        with:
+          path: ./release
+          key: build-mac#${{ github.sha }}
           enableCrossOsArchive: true
 
       - name: test
