@@ -1,18 +1,11 @@
 name: prepare-test
 
-# Were we can define the inputs that our action will accept
-inputs:
-  cache-id:
-    require: true
-
 runs:
   using: "composite"
   steps:
-  - name: restore cache
-    uses: actions/cache/restore@v3
-    env:
-      cache-name: cache-binaries
+  - uses: actions/download-artifact@v3
     with:
       path: ./release
-      key: ${{ inputs.cache-id }}
-      enableCrossOsArchive: true
+  - name: make executable
+    if: runner.os == 'Linux' || runner.os == 'macOS'
+    run: chmod +x ./release/*

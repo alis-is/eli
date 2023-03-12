@@ -182,7 +182,7 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 	for k, _ in pairs(_lib) do table.insert(_fields, k) end
 	table.sort(_fields)
 
-	local _generatedDoc = ""
+	local _generatedDoc = "---@meta \n" -- inject meta header, meta name should be used for libs which are meant to be required
 	--- @type string | table
 	local _sourcePaths = { "lib/eli/" .. _libName:gsub("%.", "/") .. ".lua" }
 	if type(sourceFiles) == "string" then
