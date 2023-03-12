@@ -16,6 +16,8 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_LINUX")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_MACOSX")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_WINDOWS")
 endif()
 
 # INCLUDE PATHS & DIRS
@@ -149,7 +151,7 @@ add_executable (eli deps/lua/onelua.c)
 # lcurl curl
 target_link_libraries(eli lis_tty lua_zip ltar eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_os_extra eli_env_extra eli_extra_utils lua_mbed_bigint lcurl libcurl mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic ${CARES_LIBS} "-static")
 if(WIN32 OR MINGW)
-  target_link_libraries (eli bcrypt advapi32 ws2_32 )
+  target_link_libraries (eli bcrypt advapi32 ws2_32)
 endif()
 set_target_properties(eli PROPERTIES OUTPUT_NAME "eli") 
 
