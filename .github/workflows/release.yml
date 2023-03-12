@@ -165,8 +165,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test-windows, test-linux, test-macos, prepare]
     steps:
+      - uses: actions/checkout@v3
       - uses: "./.github/template/prepare-test" # downloads artifacts
-
       - name: publish
         uses: ncipollo/release-action@v1
         if: ${{ needs.build.outputs.NEEDS_RELEASE == 'true' }}
