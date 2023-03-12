@@ -7,6 +7,6 @@ runs:
     with:
       path: ./release
   - name: make executable
-    if: runner.os == 'Linux' || runner.os == 'macOS'
+    if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
     shell: sh
     run: chmod +x ./release/*
