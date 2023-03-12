@@ -158,7 +158,7 @@ jobs:
       - uses: "./.github/template/prepare-test"
       - name: test
         run: |
-          .\tools\test.sh x86_64
+          ./tools/test.sh x86_64
 
   publish:
     if: ${{ needs.prepare.outputs.NEEDS_RELEASE == 'true'}}
