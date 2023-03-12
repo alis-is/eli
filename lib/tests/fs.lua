@@ -138,7 +138,6 @@ _test["create_dir"] = function()
     _test.assert(_ok and _exists, (_exists or "not exists"))
 end
 
-print"rm"
 _test["remove (file)"] = function()
     local _ok, _file1 = _eliFs.safe_remove("tmp/test.file2")
     _test.assert(_ok, _file1)

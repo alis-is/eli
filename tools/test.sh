@@ -5,22 +5,26 @@ ROOT=$(pwd)
 
 test_build() {
     cd lib/tests && \
-    "$ROOT/release/eli-linux-$1" all.lua && \
+    "$ROOT/release/eli-$2-$1" all.lua && \
     cd "$ROOT" || exit 1
 }
 
 test_qemu_build() {
     cd lib/tests && \
-    export QEMU="$2" && \
-    "$2" "$ROOT/release/eli-linux-$1" all.lua && \
+    export QEMU="$3" && \
+    "$2" "$ROOT/release/eli-$2-$1" all.lua && \
     cd "$ROOT" || exit 1
 }
 
 test_platform() {
+    export OS="linux"
+    if [ "$(uname)" = "Darwin" ]; then
+        export OS="macos"
+    fi
     if [ "$PLATFORM" = "$1" ]; then
-        test_build "$1"
+        test_build "$1" "$OS"
     elif which qemu-x86_64; then
-        test_qemu_build "$1" "qemu-${2:-$1}"
+        test_qemu_build "$1" "$OS" "qemu-${2:-$1}"
     fi
 }
 
