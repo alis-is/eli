@@ -61,7 +61,7 @@ jobs:
         with:
           image: ghcr.io/alis-is/eli-build:latest
           run: ./eli tools/build.lua
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=zig:x86_64-windows-gnu
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=zig:x86_64-macos-none
       - name: cache release
         uses: actions/cache@v3
         env:
