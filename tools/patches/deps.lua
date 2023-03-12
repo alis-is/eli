@@ -32,6 +32,7 @@ local LIBZIP_CMAKELISTS = "deps/libzip/CMakeLists.txt"
 local CURL_MBEDTLS_C = "deps/curl/lib/vtls/mbedtls.c"
 local MBED_MBEDTLS_CONFIG_H = "deps/mbedtls/include/mbedtls/mbedtls_config.h"
 local MBED_CMAKELISTS_TXT = "deps/mbedtls/CMakeLists.txt"
+local MBED_LIBRARY_CMAKELISTS_TXT = "deps/mbedtls/library/CMakeLists.txt"
 
 local patches = {
 	[INIT_SOURCE] = {
@@ -205,6 +206,14 @@ message( ${ZLIBINCLUDEDIR} )
 			-- right now compilation fails because of empty retval in docs
 			if not file:match('# set%(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} %-Werror"%)') then
 				file = file:gsub('set%(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} %-Werror"%)', '# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")')
+			end
+			return file
+		end
+	},
+	[MBED_LIBRARY_CMAKELISTS_TXT] = {
+		patch = function (file)
+			if file:match('<CMAKE_RANLIB> %-no_warning_for_no_symbols %-c <TARGET>') then
+				file = file:gsub('<CMAKE_RANLIB> %-no_warning_for_no_symbols %-c <TARGET>', "<CMAKE_RANLIB> <TARGET>")
 			end
 			return file
 		end
