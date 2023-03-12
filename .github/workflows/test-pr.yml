@@ -10,37 +10,37 @@ on:
 jobs:
   build-linux-x86_64:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: build-n-cache
-        uses: "./.github/template/build-n-cache"
-        with:
-          toolchain: zig:x86_64-linux-musl
-          cache-id: build-linux#${{ github.sha }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:x86_64-linux-musl
+        cache-id: build-linux#${{ github.sha }}
   build-linux-aarch64:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: build-n-cache
-        uses: "./.github/template/build-n-cache"
-        with:
-          toolchain: zig:aarch64-linux-musl
-          cache-id: build-linux#${{ github.sha }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:aarch64-linux-musl
+        cache-id: build-linux#${{ github.sha }}
   build-linux-riscv64:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: build-n-cache
-        uses: "./.github/template/build-n-cache"
-        with:
-          toolchain: zig:riscv64-linux-musl
-          cache-id: build-linux#${{ github.sha }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:riscv64-linux-musl
+        cache-id: build-linux#${{ github.sha }}
 
   build-win:
     runs-on: ubuntu-latest
