@@ -17,10 +17,10 @@ runs:
       options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }}
   - uses: actions/upload-artifact@v3
     with:
-      name: ${{ inputs.artifact-id }}
+      name: release
       path: ./release/${{ inputs.artifact-id }}
   - uses: actions/upload-artifact@v3
     with:
-      name: meta.zip
+      name: release
       path: ./release/meta.zip
       if-no-files-found: ignore # meta is generated only on x86_64 linux
