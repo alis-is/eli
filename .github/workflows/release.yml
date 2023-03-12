@@ -35,83 +35,83 @@ jobs:
           echo "Building eli $VERSION (RELEASE_REQUIRE: $NEEDS_RELEASE)"
   build-linux-x86_64:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: build-n-cache
-        uses: "./.github/template/build-n-cache"
-        with:
-          toolchain: zig:x86_64-linux-musl
-          cache-id: build-#${{ github.sha }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:x86_64-linux-musl
+        cache-id: build-#${{ github.sha }}
   build-linux-aarch64:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: build-n-cache
-        uses: "./.github/template/build-n-cache"
-        with:
-          toolchain: zig:aarch64-linux-musl
-          cache-id: build-#${{ github.sha }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:aarch64-linux-musl
+        cache-id: build-#${{ github.sha }}
   build-linux-riscv64:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: build-n-cache
-        uses: "./.github/template/build-n-cache"
-        with:
-          toolchain: zig:riscv64-linux-musl
-          cache-id: build-#${{ github.sha }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:riscv64-linux-musl
+        cache-id: build-#${{ github.sha }}
 
   build-windows-x86_64:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: build-n-cache
-        uses: "./.github/template/build-n-cache"
-        with:
-          toolchain: zig:x86_64-windows-gnu
-          cache-id: build-#${{ github.sha }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:x86_64-windows-gnu
+        cache-id: build-#${{ github.sha }}
   build-windows-aarch64:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: build-n-cache
-        uses: "./.github/template/build-n-cache"
-        with:
-          toolchain: zig:aarch64-windows-gnu
-          cache-id: build-#${{ github.sha }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:aarch64-windows-gnu
+        cache-id: build-#${{ github.sha }}
 
   build-macos-x86_64:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: build-n-cache
-        uses: "./.github/template/build-n-cache"
-        with:
-          toolchain: zig:x86_64-macos-none
-          cache-id: build-#${{ github.sha }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:x86_64-macos-none
+        cache-id: build-#${{ github.sha }}
   build-macos-aarch64:
     runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: build-n-cache
-        uses: "./.github/template/build-n-cache"
-        with:
-          toolchain: zig:aarch64-macos-none
-          cache-id: build-#${{ github.sha }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:aarch64-macos-none
+        cache-id: build-#${{ github.sha }}
 
   # tests
   test-linux:
