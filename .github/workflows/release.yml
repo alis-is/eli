@@ -77,7 +77,7 @@ jobs:
       uses: "./.github/template/build-n-cache"
       with:
         toolchain: zig:x86_64-windows-gnu
-        artifact-id: eli-windows-x86_64
+        artifact-id: eli-windows-x86_64.exe
   build-windows-aarch64:
     runs-on: ubuntu-latest
     steps:
@@ -88,7 +88,7 @@ jobs:
       uses: "./.github/template/build-n-cache"
       with:
         toolchain: zig:aarch64-windows-gnu
-        artifact-id: eli-windows-aarch64
+        artifact-id: eli-windows-aarch64.exe
 
   build-macos-x86_64:
     runs-on: ubuntu-latest

@@ -9,4 +9,4 @@ runs:
   - name: make executable
     if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
     shell: sh
-    run: chmod +x ./release/*
+    run: chmod +x ./release/* && ls -la ./release/*

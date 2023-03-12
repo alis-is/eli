@@ -42,7 +42,7 @@ jobs:
         toolchain: zig:riscv64-linux-musl
         artifact-id: eli-linux-riscv64
 
-  build-win:
+  build-windows:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -52,9 +52,9 @@ jobs:
         uses: "./.github/template/build-n-cache"
         with:
           toolchain: zig:x86_64-windows-gnu
-          artifact-id: eli-windows-x86_64
+          artifact-id: eli-windows-x86_64.exe
 
-  build-mac:
+  build-macos:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -93,7 +93,7 @@ jobs:
           
   test-windows:
     runs-on: windows-latest
-    needs: build-win
+    needs: build-windows
     steps:
       - uses: actions/checkout@v3
       - uses: "./.github/template/prepare-test"
@@ -104,9 +104,10 @@ jobs:
 
   test-macos:
     runs-on: macos-latest
-    needs: build-mac
+    needs: build-macos
     steps:
       - uses: actions/checkout@v3
+      - uses: "./.github/template/prepare-test"
       - name: test
         shell: pwsh
         run: |
