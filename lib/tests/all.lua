@@ -1,6 +1,7 @@
 TEST = require 'u-test'
 local _test = TEST
 require"t_hjson"
+require"t_bigint"
 require"hash"
 require"net"
 require"fs"
@@ -13,7 +14,6 @@ require"util"
 require"ver"
 require"elios"
 require"global"
-require"bigint"
 
 require"extensions.string"
 require"extensions.table"
