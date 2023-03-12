@@ -1,11 +1,10 @@
 FROM docker.io/alpine:latest
-RUN apk add cmake make perl python3 py3-pip openssl
+RUN apk add cmake make perl python3 py3-pip openssl git
 RUN pip install jsonschema jinja2
-RUN mkdir /opt/cross
-RUN wget https://more.musl.cc/11/x86_64-linux-musl/x86_64-linux-musl-cross.tgz && tar -xzvf x86_64-linux-musl-cross.tgz && mv x86_64-linux-musl-cross /opt/cross/
-RUN wget https://more.musl.cc/11/x86_64-linux-musl/i686-linux-musl-cross.tgz && tar -xzvf i686-linux-musl-cross.tgz && mv i686-linux-musl-cross /opt/cross/
-RUN wget https://more.musl.cc/11/x86_64-linux-musl/aarch64-linux-musl-cross.tgz && tar -xzvf aarch64-linux-musl-cross.tgz && mv aarch64-linux-musl-cross /opt/cross/
-RUN wget https://more.musl.cc/11/x86_64-linux-musl/x86_64-w64-mingw32-cross.tgz && tar -xzvf x86_64-w64-mingw32-cross.tgz && mv x86_64-w64-mingw32-cross /opt/cross/
-RUN wget https://more.musl.cc/11/x86_64-linux-musl/i686-w64-mingw32-cross.tgz && tar -xzvf i686-w64-mingw32-cross.tgz && mv i686-w64-mingw32-cross /opt/cross/
+RUN mkdir /usr/local/zig
+RUN wget https://ziglang.org/builds/zig-linux-x86_64-0.11.0-dev.1928+3169f0529.tar.xz && \
+	mkdir zig && tar --xz -xf zig-linux-x86_64-0.11.0-dev.1928+3169f0529.tar.xz --directory zig && \
+	cp -rf zig/zig*/* --target-directory=/usr/local/zig
+RUN ln -s /usr/local/zig/zig /bin/zig
 RUN rm -f *.tgz
 ENTRYPOINT [ "./eli", "tools/build.lua" ]

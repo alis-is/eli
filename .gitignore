@@ -1,6 +1,3 @@
-lua
-lua-modules
-modules
 build/*
 !build/.gitkeep
 tmp/*
@@ -9,4 +6,6 @@ tools/luasrcdiet
 .CACHE
 lib/tests/tmp/*
 !lib/tests/tmp/.gitkeep
+toolchains/*
+!toolchains/.gitkeep	
 .meta

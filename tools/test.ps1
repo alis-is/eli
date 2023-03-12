@@ -5,7 +5,7 @@ $ROOT=$(pwd).Path
 function test_build {
     param ([string]$platform)
     Set-Location "lib\\tests" &&
-    & "$ROOT\\release\\eli-win-$platform.exe" "all.lua" &&
+    & "$ROOT\\release\\eli-windows-$platform.exe" "all.lua" &&
     Set-Location "$ROOT" || throw "failed"
 }
 
