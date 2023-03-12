@@ -5,6 +5,7 @@ ROOT=$(pwd)
 
 test_build() {
     cd lib/tests && \
+    chmod +x "$ROOT/release/eli-$2-$1" && \
     "$ROOT/release/eli-$2-$1" all.lua && \
     cd "$ROOT" || exit 1
 }
@@ -12,6 +13,7 @@ test_build() {
 test_qemu_build() {
     cd lib/tests && \
     export QEMU="$3" && \
+    chmod +x "$ROOT/release/eli-$2-$1" && \
     "$2" "$ROOT/release/eli-$2-$1" all.lua && \
     cd "$ROOT" || exit 1
 }
