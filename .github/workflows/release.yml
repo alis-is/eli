@@ -141,7 +141,7 @@ jobs:
 
   test-windows:
     runs-on: windows-latest
-    needs: [build-windows-x86_64]
+    needs: [build-windows-x86_64, build-windows-aarch64] # we do not test aarch64 because there are no available aarch64 runners
     steps:
       - uses: actions/checkout@v3
       - uses: "./.github/template/prepare-test"
@@ -152,7 +152,7 @@ jobs:
 
   test-macos:
     runs-on: macos-latest
-    needs: [build-macos-x86_64]
+    needs: [build-macos-x86_64, build-macos-aarch64] # we do not test aarch64 because there are no available aarch64 runners
     steps:
       - uses: actions/checkout@v3
       - uses: "./.github/template/prepare-test"
