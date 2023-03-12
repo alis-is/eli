@@ -9,7 +9,7 @@ runs:
   using: "composite"
   steps:
   - name: restore cache
-    uses: actions/cache@v3
+    uses: actions/cache/restore@v3
     env:
       cache-name: cache-binaries
     with:

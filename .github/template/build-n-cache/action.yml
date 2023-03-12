@@ -10,6 +10,12 @@ inputs:
 runs:
   using: "composite"
   steps:
+  - name: restore cache
+    uses: actions/cache/restore@v3
+    with:
+      path: ./release
+      key: ${{ inputs.cache-id }}
+      enableCrossOsArchive: true
   - name: build
     uses: addnab/docker-run-action@v3
     with:
@@ -17,9 +23,7 @@ runs:
       run: ./eli tools/build.lua
       options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }}
   - name: cache release
-    uses: actions/cache@v3
-    env:
-      cache-name: cache-binaries
+    uses: actions/cache/save@v3
     with:
       path: ./release
       key: ${{ inputs.cache-id }}

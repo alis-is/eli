@@ -8,9 +8,9 @@ on:
     types: [opened, reopened, synchronize]
     
 jobs:
-  build-linux:
+  build-linux-x86_64:
     runs-on: ubuntu-latest
-    steps:
+      steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
@@ -18,6 +18,28 @@ jobs:
         uses: "./.github/template/build-n-cache"
         with:
           toolchain: zig:x86_64-linux-musl
+          cache-id: build-linux#${{ github.sha }}
+  build-linux-aarch64:
+    runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: build-n-cache
+        uses: "./.github/template/build-n-cache"
+        with:
+          toolchain: zig:aarch64-linux-musl
+          cache-id: build-linux#${{ github.sha }}
+  build-linux-riscv64:
+    runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: build-n-cache
+        uses: "./.github/template/build-n-cache"
+        with:
+          toolchain: zig:riscv64-linux-musl
           cache-id: build-linux#${{ github.sha }}
 
   build-win:
@@ -52,11 +74,23 @@ jobs:
       - uses: "./.github/template/prepare-test"
         with:
           cache-id: build-linux#${{ github.sha }}
-      - name: test
+      - name: test x86_64
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/alis-is/eli-test:latest
           run: ./tools/test.sh x86_64
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
+      - name: test aarch64
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/alis-is/eli-test:latest
+          run: ./tools/test.sh aarch64
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
+      - name: test riscv64
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/alis-is/eli-test:latest
+          run: ./tools/test.sh riscv64
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
           
   test-windows:
