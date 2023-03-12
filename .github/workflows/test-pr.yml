@@ -127,4 +127,4 @@ jobs:
       - name: test
         shell: pwsh
         run: |
-          .\tools\test.ps1 x86_64
+          .\tools\test.sh x86_64
