@@ -8,80 +8,107 @@ on:
     types: [opened, reopened, synchronize]
     
 jobs:
-  build-linux:
+  build-linux-x86_64:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: build
-        uses: addnab/docker-run-action@v3
-        with:
-          image: ghcr.io/alis-is/eli-build:latest
-          run: ./eli tools/build.lua
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-linux-musl-cross
-      - name: cache release
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-binaries
-        with:
-          path: ./release
-          key: build-linux#${{ github.sha }}
-          enableCrossOsArchive: true
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:x86_64-linux-musl
+        artifact-id: eli-linux-x86_64
+  build-linux-aarch64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:aarch64-linux-musl
+        artifact-id: eli-linux-aarch64
+  build-linux-riscv64:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: build-n-cache
+      uses: "./.github/template/build-n-cache"
+      with:
+        toolchain: zig:riscv64-linux-musl
+        artifact-id: eli-linux-riscv64
 
-  build-win:
+  build-windows:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: build
-        uses: addnab/docker-run-action@v3
         with:
-          image: ghcr.io/alis-is/eli-build:latest
-          run: ./eli tools/build.lua
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=x86_64-w64-mingw32-cross
-      - name: cache release
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-binaries
+          submodules: true
+      - name: build-n-cache
+        uses: "./.github/template/build-n-cache"
         with:
-          path: ./release
-          key: build-win#${{ github.sha }}
-          enableCrossOsArchive: true
+          toolchain: zig:x86_64-windows-gnu
+          artifact-id: eli-windows-x86_64.exe
+
+  build-macos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: build-n-cache
+        uses: "./.github/template/build-n-cache"
+        with:
+          toolchain: zig:x86_64-macos-none
+          artifact-id: eli-macos-x86_64
 
   test-linux:
     runs-on: ubuntu-latest
-    needs: build-linux
+    needs: [build-linux-x86_64,build-linux-aarch64, build-linux-riscv64]
     steps:
       - uses: actions/checkout@v3
-      - name: restore cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-binaries
-        with:
-          path: ./release
-          key: build-linux#${{ github.sha }}
-          enableCrossOsArchive: true
-      - name: test
+      - uses: "./.github/template/prepare-test"
+      - name: test x86_64
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/alis-is/eli-test:latest
           run: ./tools/test.sh x86_64
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
+      - name: test aarch64
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/alis-is/eli-test:latest
+          run: ./tools/test.sh aarch64
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
+      - name: test riscv64
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/alis-is/eli-test:latest
+          run: ./tools/test.sh riscv64
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
           
   test-windows:
     runs-on: windows-latest
-    needs: build-win
+    needs: build-windows
     steps:
       - uses: actions/checkout@v3
-
-      - name: restore cache
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-binaries
-        with:
-          path: ./release
-          key: build-win#${{ github.sha }}
-          enableCrossOsArchive: true
-
+      - uses: "./.github/template/prepare-test"
       - name: test
         shell: pwsh
         run: |
           .\tools\test.ps1 x86_64
+
+  test-macos:
+    runs-on: macos-latest
+    needs: build-macos
+    steps:
+      - uses: actions/checkout@v3
+      - uses: "./.github/template/prepare-test"
+      - name: test
+        shell: pwsh
+        run: |
+          .\tools\test.sh x86_64

@@ -90,7 +90,7 @@ local function get_log_color(level)
         return string.char(27) .. "[30;1m"
     elseif level == "info" then
         return string.char(27) .. "[36m"
-    elseif level == "warn" then
+    elseif level == "warn" or level == "warning" then
         return string.char(27) .. "[33m"
     elseif level == "error" then
         return string.char(27) .. "[31m"
@@ -102,6 +102,7 @@ end
 local _levelValueMap = {
     ["error"] = 2,
     ["warn"] = 1,
+    ["warning"] = 1,
     ["success"] = 0,
     ["info"] = 0,
     ["debug"] = -1,
@@ -138,7 +139,6 @@ local function log_txt(data, colorful, color, noTime, includeFields)
     end
 
     if includeFields then
-
         if not _util.is_array(includeFields) then
             includeFields = _exTable.filter(_exTable.keys(data), function(_, v)
                 return v ~= 'msg' and v ~= 'module' and v ~= 'level'
