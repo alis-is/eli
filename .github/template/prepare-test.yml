@@ -1,0 +1,19 @@
+name: prepare-test
+
+# Were we can define the inputs that our action will accept
+inputs:
+  cache-id:
+    require: true
+
+runs:
+  using: "composite"
+  steps:
+  - uses: actions/checkout@v3
+  - name: restore cache
+    uses: actions/cache@v3
+    env:
+      cache-name: cache-binaries
+    with:
+      path: ./release
+      key: ${{ inputs.cache-id }}
+      enableCrossOsArchive: true

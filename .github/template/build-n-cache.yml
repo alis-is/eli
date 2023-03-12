@@ -1,0 +1,29 @@
+name: build-n-cache
+
+# Were we can define the inputs that our action will accept
+inputs:
+  toolchain:
+    require: true
+  cache-id:
+    require: true
+
+runs:
+  using: "composite"
+  steps:
+  - uses: actions/checkout@v3
+    with:
+      submodules: true
+  - name: build
+    uses: addnab/docker-run-action@v3
+    with:
+      image: ghcr.io/alis-is/eli-build:latest
+      run: ./eli tools/build.lua
+      options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }}
+  - name: cache release
+    uses: actions/cache@v3
+    env:
+      cache-name: cache-binaries
+    with:
+      path: ./release
+      key: ${{ inputs.cache-id }}
+      enableCrossOsArchive: true
