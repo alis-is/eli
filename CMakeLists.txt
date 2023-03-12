@@ -8,7 +8,7 @@ set(CMAKE_CROSSCOMPILING CACHE BOOL ON FORCE)
 project (eli)
 
 set_directory_properties(PROPERTIES CURL_CA_BUNDLE "none")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -s -fPIC -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -g3 -Wl,--as-needed -Wno-error -Wno-sign-compare -Wl,--gc-sections -static -DCURL_STATICLIB")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -s -fPIC -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -g3 -Wl,--as-needed -Wno-sign-compare -Wl,--gc-sections -static -DCURL_STATICLIB")
 set(LD_FLAGS "${LD_FLAGS} -Wl,-s -Wl,-Bsymbolic -Wl,--gc-sections")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
 

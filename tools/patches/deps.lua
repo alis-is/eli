@@ -2,7 +2,7 @@ local lustache = require"lustache"
 local hjson = require"hjson"
 local config = hjson.parse(fs.read_file"config.hjson")
 
-local log_success, log_info = util.global_log_factory("create-env", "success", "info")
+local log_success, log_info, log_warn = util.global_log_factory("create-env", "success", "info", "warn")
 
 local generate_embedable_module = require"tools.embedable"
 local templates = require"tools.templates"
@@ -31,6 +31,7 @@ local LUA_ZIP_C = "deps/lua-zip/lua_zip.c"
 local LIBZIP_CMAKELISTS = "deps/libzip/CMakeLists.txt"
 local CURL_MBEDTLS_C = "deps/curl/lib/vtls/mbedtls.c"
 local MBED_MBEDTLS_CONFIG_H = "deps/mbedtls/include/mbedtls/mbedtls_config.h"
+local MBED_CMAKELISTS_TXT = "deps/mbedtls/CMakeLists.txt"
 
 local patches = {
 	[INIT_SOURCE] = {
@@ -198,6 +199,16 @@ message( ${ZLIBINCLUDEDIR} )
 			return file .. lustache:render(templates.MBED_ELI_OVERRIDES, { overrides = config.mbedtlsOverrides })
 		end,
 	},
+	[MBED_CMAKELISTS_TXT] = {
+		patch = function (file)
+			-- // TODO: remove after next mbedtls release
+			-- right now compilation fails because of empty retval in docs
+			if not file:match('# set%(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} %-Werror"%)') then
+				file = file:gsub('set%(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} %-Werror"%)', '# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")')
+			end
+			return file
+		end
+	}
 }
 
 for filePath, spec in pairs(patches) do
@@ -209,7 +220,11 @@ for filePath, spec in pairs(patches) do
 		error("failed to validate " .. filePath)
 	end
 	local _patched = spec.patch(_file)
-	fs.write_file(filePath, _patched)
+	if not _patched then
+		log_warn("can not patch "..tostring(filePath) .. " - no content returned from patch function")
+	else
+		fs.write_file(filePath, _patched)
+	end
 end
 
 log_success"succesfully patched dependencies"
