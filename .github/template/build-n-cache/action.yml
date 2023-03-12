@@ -3,7 +3,7 @@ name: build-n-cache
 inputs:
   toolchain:
     require: true
-  artefact-id:
+  artifact-id:
     require: true
 
 runs:
@@ -17,8 +17,8 @@ runs:
       options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }}
   - uses: actions/upload-artifact@v3
     with:
-      name: ${{ inputs.artefact-id }}
-      path: ./release/${{ inputs.artefact-id }}
+      name: ${{ inputs.artifact-id }}
+      path: ./release/${{ inputs.artifact-id }}
   - uses: actions/upload-artifact@v3
     with:
       name: meta.zip
