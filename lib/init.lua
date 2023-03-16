@@ -1,5 +1,5 @@
-ELI_LIB_VERSION = '0.29.0'
-ELI_VERSION = '0.29.0'
+ELI_LIB_VERSION = '0.29.1'
+ELI_VERSION = '0.29.1'
 local function eli_init()
    local path = require 'eli.path'
    local _eos = require 'eli.os'
