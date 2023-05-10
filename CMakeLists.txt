@@ -33,7 +33,7 @@ set(ZIP_LIB_INCLUDE ${CMAKE_BINARY_DIR}/deps/libzip/ ${CMAKE_SOURCE_DIR}/deps/li
 set(ZLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/deps/zlib/ CACHE STRING "zlib" FORCE)
 set(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/deps/zlib/libz.a)
 set(MbedTLS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/include)
-set(MbedTLS_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/library)
+set(MbedTLS_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/library/libmbedtls.a)
 
 include_directories(deps/lua/ ${ZLIB_INCLUDE_DIR} deps/libzip deps/mbedtls/include deps/curl/include ${CMAKE_SOURCE_DIR}/deps/zlib)
 
