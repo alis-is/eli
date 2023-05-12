@@ -12,7 +12,7 @@ runs:
   - name: build
     uses: addnab/docker-run-action@v3
     with:
-      image: ghcr.io/alis-is/eli-build:0.0.6
+      image: ghcr.io/alis-is/eli-build:latest
       run: ./eli tools/build.lua
       options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }}
   - uses: actions/upload-artifact@v3
