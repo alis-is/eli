@@ -8,18 +8,18 @@ set(CMAKE_CROSSCOMPILING CACHE BOOL ON FORCE)
 project (eli)
 
 set_directory_properties(PROPERTIES CURL_CA_BUNDLE "none")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -s -flto=full -fPIC -fPIE -ffunction-sections -fdata-sections -g3 -Wl,--as-needed -Wno-sign-compare -Wl,--gc-sections -static -DCURL_STATICLIB")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -s -fPIC -fPIE -ffunction-sections -fdata-sections -g3 -Wl,--as-needed -Wno-sign-compare -Wl,--gc-sections -static -DCURL_STATICLIB")
 set(LD_FLAGS "${LD_FLAGS} -Wl,-s -Wl,-Bsymbolic -Wl,--gc-sections")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
 
 if (CMAKE_SYSTEM_NAME STREQUAL Linux)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-exceptions -DLUA_USE_LINUX")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-exceptions -DLUA_USE_LINUX")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-exceptions -DLUA_USE_MACOSX")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
   # -DLUA_USE_WINDOWS is detected automatically
   if (NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-exceptions")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-exceptions")
   endif()
   # -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-exceptions
   # causes STATUS_BAD_FUNCTION_TABLE on windows with clang so we compile without
