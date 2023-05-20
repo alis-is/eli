@@ -63,7 +63,7 @@ add_subdirectory(deps/eli-stream-extra/)
 target_include_directories(eli_stream_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 add_subdirectory(deps/lua-mbed-bigint/)
 target_include_directories(lua_mbed_bigint PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
-add_subdirectory(deps/lua-tar-extract-native/)
+add_subdirectory(deps/lua-tar-read-native/)
 target_include_directories(ltar PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 
 if (NOT CMAKE_SYSTEM_NAME STREQUAL Windows)

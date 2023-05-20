@@ -301,6 +301,7 @@ function zip.open_archive(path, checkcons)
       _result, _error = _lzip.open(path)
    end
    assert(_result, _error)
+	return _result
 end
 
 ---#DES 'zip.new_archive'

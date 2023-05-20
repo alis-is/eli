@@ -45,7 +45,7 @@ local function buildWithChain(id, buildDir)
       log_info("Toolchain " .. id .. " not found. Downloading...")
       --fs.mkdirp("/opt/cross/" .. id)
       local tmp = os.tmpname()
-      --local tmp2 = os.tmpname()
+      local tmp2 = os.tmpname()
       local _ok = net.safe_download_file("https://github.com/alis-is/musl-toolchains/releases/download/global/" ..
          id .. ".tgz", tmp)
       if not _ok then
@@ -53,12 +53,14 @@ local function buildWithChain(id, buildDir)
          net.download_file("https://more.musl.cc/11/x86_64-linux-musl/" .. id .. ".tgz", tmp)
       end
       -- eli.tar can not handle links and long links so we use system tar for now
-      assert(os.execute("tar -xzvf " .. tmp .. " && mv " .. id .. " /opt/cross/"))
-      --      lz.extract(tmp, tmp2)
-      --      tar.extract(tmp2, "/opt/cross/" --[[.. id]], { flattenRootDir = true, filter = function (f)
-      --         print(f)
-      --         return true
-      --      end })
+      --assert(os.execute("tar -xzvf " .. tmp .. " && mv " .. id .. " /opt/cross/"))
+		lz.extract(tmp, tmp2)
+		tar.extract(tmp2, "/opt/cross/" --[[.. id]], { flattenRootDir = true, filter = function (f)
+			print(f)
+			return true
+		end })
+		os.remove(tmp)
+		os.remove(tmp2)
       log_success("Toolchain " .. id .. " downloaded.")
    end
    log_info("Initiating build eli for " .. id .. "...")
@@ -88,7 +90,6 @@ local function buildWithChain(id, buildDir)
          target = target,
          SYSTEM_NAME = system
       })
-      
    else
       local _, gcc = execute_collect_stdout('find -H /opt/cross/' .. id .. ' -name "*-gcc" -type f')
       local _, gpp = execute_collect_stdout('find -H /opt/cross/' .. id .. ' -name "*-g++" -type f')

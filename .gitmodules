@@ -55,9 +55,9 @@
 	path = deps/eli-env-extra
 	url = https://github.com/alis-is/eli-env-extra
 	ignore = dirty
-[submodule "deps/lua-tar-extract-native"]
-	path = deps/lua-tar-extract-native
-	url = https://github.com/alis-is/lua-tar-extract-native
+[submodule "deps/lua-tar-read-native"]
+	path = deps/lua-tar-read-native
+	url = https://github.com/alis-is/lua-tar-read-native.git
 	ignore = dirty
 [submodule "deps/Lua-cURLv3"]
 	path = deps/Lua-cURLv3

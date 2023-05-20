@@ -7,15 +7,17 @@ local _util = require "eli.util"
 
 ---#DES 'hash.Sha256'
 ---@class Sha256: HashGenerator
+---@deprecated
 local Sha256 = {}
 Sha256.__index = Sha256
 
+---@deprecated
 function Sha256:new()
     local sha256 = {}
 
     setmetatable(sha256, self)
     self.__index = self
-    sha256.ctx = _hash.sha256_init()
+    sha256.ctx = _hash.sha256init()
     return sha256
 end
 
@@ -23,41 +25,47 @@ end
 ---
 ---@param self Sha512
 ---@param bytes string
-function Sha256:update(bytes) _hash.sha256_update(self.ctx, bytes) end
+---@deprecated
+function Sha256:update(bytes) self.ctx:update(bytes) end
 
 ---#DES 'hash.Sha256:finish'
 ---
 ---@param self Sha512
 ---@param hex boolean?
 ---@return string
-function Sha256:finish(hex) return _hash.sha256_finish(self.ctx, hex) end
+---@deprecated
+function Sha256:finish(hex) return self.ctx:finish(hex) end
 
 ---#DES 'hash.Sha512'
+---@deprecated
 ---@class Sha512: HashGenerator
 local Sha512 = {}
 Sha512.__index = Sha512
 
+---@deprecated
 function Sha512:new()
     local sha512 = {}
 
     setmetatable(sha512, self)
     self.__index = self
-    sha512.ctx = _hash.sha512_init()
+    sha512.ctx = _hash.sha512init()
     return sha512
 end
 
 ---#DES 'hash.Sha512:update'
 ---
 ---@param self Sha512
----@param bytes string
-function Sha512:update(bytes) _hash.sha512_update(self.ctx, bytes) end
+---@param bytes string: test
+---@deprecated
+function Sha512:update(bytes) self.ctx:update(bytes) end
 
 ---#DES 'hash.Sha512:finish'
 ---
 ---@param self Sha512
 ---@param hex boolean?
 ---@return string
-function Sha512:finish(hex) return _hash.sha512_finish(self.ctx, hex) end
+---@deprecated
+function Sha512:finish(hex) return self.ctx:finish(hex) end
 
 ---#DES 'hash.hex_equals'
 ---
@@ -65,6 +73,7 @@ function Sha512:finish(hex) return _hash.sha512_finish(self.ctx, hex) end
 ---@param hash1 string
 ---@param hash2 string
 ---@return boolean
+---@deprecated
 local function _hex_equals(hash1, hash2)
     return _hash.equals(hash1, hash2, true)
 end

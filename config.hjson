@@ -44,7 +44,7 @@
    ],
    inject_docs: [
       { 
-         source: lua-modules/hjson
+         source: deps/hjson-lua
          files: [
             { 
                lib: hjson
@@ -55,7 +55,7 @@
          ] 
       },
       { 
-         source: modules/lua_is_tty
+         source: deps/lua-is-tty
          files: [
             { 
                lib: is_tty
@@ -66,7 +66,7 @@
          ] 
       },
       { 
-         source: modules/eli-env-extra
+         source: deps/eli-env-extra
          files: [
             { 
                lib: eli.env
@@ -77,7 +77,7 @@
          ] 
       },
       { 
-         source: modules/eli-os-extra
+         source: deps/eli-os-extra
          files: [
             { 
                lib: eli.os
@@ -92,7 +92,29 @@
                destination: "os.extra-cwd.lua"
             }
          ] 
-      }
+      },
+      { 
+         source: deps/lua-mbed-hash
+         files: [
+            { 
+               lib: eli.hash
+               name: src/hash.h
+               isGlobal: true,
+               destination: "hash.h.lua"
+            }
+         ] 
+      },
+      { 
+         source: deps/lua-mbed-bigint
+         files: [
+            { 
+               lib: bigint
+               name: src/bigint.h
+               isGlobal: true,
+               destination: "bigint.h.lua"
+            }
+         ] 
+      },
    ],
    init: lib/init.lua
 }
