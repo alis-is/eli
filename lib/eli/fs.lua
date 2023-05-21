@@ -212,7 +212,7 @@ function fs.remove(path, options)
 		return true
 	end
 
-	if efs.file_type(path) == "directory" then
+	if efs.file_type(path) == "directory" and (efs.link_type(path) ~= "link" or options.followLinks) then
 		-- do not process directory if it is meant to be kept
 		_pathRelativeToRoot = _eliPath.normalize(_pathRelativeToRoot, nil, { endsep = true }) --[[@as string]]
 		if type(options.keep) == "function" and options.keep(_pathRelativeToRoot, path) then
