@@ -13,6 +13,7 @@ log_info"Building eli..."
 
 local BUILD_TYPE = nil
 local BUILD_FLAGS = nil
+local isDebug = false
 -- Loop through the command-line arguments
 for _, v in ipairs(arg) do
 	-- Look for the --build-type= argument
@@ -22,6 +23,7 @@ for _, v in ipairs(arg) do
 
 	-- Look for the --debug argument
 	if v:find"--debug" then
+		isDebug = true
 		if v == "--debug" then
 			BUILD_FLAGS = "-O0 -g3"
 		else
@@ -158,10 +160,14 @@ local function buildWithChain(id, buildDir)
 	os.execute"make"
 	os.chdir(_oldCwd)
 	fs.mkdirp"release"
+	local _buildSuffix = ""
+	if isDebug then
+		_buildSuffix = "-debug"
+	end
 	if fs.exists(path.combine(buildDir, "eli.exe")) then
-		fs.copy_file(path.combine(buildDir, "eli.exe"), "release/eli-" .. builtBinaryId .. ".exe")
+		fs.copy_file(path.combine(buildDir, "eli.exe"), "release/eli-" .. builtBinaryId .. _buildSuffix .. ".exe")
 	else
-		fs.copy_file(path.combine(buildDir, "eli"), "release/eli-" .. builtBinaryId)
+		fs.copy_file(path.combine(buildDir, "eli"), "release/eli-" .. builtBinaryId .. _buildSuffix)
 	end
 end
 
