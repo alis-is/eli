@@ -1,6 +1,7 @@
 local _test = TEST or require 'u-test'
 local _ok, _eliNet = pcall(require, "eli.net")
 
+-- https://postman-echo.com/ ?
 local HTTPBIN_URL = os.getenv("HTTPBIN_URL") or "https://httpbin.org/"
 
 if not _ok then

@@ -74,6 +74,13 @@ jobs:
   test-linux:
     runs-on: ubuntu-latest
     needs: [build-linux-x86_64,build-linux-aarch64, build-linux-riscv64]
+    env:
+      HTTPBIN_URL: http://localhost:80
+    services:
+      httpbin:
+        image: kennethreitz/httpbin
+        ports:
+          - 80:80
     steps:
       - uses: actions/checkout@v3
       - uses: "./.github/template/prepare-test"
