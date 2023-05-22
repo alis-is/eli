@@ -26,7 +26,7 @@ local tar = _tar
 ---#DES 'TarExtractOptions.transform_path'
 ---@field transform_path (fun(path: string, destination: string?): string)?
 ---#DES 'TarExtractOptions.filter'
----@field filter nil|fun(name: string): boolean
+---@field filter nil|fun(name: string, type: string): boolean
 ---#DES 'TarExtractOptions.open_file'
 ---@field open_file nil|fun(path: string, mode: string): file*
 ---#DES 'TarExtractOptions.write'
@@ -141,7 +141,7 @@ function tar.extract(source, destination, options)
          goto CONTINUE
       end
 
-      if not _filter(_entryPath:sub(_il)) then
+      if not _filter(_entryPath:sub(_il), _entry:type()) then
          goto CONTINUE
       end
 

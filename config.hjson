@@ -5,7 +5,6 @@
    compress: true
    inject_ca: true
    cache_dir: .CACHE
-   build_type: MINSIZEREL
    c_libs: {
       eli_fs_extra: eli.fs.extra
       eli_proc_extra: eli.proc.extra
