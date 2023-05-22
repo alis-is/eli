@@ -36,7 +36,7 @@ _test["download (progress)"] = function ()
 		_printed = _printed .. msg
 	end
 	io.write = new_print
-	local _, _ = _eliNet.safe_download_string("https://github.com/alis-is/eli/raw/main/eli",
+	local _, _ = _eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
 		{
 			followRedirects = true,
 			showDefaultProgress = 5,
@@ -47,7 +47,7 @@ _test["download (progress)"] = function ()
 	_test.assert(_printed:match"%%" --[[and _printed:match("15%%")]], "no progress detected")
 	_printed = ""
 	io.write = new_print
-	local _, _ = _eliNet.safe_download_string("https://github.com/alis-is/eli/raw/main/eli",
+	local _, _ = _eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
 		{
 			followRedirects = true,
 			showDefaultProgress = true,
