@@ -70,12 +70,14 @@ _test["RestClient get"] = function()
 
     _client = RestClient:new(HTTPBIN_URL)
     _ok, _response = _client:safe_get("get", { params = { test = "aaa", test2 = "bbb" } })
+	 print(_ok, _response.code, _response.data, _response.raw)
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
     _client = RestClient:new(HTTPBIN_URL .. "get")
     _ok, _response = _client:safe_get({ params = { "test=aaa", "test2=bbb" } })
+	 print(_ok, _response.code, _response.data, _response.raw)
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
@@ -85,6 +87,7 @@ _test["RestClient post"] = function()
     local _client = RestClient:new(HTTPBIN_URL)
     local _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
         { params = { test = "aaa", test2 = "bbb" } })
+		  print(_ok, _response.code, _response.data, _response.raw)
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -93,6 +96,7 @@ _test["RestClient post"] = function()
     _client = RestClient:new(HTTPBIN_URL .. "post")
     _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } },
         { params = { "test=aaa", "test2=bbb" } })
+		  print(_ok, _response.code, _response.data, _response.raw)
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -103,6 +107,7 @@ _test["RestClient put"] = function()
     local _client = RestClient:new(HTTPBIN_URL)
     local _ok, _response = _client:safe_put({ test = "data", test2 = { other = "data2" } }, "put",
         { params = { test = "aaa", test2 = "bbb" } })
+		  print(_ok, _response.code, _response.data, _response.raw)
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -111,6 +116,7 @@ _test["RestClient put"] = function()
     _client = RestClient:new(HTTPBIN_URL .. "put")
     _ok, _response = _client:safe_put({ test = "data", test2 = { other = "data2" } },
         { params = { "test=aaa", "test2=bbb" } })
+		  print(_ok, _response.code, _response.data, _response.raw)
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -118,6 +124,7 @@ _test["RestClient put"] = function()
 
     _client = RestClient:new(HTTPBIN_URL .. "put")
     _ok, _response = _client:safe_put(io.open("assets/put.txt"), { params = { "test=aaa", "test2=bbb" } })
+	 print(_ok, _response.code, _response.data, _response.raw)
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.data == "simple", "Failed to verify result")
@@ -128,6 +135,7 @@ _test["RestClient patch"] = function()
     local _client = RestClient:new(HTTPBIN_URL)
     local _ok, _response = _client:safe_patch({ test = "data", test2 = { other = "data2" } }, "patch",
         { params = { test = "aaa", test2 = "bbb" } })
+		  print(_ok, _response.code, _response.data, _response.raw)
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -136,6 +144,7 @@ _test["RestClient patch"] = function()
     _client = RestClient:new(HTTPBIN_URL .. "patch")
     _ok, _response = _client:safe_patch({ test = "data", test2 = { other = "data2" } },
         { params = { "test=aaa", "test2=bbb" } })
+		  print(_ok, _response.code, _response.data, _response.raw)
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -145,12 +154,14 @@ end
 _test["RestClient delete"] = function()
     local _client = RestClient:new(HTTPBIN_URL)
     local _ok, _response = _client:safe_delete("delete", { params = { test = "aaa", test2 = "bbb" } })
+	 print(_ok, _response.code, _response.data, _response.raw)
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
     _client = RestClient:new(HTTPBIN_URL .. "delete")
     _ok, _response = _client:safe_delete({ params = { "test=aaa", "test2=bbb" } })
+	 print(_ok, _response.code, _response.data, _response.raw)
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
