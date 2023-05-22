@@ -32,7 +32,7 @@ runs:
     if: ${{ inputs.debug-artifact-id != '' }}
     with:
       name: debug
-      path: ./release/${{ inputs.artifact-id }}
+      path: ./release/${{ inputs.debug-artifact-id }}
   - uses: actions/upload-artifact@v3
     with:
       name: release
