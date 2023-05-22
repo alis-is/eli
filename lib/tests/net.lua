@@ -69,15 +69,13 @@ _test["RestClient get"] = function()
     _test.assert(_response.raw:match("Copyright %(c%) %d%d%d%d alis%.is"), "copyright not found")
 
     _client = RestClient:new(HTTPBIN_URL)
-    _ok, _response = _client:safe_get("get", { params = { test = "aaa", test2 = "bbb" } })
-	 print(_ok, _response, _response.code, _response.data, _response.raw)
+    _ok, _response = _client:safe_get("get", { params = { test = "aaa", test2 = "bbb" }, timeout = 180 } )
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
     _client = RestClient:new(HTTPBIN_URL .. "get")
-    _ok, _response = _client:safe_get({ params = { "test=aaa", "test2=bbb" } })
-	 print(_ok, _response, _response.code, _response.data, _response.raw)
+    _ok, _response = _client:safe_get({ params = { "test=aaa", "test2=bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
@@ -86,8 +84,7 @@ end
 _test["RestClient post"] = function()
     local _client = RestClient:new(HTTPBIN_URL)
     local _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
-        { params = { test = "aaa", test2 = "bbb" } })
-		  print(_ok, _response, _response.code, _response.data, _response.raw)
+        { params = { test = "aaa", test2 = "bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -95,8 +92,7 @@ _test["RestClient post"] = function()
 
     _client = RestClient:new(HTTPBIN_URL .. "post")
     _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } },
-        { params = { "test=aaa", "test2=bbb" } })
-		  print(_ok, _response, _response.code, _response.data, _response.raw)
+        { params = { "test=aaa", "test2=bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -106,8 +102,7 @@ end
 _test["RestClient put"] = function()
     local _client = RestClient:new(HTTPBIN_URL)
     local _ok, _response = _client:safe_put({ test = "data", test2 = { other = "data2" } }, "put",
-        { params = { test = "aaa", test2 = "bbb" } })
-		  print(_ok, _response, _response.code, _response.data, _response.raw)
+        { params = { test = "aaa", test2 = "bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -115,16 +110,14 @@ _test["RestClient put"] = function()
 
     _client = RestClient:new(HTTPBIN_URL .. "put")
     _ok, _response = _client:safe_put({ test = "data", test2 = { other = "data2" } },
-        { params = { "test=aaa", "test2=bbb" } })
-		  print(_ok, _response, _response.code, _response.data, _response.raw)
+        { params = { "test=aaa", "test2=bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
     _client = RestClient:new(HTTPBIN_URL .. "put")
-    _ok, _response = _client:safe_put(io.open("assets/put.txt"), { params = { "test=aaa", "test2=bbb" } })
-	 print(_ok, _response, _response.code, _response.data, _response.raw)
+    _ok, _response = _client:safe_put(io.open("assets/put.txt"), { params = { "test=aaa", "test2=bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.data == "simple", "Failed to verify result")
@@ -134,8 +127,7 @@ end
 _test["RestClient patch"] = function()
     local _client = RestClient:new(HTTPBIN_URL)
     local _ok, _response = _client:safe_patch({ test = "data", test2 = { other = "data2" } }, "patch",
-        { params = { test = "aaa", test2 = "bbb" } })
-		  print(_ok, _response, _response.code, _response.data, _response.raw)
+        { params = { test = "aaa", test2 = "bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -143,8 +135,7 @@ _test["RestClient patch"] = function()
 
     _client = RestClient:new(HTTPBIN_URL .. "patch")
     _ok, _response = _client:safe_patch({ test = "data", test2 = { other = "data2" } },
-        { params = { "test=aaa", "test2=bbb" } })
-		  print(_ok, _response, _response.code, _response.data, _response.raw)
+        { params = { "test=aaa", "test2=bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -153,15 +144,13 @@ end
 
 _test["RestClient delete"] = function()
     local _client = RestClient:new(HTTPBIN_URL)
-    local _ok, _response = _client:safe_delete("delete", { params = { test = "aaa", test2 = "bbb" } })
-	 print(_ok, _response, _response.code, _response.data, _response.raw)
+    local _ok, _response = _client:safe_delete("delete", { params = { test = "aaa", test2 = "bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
     _client = RestClient:new(HTTPBIN_URL .. "delete")
-    _ok, _response = _client:safe_delete({ params = { "test=aaa", "test2=bbb" } })
-	 print(_ok, _response, _response.code, _response.data, _response.raw)
+    _ok, _response = _client:safe_delete({ params = { "test=aaa", "test2=bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
@@ -170,7 +159,7 @@ end
 _test["RestClient conf"] = function()
     local _client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain" })
     local _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
-        { params = { test = "aaa", test2 = "bbb" } })
+        { params = { test = "aaa", test2 = "bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     local _data = _response.data
     _test.assert(_data.json == nil, "Failed to verify result")
@@ -178,7 +167,7 @@ _test["RestClient conf"] = function()
 
     _client:conf({ contentType = 'application/json' })
     _ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
-        { params = { "test=aaa", "test2=bbb" } })
+        { params = { "test=aaa", "test2=bbb" }, timeout = 180 })
     _test.assert(_ok, "request failed")
     _data = _response.data
     _test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
@@ -186,7 +175,7 @@ _test["RestClient conf"] = function()
 end
 
 _test["RestClient get_url and res"] = function()
-    local _client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain" })
+    local _client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain", timeout = 180 })
     _test.assert(_client:get_url() == HTTPBIN_URL)
     _client = _client:res("test")
     _test.assert(_client:get_url() == HTTPBIN_URL .. "test")
@@ -195,7 +184,7 @@ _test["RestClient get_url and res"] = function()
 end
 
 _test["RestClient res (advanced)"] = function()
-    local _client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain" })
+    local _client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain", timeout = 180 })
     _test.assert(_client:get_url() == HTTPBIN_URL)
     local _arrayClients = _client:res({ "test", "test2/test3" })
     _test.assert(_arrayClients[1]:get_url() == HTTPBIN_URL .. "test")
