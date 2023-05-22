@@ -14,6 +14,7 @@ log_info"Building eli..."
 local BUILD_TYPE = nil
 local BUILD_FLAGS = nil
 local isDebug = false
+local shouldRemoveOldBuild = false
 -- Loop through the command-line arguments
 for _, v in ipairs(arg) do
 	-- Look for the --build-type= argument
@@ -33,6 +34,10 @@ for _, v in ipairs(arg) do
 		if BUILD_TYPE == nil or BUILD_TYPE == "MINSIZEREL" then
 			BUILD_TYPE = "DEBUG"
 		end
+	end
+
+	if v:find"--clean" then
+		shouldRemoveOldBuild = true
 	end
 end
 -- defaults
@@ -90,7 +95,9 @@ local function buildWithChain(id, buildDir)
 	end
 	log_info("Initiating build eli for " .. id .. "...")
 	buildDir = buildDir or path.combine("build", id)
-	fs.remove(buildDir, { recurse = true })
+	if shouldRemoveOldBuild then
+		fs.remove(buildDir, { recurse = true })
+	end
 	fs.mkdirp(buildDir)
 
 	local _oldCwd = os.cwd()
