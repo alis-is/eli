@@ -90,7 +90,7 @@ local function generate_embedable_module(config, options)
 				os.chdir(module.path)
 			end
 			local _pathToAmalg = path.combine(oldworkDir, "tools/amalg.lua")
-			local f = io.popen("/root/luabuild/eli" .. " " .. _pathToAmalg .. " " .. filesToEmbed, "r")
+			local f = io.popen("eli" .. " " .. _pathToAmalg .. " " .. filesToEmbed, "r")
 			s = assert(f:read"*a")
 			f:close()
 			os.chdir(oldworkDir)
@@ -108,7 +108,7 @@ local function generate_embedable_module(config, options)
 			local _pathToLuaDiet = path.combine(oldworkDir, "deps/luasrcdiet/bin/luasrcdiet")
 			local f =
 				io.popen(
-					"/root/luabuild/eli" ..
+					"eli" ..
 					" " .. _pathToLuaDiet .. " " .. tmpFile .. " -o " .. tmpOutput .. "",
 					"r"
 				)

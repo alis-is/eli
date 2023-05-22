@@ -172,6 +172,15 @@ end
 ---@field keep (fun(path: string, fullPath: string): boolean?)? whitelist function for files to keep
 ---@field root string path to strip from path before passing to keep function, this is usually done internally
 
+local function _remove_link_target(path)
+	local _linkInfo = efs.link_info(path)
+	local _target = type(_linkInfo) == "table" and _linkInfo.target -- only links have target
+	if type(_target) == "string" then
+		local _ok, _error = os.remove(_target)
+		assert(_ok, _error or "")
+	end
+end
+
 ---#DES 'fs.remove'
 ---
 ---Removes file or directory
@@ -199,37 +208,46 @@ function fs.remove(path, options)
 	local contentOnly = options.contentOnly
 	options.contentOnly = false  -- for recursive calls
 
-	local _type_check = options.followLinks and efs.file_type or efs.link_type
-	if _type_check(path) == nil then
-		return true
-	end
-	if _type_check(path) == "file" then
-		if type(options.keep) == "function" and options.keep(_pathRelativeToRoot, path) then
-			return false
-		end
-		local _ok, _error = os.remove(path)
-		assert(_ok, _error or "")
+	if efs.link_type(path) == nil then -- does not exist
 		return true
 	end
 
-	-- do not process directory if it is meant to be kept
-	_pathRelativeToRoot = _eliPath.normalize(_pathRelativeToRoot, nil, { endsep = true }) --[[@as string]]
+	if efs.file_type(path) == "directory" and (efs.link_type(path) ~= "link" or options.followLinks) then
+		-- do not process directory if it is meant to be kept
+		_pathRelativeToRoot = _eliPath.normalize(_pathRelativeToRoot, nil, { endsep = true }) --[[@as string]]
+		if type(options.keep) == "function" and options.keep(_pathRelativeToRoot, path) then
+			return false
+		end
+		local _allChildrenRemoved = true
+		if recurse then
+			for o in efs.iter_dir(path) do
+				if o ~= "." and o ~= ".." then
+					_allChildrenRemoved = fs.remove(combine(path, o), options) and _allChildrenRemoved
+				end
+			end
+		end
+		if not contentOnly or not _allChildrenRemoved then
+			efs.rmdir(path)
+			if  options.followLinks then
+				-- remove link target if it exists and we are following links
+				_remove_link_target(path)
+			end
+			return true
+		end
+		return false
+	end
+
 	if type(options.keep) == "function" and options.keep(_pathRelativeToRoot, path) then
 		return false
 	end
-	local _allChildrenRemoved = true
-	if recurse then
-		for o in efs.iter_dir(path) do
-			if o ~= "." and o ~= ".." then
-				_allChildrenRemoved = fs.remove(combine(path, o), options) and _allChildrenRemoved
-			end
-		end
+	local _ok, _error = os.remove(path)
+	assert(_ok, _error or "")
+
+	if  options.followLinks then
+		-- remove link target if it exists and we are following links
+		_remove_link_target(path)
 	end
-	if not contentOnly or not _allChildrenRemoved then
-		efs.rmdir(path)
-		return true
-	end
-	return false
+	return true
 end
 
 ---#DES 'fs.move'
@@ -283,25 +301,25 @@ function fs.hash_file(pathOrFile, options)
 	local size = 2 ^ 12  -- 4K
 
 	if options.type == "sha256" then
-		local ctx = _hash.sha256_init()
+		local ctx = _hash.sha256init()
 		while true do
 			local block = srcf:read(size)
 			if not block then
 				break
 			end
-			_hash.sha256_update(ctx, block)
+			ctx:update(block)
 		end
-		return _hash.sha256_finish(ctx, options.hex)
+		return ctx:finish(options.hex)
 	else
-		local ctx = _hash.sha512_init()
+		local ctx = _hash.sha512init()
 		while true do
 			local block = srcf:read(size)
 			if not block then
 				break
 			end
-			_hash.sha512_update(ctx, block)
+			ctx:update(block)
 		end
-		return _hash.sha512_finish(ctx, options.hex)
+		return ctx:finish(options.hex)
 	end
 end
 

@@ -8,7 +8,7 @@ set(CMAKE_CROSSCOMPILING CACHE BOOL ON FORCE)
 project (eli)
 
 set_directory_properties(PROPERTIES CURL_CA_BUNDLE "none")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -s -fPIC -fPIE -ffunction-sections -fdata-sections -g3 -Wl,--as-needed -Wno-sign-compare -Wl,--gc-sections -static -DCURL_STATICLIB")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${BUILD_FLAGS} -fPIC -fPIE -ffunction-sections -fdata-sections -g3 -Wl,--as-needed -Wno-sign-compare -Wl,--gc-sections -static -DCURL_STATICLIB")
 set(LD_FLAGS "${LD_FLAGS} -Wl,-s -Wl,-Bsymbolic -Wl,--gc-sections")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
 
@@ -63,7 +63,7 @@ add_subdirectory(deps/eli-stream-extra/)
 target_include_directories(eli_stream_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 add_subdirectory(deps/lua-mbed-bigint/)
 target_include_directories(lua_mbed_bigint PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
-add_subdirectory(deps/lua-tar-extract-native/)
+add_subdirectory(deps/lua-tar-read-native/)
 target_include_directories(ltar PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 
 if (NOT CMAKE_SYSTEM_NAME STREQUAL Windows)
