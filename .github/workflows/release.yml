@@ -44,6 +44,7 @@ jobs:
       with:
         toolchain: zig:x86_64-linux-musl
         artifact-id: eli-linux-x86_64
+        debug-artifact-id: eli-linux-x86_64-debug
   build-linux-aarch64:
     runs-on: ubuntu-latest
     steps:
@@ -55,6 +56,7 @@ jobs:
       with:
         toolchain: zig:aarch64-linux-musl
         artifact-id: eli-linux-aarch64
+        debug-artifact-id: eli-linux-aarch64-debug
   build-linux-riscv64:
     runs-on: ubuntu-latest
     steps:
@@ -66,6 +68,7 @@ jobs:
       with:
         toolchain: zig:riscv64-linux-musl
         artifact-id: eli-linux-riscv64
+        debug-artifact-id: eli-linux-riscv64-debug
 
   build-windows-x86_64:
     runs-on: ubuntu-latest
@@ -78,6 +81,7 @@ jobs:
       with:
         toolchain: zig:x86_64-windows-gnu
         artifact-id: eli-windows-x86_64.exe
+        debug-artifact-id: eli-windows-x86_64-debug.exe
   build-windows-aarch64:
     runs-on: ubuntu-latest
     steps:
@@ -89,6 +93,7 @@ jobs:
       with:
         toolchain: zig:aarch64-windows-gnu
         artifact-id: eli-windows-aarch64.exe
+        debug-artifact-id: eli-windows-aarch64-debug.exe
 
   build-macos-x86_64:
     runs-on: ubuntu-latest
@@ -101,6 +106,7 @@ jobs:
       with:
         toolchain: zig:x86_64-macos-none
         artifact-id: eli-macos-x86_64
+        debug-artifact-id: eli-macos-x86_64-debug
   build-macos-aarch64:
     runs-on: ubuntu-latest
     steps:
@@ -112,6 +118,7 @@ jobs:
       with:
         toolchain: zig:aarch64-macos-none
         artifact-id: eli-macos-aarch64
+        debug-artifact-id: eli-macos-aarch64-debug
 
   # tests
   test-linux:
