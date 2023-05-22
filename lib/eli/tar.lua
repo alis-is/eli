@@ -12,7 +12,7 @@ local function _get_root_dir(entries)
    return _internalUtil.get_root_dir(_paths)
 end
 
-local tar = {}
+local tar = _tar
 
 ---@class TarExtractOptions
 ---#DES 'TarExtractOptions.skipDestinationCheck'
@@ -26,21 +26,55 @@ local tar = {}
 ---#DES 'TarExtractOptions.transform_path'
 ---@field transform_path (fun(path: string, destination: string?): string)?
 ---#DES 'TarExtractOptions.filter'
----@field filter nil|fun(name: string): boolean
+---@field filter nil|fun(name: string, type: string): boolean
 ---#DES 'TarExtractOptions.open_file'
 ---@field open_file nil|fun(path: string, mode: string): file*
 ---#DES 'TarExtractOptions.write'
 ---@field write nil|fun(path: string, data: string)
+---#DES 'TarExtractOptions.link'
+---@field link nil|fun(linkTarget: string, path: string, isSymbolicLink: boolean)
+---#DES 'TarExtractOptions.log'
+---@field log nil|fun(err: string)
 ---#DES 'TarExtractOptions.close_file'
 ---@field close_file nil|fun(f: file*)
 ---#DES 'TarExtractOptions.close_file'
 ---@field chunkSize nil|number
 
+
+
+local function _parse_extended_header(entry, globalExtendedHeader)
+	if entry:type() == tar.GNU_LONGNAME then
+		local _header = {
+			path = entry:read(entry:size()):match("[^%z]+") 
+		}
+		return true, util.merge_tables(_header, globalExtendedHeader), globalExtendedHeader
+	end
+	-- // TODO: GNU_LONGLINK
+	if entry:type() == "K" then
+		local _header = {
+			linkpath = entry:read(entry:size()):match("[^%z]+") 
+		}
+		return true, util.merge_tables(_header, globalExtendedHeader), globalExtendedHeader
+	end
+	if entry:type() == tar.XHDTYPE or entry:type() == tar.XGLTYPE then
+		local data = entry:read(entry:size())
+		local fields = {}
+		for _, keyword, value in data:gmatch("(%d+)%s(%S+)=(%S*)\n") do
+			fields[keyword] = value
+		end
+		if entry:type() == tar.XHDTYPE then
+			return true, util.merge_tables(fields, globalExtendedHeader), globalExtendedHeader
+		end
+		return true, fields, fields
+	end
+	return false, globalExtendedHeader, globalExtendedHeader
+end
+
 ---#DES 'tar.extract'
 ---
 ---Extracts data from source into destination folder
 ---@param source string
----@param destination string?
+---@param destination string
 ---@param options TarExtractOptions?
 function tar.extract(source, destination, options)
    if type(options) ~= "table" then
@@ -71,6 +105,14 @@ function tar.extract(source, destination, options)
    local _write = type(options.write) == "function" and options.write or function(file, data)
          return file:write(data)
       end
+	local _log = type(options.log) == "function" and options.log or function(msg)
+         return print(msg)
+      end
+	local _link = type(options.link) == "function" and options.link or function(linkTarget, path, isSymbolicLink)
+			return _fs.EFS and _fs.link(linkTarget, path, isSymbolicLink) or function ()
+				_log("tar.extract: link not supported on this platform! (EFS not available)")
+			end
+      end
    local _close_file = type(options.close_file) == "function" and options.close_file or function(file)
          return file:close()
       end
@@ -82,15 +124,25 @@ function tar.extract(source, destination, options)
    local _ignorePath = _flattenRootDir and _get_root_dir(_tarEntries) or ""
    local _il = #_ignorePath + 1 -- ignore length
 
+	local _extendedHeader = {}
+	local _globalExtendedHeader = {}
+
    for _, _entry in ipairs(_tarEntries) do
-      local _entryPath = _entry:path()
+		local _isExtendedHeader
+		-- _extendedHeader gets automatically injected global data, global header is just to update it properly if encountered
+		_isExtendedHeader, _extendedHeader, _globalExtendedHeader = _parse_extended_header(_entry, _globalExtendedHeader)
+		if _isExtendedHeader then
+			goto CONTINUE
+		end
+
+		local _entryPath = type(_extendedHeader.path) == "string" and _extendedHeader.path or _entry:path()
       if #_entryPath:sub(_il) == 0 then
          -- skip empty paths
-         goto files_loop
+         goto CONTINUE
       end
 
-      if not _filter(_entryPath:sub(_il)) then
-         goto files_loop
+      if not _filter(_entryPath:sub(_il), _entry:type()) then
+         goto CONTINUE
       end
 
       local _targetPath = _path.file(_entryPath)
@@ -100,12 +152,13 @@ function tar.extract(source, destination, options)
          _targetPath = _path.combine(destination, _entryPath:sub(_il))
       end
 
-      if _entryPath:sub(-(#"/")) == "/" then
+      if _entry:type() == tar.DIR then
          -- directory
          _mkdirp(_targetPath)
-      else
+		elseif _entry:type() == tar.FILE or _entry:type() == tar.AFILE then
          _mkdirp(_path.dir(_targetPath))
 
+			--if entry:type() == tar.FILE 
          local _f, _error = _open_file(_targetPath, "wb")
          assert(_f, "Failed to open file: " .. _targetPath .. " because of: " .. (_error or ""))
 
@@ -118,7 +171,7 @@ function tar.extract(source, destination, options)
          end
          _close_file(_f)
 
-         local _mode = _entry:mode()
+         local _mode = type(_extendedHeader.mode) == "string" and tonumber(_extendedHeader.mode, 8) or _entry:mode()
          if _externalChmod then -- we got supplied chmod
             _chmod(_targetPath, _mode)
          else -- we use built in chmod
@@ -127,9 +180,28 @@ function tar.extract(source, destination, options)
                pcall(_chmod, _targetPath, tonumber(_mode))
             end
          end
+		elseif _entry:type() == tar.SYMLINK or _entry:type() == tar.HARDLINK then
+			local _linkTarget = type(_extendedHeader.linkpath) == "string" and _extendedHeader.linkpath or  _entry:linkpath()
+			if type(_mkdirp) == "function" and type(destination) == "string" then --mkdir supported we can use path as is :)
+				if not _path.isabs(_linkTarget) then
+					_linkTarget = _path.combine(destination, _linkTarget)
+				end
+			end
+			_link(_linkTarget, _targetPath, _entry:type() == tar.SYMLINK)
+			local _mode = type(_extendedHeader.mode) == "string" and tonumber(_extendedHeader.mode, 8) or _entry:mode()
+         if _externalChmod then -- we got supplied chmod
+            _chmod(_targetPath, _mode)
+         else -- we use built in chmod
+            local _valid, _permissions = pcall(string.format, "%o", _mode)
+            if _valid and tonumber(_permissions) ~= 0 then -- asign only valid permissions
+               pcall(_chmod, _targetPath, tonumber(_mode))
+            end
+         end
+		else
+			_log("TAR: unsupported entry type: " .. _entry:type() .. " for path: " .. _entryPath)
       end
-
-      ::files_loop::
+		_extendedHeader = {}
+      ::CONTINUE::
    end
 
    _tarEntries.archive:close()

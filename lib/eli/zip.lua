@@ -32,7 +32,7 @@ local zip = {}
 ---#DES 'ZipExtractOptions.transform_path'
 ---@field transform_path (fun(path: string, destination: string): string)?
 ---#DES 'ZipExtractOptions.filter'
----@field filter (fun(name: string): boolean)?
+---@field filter (fun(name: string, fileInfo: table): boolean)?
 ---#DES 'ZipExtractOptions.open_file'
 ---@field open_file (fun(path: string, mode: string): file*)?
 ---#DES 'ZipExtractOptions.write'
@@ -104,7 +104,7 @@ function zip.extract(source, destination, options)
          goto files_loop
       end
 
-      if not _filter(stat.name:sub(il)) then
+      if not _filter(stat.name:sub(il), stat) then
          goto files_loop
       end
 
@@ -301,6 +301,7 @@ function zip.open_archive(path, checkcons)
       _result, _error = _lzip.open(path)
    end
    assert(_result, _error)
+	return _result
 end
 
 ---#DES 'zip.new_archive'

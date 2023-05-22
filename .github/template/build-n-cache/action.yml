@@ -2,9 +2,11 @@ name: build-n-cache
 
 inputs:
   toolchain:
-    require: true
+    required: true
   artifact-id:
-    require: true
+    required: true
+  debug-artifact-id:
+    required: false
 
 runs:
   using: "composite"
@@ -13,12 +15,24 @@ runs:
     uses: addnab/docker-run-action@v3
     with:
       image: ghcr.io/alis-is/eli-build:latest
-      run: ./eli tools/build.lua
+      run: eli tools/build.lua
+      options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }}
+  - name: build
+    uses: addnab/docker-run-action@v3
+    if: ${{ inputs.debug-artifact-id != '' }}
+    with:
+      image: ghcr.io/alis-is/eli-build:latest
+      run: eli tools/build.lua --debug
       options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }}
   - uses: actions/upload-artifact@v3
     with:
       name: release
       path: ./release/${{ inputs.artifact-id }}
+  - uses: actions/upload-artifact@v3
+    if: ${{ inputs.debug-artifact-id != '' }}
+    with:
+      name: debug
+      path: ./release/${{ inputs.debug-artifact-id }}
   - uses: actions/upload-artifact@v3
     with:
       name: release
