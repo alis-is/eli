@@ -16,6 +16,8 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: setup eli
+        uses: alis-is/setup-eli@v1
       - name: prepare
         id: prep
         shell: sh
@@ -24,7 +26,7 @@ jobs:
           ROOT=$(pwd) && echo "ROOT=$ROOT" >> $GITHUB_OUTPUT
           rm -rf release .meta
           mkdir -p "$ROOT/release"
-          VERSION=$(./eli -e 'io.write(require"hjson".parse(fs.read_file"config.hjson").version)')
+          VERSION=$(eli -e 'io.write(require"hjson".parse(fs.read_file"config.hjson").version)')
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           if git tag -l "$VERSION" | grep "$VERSION"; then 
             echo "Version $VERSION already exists";
