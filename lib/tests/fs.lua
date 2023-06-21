@@ -40,7 +40,7 @@ _test["copy file (file*)"] = function ()
 	local _ok, _hash2 =
 		_eliFs.safe_hash_file("tmp/test.file2", { type = "sha256" })
 	_test.assert(_ok, _hash)
-	_test.assert(_hash == _hash2, "hashes do not match - (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")"
+	_test.assert(_hash == _hash2, "hashes do not match - (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
 
 _test["copy file (mixed)"] = function ()
