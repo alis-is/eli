@@ -1,13 +1,13 @@
-local _util = require "eli.util"
+local _util = require"eli.util"
 local eprocLoaded, eproc = pcall(require, "eli.proc.extra")
-local _sx = require "eli.extensions.string"
+local _sx = require"eli.extensions.string"
 local _sep = package.config:sub(1, 1)
 
 local proc = {
-    ---#DES os.EPROC
-    ---
-    ---@type boolean
-    EPROC = eprocLoaded
+	---#DES os.EPROC
+	---
+	---@type boolean
+	EPROC = eprocLoaded,
 }
 
 ---@class GetStdStreamPartOptions
@@ -16,9 +16,9 @@ local proc = {
 ---@field stdinRedirectTemplate nil | string
 
 proc.settings = {
-    stdoutRedirectTemplate = '> "<file>"',
-    stderrRedirectTemplate = '2> "<file>"',
-    stdinRedirectTemplate = _sep == "\\" and 'type "<file>" |' or 'cat "<file>" |'
+	stdoutRedirectTemplate = '> "<file>"',
+	stderrRedirectTemplate = '2> "<file>"',
+	stdinRedirectTemplate = _sep == "\\" and 'type "<file>" |' or 'cat "<file>" |',
 }
 
 ---Compiles std option into exec template
@@ -27,44 +27,46 @@ proc.settings = {
 ---@param options GetStdStreamPartOptions
 ---@return string, string?, boolean?
 local function _get_stdstream_cmd_part(stdname, file, options)
-    local _tmpMode = false
-    if file == nil then return "", nil end
-    if file == "pipe" then
-        file = os.tmpname()
-        _tmpMode = true
-    end
-    if type(file) ~= "string" then
-        error("Invalid " .. stdname .. " filename (got: " .. tostring(file) ..
-            ", expects: string)!")
-    end
-    if file == "ignore" then return "", nil end
-    local _template = options[stdname .. "RedirectTemplate"] or
-        proc.settings[stdname .. "RedirectTemplate"]
-    if type(_template) == "function" then
-        return _template(file), file, _tmpMode
-    elseif type(_template) == "string" then
-        return _template:gsub("<file>", file), file, _tmpMode
-    else
-        return "", nil
-    end
+	local _tmpMode = false
+	if file == nil then return "", nil end
+	if file == "pipe" then
+		file = os.tmpname()
+		_tmpMode = true
+	end
+	if type(file) ~= "string" then
+		error("Invalid " .. stdname .. " filename (got: " .. tostring(file) ..
+			", expects: string)!")
+	end
+	if file == "ignore" then return "", nil end
+	local _template = options[stdname .. "RedirectTemplate"] or
+		proc.settings[stdname .. "RedirectTemplate"]
+	if type(_template) == "function" then
+		return _template(file), file, _tmpMode
+	elseif type(_template) == "string" then
+		return _template:gsub("<file>", file), file, _tmpMode
+	else
+		return "", nil
+	end
 end
 
 ---@class ExecTmpFile
 ---@field __type '"ELI_EXEC_TMP_FILE"'
 ---@field __file file*
+---@field __closed boolean
 ---@field path string
 local ExecTmpFile = {}
 ExecTmpFile.__index = ExecTmpFile
 
 function ExecTmpFile:new(path)
-    local _tmpFile = {}
-    _tmpFile.path = path
-    _tmpFile.__file = io.open(path, "rb")
+	local _tmpFile = {}
+	_tmpFile.path = path
+	_tmpFile.__file = io.open(path, "rb")
+	_tmpFile.__closed = false
 
-    setmetatable(_tmpFile, self)
-    self.__index = self
-    self.__type = "ELI_EXEC_TMP_FILE"
-    return _tmpFile
+	setmetatable(_tmpFile, self)
+	self.__index = self
+	self.__type = "ELI_EXEC_TMP_FILE"
+	return _tmpFile
 end
 
 ---@return string
@@ -81,8 +83,19 @@ function ExecTmpFile:close() return self.__file:close() end
 ---Handles tmp file removal
 ---@param self ExecTmpFile
 function ExecTmpFile:__gc()
-    self.__file:close()
-    os.remove(self.path)
+	if not self.__closed then
+		self.__file:close()
+		os.remove(self.path)
+	end
+end
+
+---Handles tmp file removal
+---@param self ExecTmpFile
+function ExecTmpFile:__close()
+	if not self.__closed then
+		self.__file:close()
+		os.remove(self.path)
+	end
 end
 
 ---@class ExecOptions : GetStdStreamPartOptions
@@ -103,26 +116,26 @@ end
 ---@param options ExecOptions?
 ---@return ExecResult
 function proc.exec(cmd, options)
-    if type(options) ~= "table" then options = {} end
+	if type(options) ~= "table" then options = {} end
 
-    local _stdoutPart, _stdout, _tmpStdout =
-    _get_stdstream_cmd_part("stdout", options.stdout, options)
-    local _stderrPart, _stderr, _tmpStderr =
-    _get_stdstream_cmd_part("stderr", options.stderr, options)
-    local _stdinPart = _get_stdstream_cmd_part("stdin", options.stdin, options)
+	local _stdoutPart, _stdout, _tmpStdout =
+		_get_stdstream_cmd_part("stdout", options.stdout, options)
+	local _stderrPart, _stderr, _tmpStderr =
+		_get_stdstream_cmd_part("stderr", options.stderr, options)
+	local _stdinPart = _get_stdstream_cmd_part("stdin", options.stdin, options)
 
-    local _cmd =
-    _sx.join_strings(" ", _stdinPart, cmd, _stdoutPart, _stderrPart)
-    local _, _exitType, _code = os.execute(_cmd)
+	local _cmd =
+		_sx.join_strings(" ", _stdinPart, cmd, _stdoutPart, _stderrPart)
+	local _, _exitType, _code = os.execute(_cmd)
 
-    return {
-        exitcode = _code,
-        exittype = _exitType,
-        stdoutStream = _stdout and
-            (_tmpStdout and ExecTmpFile:new(_stdout) or io.open(_stdout)),
-        stderrStream = _stderr and
-            (_tmpStderr and ExecTmpFile:new(_stderr) or io.open(_stderr))
-    }
+	return {
+		exitcode = _code,
+		exittype = _exitType,
+		stdoutStream = _stdout and
+			(_tmpStdout and ExecTmpFile:new(_stdout) or io.open(_stdout)),
+		stderrStream = _stderr and
+			(_tmpStderr and ExecTmpFile:new(_stderr) or io.open(_stderr)),
+	}
 end
 
 if not eprocLoaded then return _util.generate_safe_functions(proc) end
@@ -175,16 +188,16 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@param _proc EliProcess
 ---@return SpawnResult
 function proc.generate_spawn_result(_proc)
-    if ((type(_proc) ~= "userdata" or type(_proc) == "table") and _proc.__type ~= "ELI_PROCESS") or
-        type(_proc) == "ELI_PROCESS" then
-        return {
-            exitcode = _proc:get_exitcode(),
-            stdoutStream = _proc:get_stdout(),
-            stderrStream = _proc:get_stderr()
-        }
-    end
-    error(
-        "Generate process result is possible only from ELI_PROCESS data structure!")
+	if ((type(_proc) ~= "userdata" or type(_proc) == "table") and _proc.__type ~= "ELI_PROCESS") or
+	type(_proc) == "ELI_PROCESS" then
+		return {
+			exitcode = _proc:get_exitcode(),
+			stdoutStream = _proc:get_stdout(),
+			stderrStream = _proc:get_stderr(),
+		}
+	end
+	error
+	"Generate process result is possible only from ELI_PROCESS data structure!"
 end
 
 ---#DES 'proc.spawn'
@@ -195,31 +208,31 @@ end
 ---@param options SpawnOptions?
 ---@return EliProcess | SpawnResult
 function proc.spawn(path, argsOrOptions, options)
-    if type(argsOrOptions) == "table" and not _util.is_array(argsOrOptions) and type(options) ~= "table" then
-        options = argsOrOptions
-        argsOrOptions = nil
-    end
-    if type(options) ~= "table" then options = {} end
+	if type(argsOrOptions) == "table" and not _util.is_array(argsOrOptions) and type(options) ~= "table" then
+		options = argsOrOptions
+		argsOrOptions = nil
+	end
+	if type(options) ~= "table" then options = {} end
 
-    local _proc, err = eproc.spawn {
-        command = path,
-        args = argsOrOptions,
-        env = options.env,
-        stdio = options.stdio
-    }
-    if not _proc then error(err) end
+	local _proc, err = eproc.spawn{
+		command = path,
+		args = argsOrOptions,
+		env = options.env,
+		stdio = options.stdio,
+	}
+	if not _proc then error(err) end
 
-    if type(options.wait) == "boolean" and options.wait then
-        _proc:wait()
-        return proc.generate_spawn_result(_proc)
-    end
+	if type(options.wait) == "boolean" and options.wait then
+		_proc:wait()
+		return proc.generate_spawn_result(_proc)
+	end
 
-    if type(options.wait) == "number" and options.wait > 0 then
-        local _exitCode = _proc:wait(options.wait)
-        if _exitCode >= 0 then return proc.generate_spawn_result(_proc) end
-    end
+	if type(options.wait) == "number" and options.wait > 0 then
+		local _exitCode = _proc:wait(options.wait)
+		if _exitCode >= 0 then return proc.generate_spawn_result(_proc) end
+	end
 
-    return _proc
+	return _proc
 end
 
 return _util.generate_safe_functions(proc)

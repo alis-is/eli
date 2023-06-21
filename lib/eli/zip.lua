@@ -90,7 +90,7 @@ function zip.extract(source, destination, options)
          return file:close()
       end
 
-   local zipArch, err = _lzip.open(source, _openFlags)
+   local zipArch <close>, err = _lzip.open(source, _openFlags)
    assert(zipArch ~= nil, err)
 
    local ignorePath = flattenRootDir and _get_root_dir(zipArch) or ""
