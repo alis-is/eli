@@ -36,9 +36,8 @@ local fs = {
 function fs.read_file(path, options)
 	---@type AccessFileOptions
 	options = _util.merge_tables({ binaryMode = true }, options, true)
-	local f = assert(io.open(path, options.binaryMode and "rb" or "r"), "No such a file or directory - " .. path)
+	local f <close> = assert(io.open(path, options.binaryMode and "rb" or "r"), "No such a file or directory - " .. path)
 	local result = f:read"a*"
-	f:close()
 	return result
 end
 
@@ -55,9 +54,8 @@ function fs.write_file(path, content, options)
 	if options.append then
 		_mode = options.binaryMode and "ab" or "a"
 	end
-	local f = assert(io.open(path, _mode), "No such a file or directory - " .. path)
+	local f <close> = assert(io.open(path, _mode), "No such a file or directory - " .. path)
 	f:write(content)
-	f:close()
 end
 
 ---#DES 'fs.copy_file'
@@ -78,13 +76,13 @@ function fs.copy_file(src, dst, options)
 	local srcf, dstf
 	if type(src) == "string" then
 		srcf = assert(io.open(src, options.binaryMode and "rb" or "r"),
-			"No such a file or directory - " .. src)
+			"no such a file or directory - " .. src)
 	else
 		srcf = src
 	end
 	if type(dst) == "string" then
 		dstf = assert(io.open(dst, options.binaryMode and "wb" or "w"),
-			"Failed to open file for write - " .. dst)
+			"failed to open file for write - " .. dst)
 	else
 		dstf = dst
 	end

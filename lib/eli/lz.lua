@@ -1,5 +1,5 @@
-local _zlib = require "zlib"
-local _util = require "eli.util"
+local _zlib = require"zlib"
+local _util = require"eli.util"
 
 local lz = {}
 
@@ -20,43 +20,42 @@ local lz = {}
 ---@param destination string?
 ---@param options LzExtractOptions?
 function lz.extract(source, destination, options)
-    local _sf = io.open(source, "rb")
-    assert(_sf, "lz: Failed to open source file " .. tostring(source) .. "!")
+	local _sf <close> = io.open(source, "rb")
+	assert(_sf, "lz: Failed to open source file " .. tostring(source) .. "!")
 
-    if type(options) ~= "table" then options = {} end
-    local _open_file = type(options.open_file) == "function" and
-        options.open_file or
-        function(path, mode)
-            return io.open(path, mode)
-        end
-    local _write = type(options.write) == "function" and options.write or
-        function(file, data) return file:write(data) end
-    local _close_file = type(options.close_file) == "function" and
-        options.close_file or
-        function(file) return file:close() end
+	if type(options) ~= "table" then options = {} end
+	local _open_file = type(options.open_file) == "function" and
+		options.open_file or
+		function (path, mode)
+			return io.open(path, mode)
+		end
+	local _write = type(options.write) == "function" and options.write or
+		function (file, data) return file:write(data) end
+	local _close_file = type(options.close_file) == "function" and
+		options.close_file or
+		function (file) return file:close() end
 
-    local _df = _open_file(destination, "wb")
-    assert(_df,
-        "lz: Failed to open destination file " .. tostring(source) .. "!")
+	local _df = _open_file(destination, "wb")
+	assert(_df,
+		"lz: Failed to open destination file " .. tostring(source) .. "!")
 
-    local _chunkSize =
-    type(options.chunkSize) == "number" and options.chunkSize or 2 ^ 13 -- 8K
+	local _chunkSize =
+		type(options.chunkSize) == "number" and options.chunkSize or 2 ^ 13 -- 8K
 
-    local _inflate = _zlib.inflate()
-    local _shift = 0
-    while true do
-        local _data = _sf:read(_chunkSize)
-        if not _data then break end
-        local _inflated, eof, bytes_in, _ = _inflate(_data)
+	local _inflate = _zlib.inflate()
+	local _shift = 0
+	while true do
+		local _data = _sf:read(_chunkSize)
+		if not _data then break end
+		local _inflated, eof, bytes_in, _ = _inflate(_data)
 		if type(_inflated) == "string" then _write(_df, _inflated) end
-        if eof then -- we got end of gzip stream we return to bytes_in pos in case there are multiple stream embedded
-            _sf:seek("set", _shift + bytes_in)
-            _shift = _shift + bytes_in
-            _inflate = _zlib.inflate()
-        end
-    end
-    _sf:close()
-    _close_file(_df)
+		if eof then   -- we got end of gzip stream we return to bytes_in pos in case there are multiple stream embedded
+			_sf:seek("set", _shift + bytes_in)
+			_shift = _shift + bytes_in
+			_inflate = _zlib.inflate()
+		end
+	end
+	_close_file(_df)
 end
 
 ---#DES 'lz.extract_from_string'
@@ -65,19 +64,19 @@ end
 ---@param data string
 ---@return string
 function lz.extract_from_string(data)
-    if type(data) ~= "string" then
-        error("lz: Unsupported compressed data type: " .. type(data) .. "!")
-    end
-    local shift = 1
-    local result = ""
-    while (shift < #data) do
-        local inflate = _zlib.inflate()
-        local inflated, eof, bytes_in, _ = inflate(data:sub(shift))
-        assert(eof, "lz: Compressed stream is not complete!")
-        shift = shift + bytes_in
-        result = result .. inflated -- merge streams for cases when input is multi stream
-    end
-    return result
+	if type(data) ~= "string" then
+		error("lz: Unsupported compressed data type: " .. type(data) .. "!")
+	end
+	local shift = 1
+	local result = ""
+	while (shift < #data) do
+		local inflate = _zlib.inflate()
+		local inflated, eof, bytes_in, _ = inflate(data:sub(shift))
+		assert(eof, "lz: Compressed stream is not complete!")
+		shift = shift + bytes_in
+		result = result .. inflated   -- merge streams for cases when input is multi stream
+	end
+	return result
 end
 
 ---#DES lz.extract_string
@@ -87,16 +86,16 @@ end
 ---@param options LzExtractOptions?
 ---@return string
 function lz.extract_string(source, options)
-    local _result = ""
-    local _options = _util.merge_tables(type(options) == "table" and options or
-        {}, {
-            open_file = function() return _result end,
-            write = function(_, data) _result = _result .. data end,
-            close_file = function() end
-        }, true)
+	local _result = ""
+	local _options = _util.merge_tables(type(options) == "table" and options or
+		{}, {
+			open_file = function () return _result end,
+			write = function (_, data) _result = _result .. data end,
+			close_file = function () end,
+		}, true)
 
-    lz.extract(source, nil, _options)
-    return _result
+	lz.extract(source, nil, _options)
+	return _result
 end
 
 ---@class LzCompressOptions
@@ -110,23 +109,23 @@ end
 ---@param options LzCompressOptions?
 ---@return string
 function lz.compress_string(data, options)
-    if type(data) ~= "string" then
-        error("lz: Unsupported data type: " .. type(data) .. "!")
-    end
-    if type(options) ~= "table" then
-        options = {}
-    end
-    local _level = type(options.level) == "number" and options.level or 6
-    if _level > 9 then _level = 9 end
-    if _level < 0 then _level = 0 end
-    local _windowSize = options.windowSize
-    if type(_windowSize) == "number" then
-        if _windowSize < 9 then _windowSize = 9 end
-        if _windowSize > 15 then _windowSize = 15 end
-    end
-    local _deflate = _zlib.deflate(_level, _windowSize)
-    local _result = _deflate(data, 'finish')
-    return _result
+	if type(data) ~= "string" then
+		error("lz: Unsupported data type: " .. type(data) .. "!")
+	end
+	if type(options) ~= "table" then
+		options = {}
+	end
+	local _level = type(options.level) == "number" and options.level or 6
+	if _level > 9 then _level = 9 end
+	if _level < 0 then _level = 0 end
+	local _windowSize = options.windowSize
+	if type(_windowSize) == "number" then
+		if _windowSize < 9 then _windowSize = 9 end
+		if _windowSize > 15 then _windowSize = 15 end
+	end
+	local _deflate = _zlib.deflate(_level, _windowSize)
+	local _result = _deflate(data, "finish")
+	return _result
 end
 
 return _util.generate_safe_functions(lz)
