@@ -118,16 +118,16 @@ function tar.extract(source, destination, options)
       end
    local _chunkSize = type(options.chunkSize) ~= "number" and options.chunkSize or 2 ^ 13 -- 8K
 
-   local _tarEntries = _tar.open(source)
-   assert(_tarEntries, "tar: Failed to open source file " .. tostring(source) .. "!")
+   local _tarArchive <close> = _tar.open(source)
+   assert(_tarArchive, "tar: Failed to open source file " .. tostring(source) .. "!")
 
-   local _ignorePath = _flattenRootDir and _get_root_dir(_tarEntries) or ""
+   local _ignorePath = _flattenRootDir and _get_root_dir(_tarArchive) or ""
    local _il = #_ignorePath + 1 -- ignore length
 
 	local _extendedHeader = {}
 	local _globalExtendedHeader = {}
 
-   for _, _entry in ipairs(_tarEntries) do
+   for _, _entry in ipairs(_tarArchive:entries()) do
 		local _isExtendedHeader
 		-- _extendedHeader gets automatically injected global data, global header is just to update it properly if encountered
 		_isExtendedHeader, _extendedHeader, _globalExtendedHeader = _parse_extended_header(_entry, _globalExtendedHeader)
@@ -204,7 +204,6 @@ function tar.extract(source, destination, options)
       ::CONTINUE::
    end
 
-   _tarEntries.archive:close()
 end
 
 ---#DES 'tar.extract_file'
