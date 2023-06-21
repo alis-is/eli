@@ -278,6 +278,7 @@ end
 ---@class FsHashFileOptions: AccessFileOptions
 ---@field type '"sha256"'| '"sha512"'
 ---@field hex boolean?
+---@field binaryMode boolean?
 
 ---#DES 'fs.hash_file'
 ---

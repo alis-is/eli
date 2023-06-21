@@ -20,13 +20,12 @@ _test["copy file (path)"] = function ()
 	local _ok, _error = _eliFs.safe_copy_file("assets/test.file",
 		"tmp/test.file")
 	_test.assert(_ok, _error)
-	local _ok, _hash = _eliFs.safe_hash_file("assets/test.file",
-		{ type = "sha256" })
+	local _ok, _hash = _eliFs.safe_hash_file("assets/test.file", { type = "sha256", hex = true })
 	_test.assert(_ok, _hash)
 	local _ok, _hash2 =
-		_eliFs.safe_hash_file("tmp/test.file", { type = "sha256" })
+		_eliFs.safe_hash_file("tmp/test.file", { type = "sha256", hex = true })
 	_test.assert(_ok, _hash)
-	_test.assert(_hash == _hash2, "hashes do not match(" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
+	_test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
 
 _test["copy file (file*)"] = function ()
@@ -34,44 +33,37 @@ _test["copy file (file*)"] = function ()
 	local _dst <close> = io.open("tmp/test.file2", "wb")
 	local _ok, _error = _eliFs.safe_copy_file(_src, _dst)
 	_test.assert(_ok, _error)
-	local _ok, _hash = _eliFs.safe_hash_file("assets/test.file",
-		{ type = "sha256" })
+	local _ok, _hash = _eliFs.safe_hash_file("assets/test.file", { type = "sha256", hex = true })
 	_test.assert(_ok, _hash)
-	local _ok, _hash2 =
-		_eliFs.safe_hash_file("tmp/test.file2", { type = "sha256" })
+	local _ok, _hash2 = _eliFs.safe_hash_file("tmp/test.file2", { type = "sha256", hex = true })
 	_test.assert(_ok, _hash)
-	_test.assert(_hash == _hash2, "hashes do not match - (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
+	_test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
 
 _test["copy file (mixed)"] = function ()
 	local _src <close> = io.open("assets/test.file", "rb")
 	local _ok, _error = _eliFs.safe_copy_file(_src, "tmp/test.file3")
 	_test.assert(_ok, _error)
-	local _ok, _hash = _eliFs.safe_hash_file("assets/test.file",
-		{ type = "sha256" })
+	local _ok, _hash = _eliFs.safe_hash_file("assets/test.file", { type = "sha256", hex = true })
 	_test.assert(_ok, _hash)
-	local _ok, _hash2 =
-		_eliFs.safe_hash_file("tmp/test.file3", { type = "sha256" })
+	local _ok, _hash2 = _eliFs.safe_hash_file("tmp/test.file3", { type = "sha256", hex = true })
 	_test.assert(_ok, _hash)
-	_test.assert(_hash == _hash2, "hashes do not match(" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
+	_test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 
 	local _dst <close> = io.open("tmp/test.file4", "wb")
 	local _ok, _error = _eliFs.safe_copy_file("assets/test.file", _dst)
 	_test.assert(_ok, _error)
 
-	local _ok, _hash2 =
-		_eliFs.safe_hash_file("tmp/test.file4", { type = "sha256" })
+	local _ok, _hash2 = _eliFs.safe_hash_file("tmp/test.file4", { type = "sha256", hex = true })
 	_test.assert(_ok, _hash)
-	_test.assert(_hash == _hash2, "hashes do not match(" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
+	_test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
 
 _test["hash file (file*)"] = function ()
 	local _src = io.open("assets/test.file", "rb")
-	local _ok, _hash = _eliFs.safe_hash_file("assets/test.file",
-		{ type = "sha256" })
+	local _ok, _hash = _eliFs.safe_hash_file("assets/test.file", { type = "sha256", hex = true })
 	_test.assert(_ok, _hash)
-	local _ok, _hash2 = _eliFs.safe_hash_file(_src,
-		{ type = "sha256" })
+	local _ok, _hash2 = _eliFs.safe_hash_file(_src, { type = "sha256", hex = true })
 	_test.assert(_ok, _hash)
 	_test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
