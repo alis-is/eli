@@ -50,9 +50,8 @@ local function stripstring(s, type)
 end
 
 local function stripfile(fname)
-	local f = io.open(fname)
+	local f <close> = io.open(fname)
 	local s = assert(f:read("*a"))
-	f:close()
 	return stripstring(s)
 end
 

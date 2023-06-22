@@ -90,9 +90,8 @@ local function generate_embedable_module(config, options)
 				os.chdir(module.path)
 			end
 			local _pathToAmalg = path.combine(oldworkDir, "tools/amalg.lua")
-			local f = io.popen("eli" .. " " .. _pathToAmalg .. " " .. filesToEmbed, "r")
+			local f <close> = io.popen("eli" .. " " .. _pathToAmalg .. " " .. filesToEmbed, "r")
 			s = assert(f:read"*a")
-			f:close()
 			os.chdir(oldworkDir)
 		else
 			for _, file in ipairs(files) do
@@ -106,7 +105,7 @@ local function generate_embedable_module(config, options)
 
 			os.chdir"deps/luasrcdiet"
 			local _pathToLuaDiet = path.combine(oldworkDir, "deps/luasrcdiet/bin/luasrcdiet")
-			local f =
+			local f <close> =
 				io.popen(
 					"eli" ..
 					" " .. _pathToLuaDiet .. " " .. tmpFile .. " -o " .. tmpOutput .. "",
@@ -114,7 +113,6 @@ local function generate_embedable_module(config, options)
 				)
 			assert(f:read"*a":match"lexer%-based optimizations summary", "Minification Failed")
 			s = fs.read_file(tmpOutput)
-			f:close()
 			os.chdir(oldworkDir)
 		end
 		modulesToEmbed = modulesToEmbed .. s .. "\n"
