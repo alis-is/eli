@@ -106,3 +106,4 @@
 [submodule "deps/corehttp"]
 	path = deps/corehttp
 	url = https://github.com/FreeRTOS/coreHTTP.git
+	ignore = dirty

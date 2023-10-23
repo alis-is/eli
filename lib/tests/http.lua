@@ -2,6 +2,7 @@ local corehttpLoaded, corehttp = pcall(require, "corehttp")
 local io = require"io"
 local util = require"eli.util"
 local hjson = require"hjson"
+local exString = require"eli.extensions.string"
 local exTable = require"eli.extensions.table"
 local netUrl = require"eli.net.url"
 local zlib = require"zlib"
@@ -278,6 +279,7 @@ local function request(client, path, method, options, data)
 	local totalBytesRead = 0
 	local inflate = (contentEncoding == "deflate" or contentEncoding == "gzip") and zlib.inflate() or false
 	local inflateCache = ""
+
 	while true do
 		local bufferCapacity = math.min(options.bufferCapacity or DEFAULT_BUFFER_CAPACITY, contentLength - totalBytesRead)
 		local chunk = response:read(bufferCapacity)
@@ -311,11 +313,15 @@ local function request(client, path, method, options, data)
 	if type(rawResponseData) == "string" and #rawResponseData > 0 then
 		local mimeType, subtype, _ = parse_content_type(responseHeaders["Content-Type"])
 		local typeCodec = options.codecs[type] or options.codecs[mimeType .. "/" .. subtype]
+		print(type(rawResponseData), #rawResponseData)
 		if typeCodec and type(typeCodec.decode) == "function" then
-			responseData = typeCodec.decode(rawResponseData)
+			ok, responseData = pcall(typeCodec.decode, rawResponseData)
+			if not ok then
+				print("error decoding", responseData, rawResponseData)
+			end
 		end
+		print"parsed"
 	end
-
 	local coreStatusCode = response:status_code()
 	if coreStatusCode ~= 0 then
 		error(tostring(response:status()) .. " (" .. tostring(coreStatusCode) .. ")")

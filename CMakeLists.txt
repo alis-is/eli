@@ -35,7 +35,7 @@ set(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/deps/zlib/libz.a)
 set(MbedTLS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/include)
 set(MbedTLS_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/library/libmbedtls.a)
 
-include(${CMAKE_SOURCE_DIR}/deps/coreHTTP/httpFilePaths.cmake)
+include(${CMAKE_SOURCE_DIR}/deps/corehttp/httpFilePaths.cmake)
 
 # include_directories(deps/lua/ ${ZLIB_INCLUDE_DIR} ${HTTP_INCLUDE_PUBLIC_DIRS} deps/libzip deps/mbedtls/include deps/curl/include ${CMAKE_SOURCE_DIR}/deps/zlib)
 include_directories(deps/lua/ ${ZLIB_INCLUDE_DIR} ${HTTP_INCLUDE_PUBLIC_DIRS} deps/libzip deps/mbedtls/include ${CMAKE_SOURCE_DIR}/deps/zlib ${CMAKE_SOURCE_DIR}/deps/lua-corehttp/include)
@@ -58,7 +58,7 @@ target_include_directories(lssocket PRIVATE ${ELI_EXTRA_UTILS_INCLUDE} ${HTTP_IN
 target_compile_definitions(lssocket PRIVATE LSS_HAS_BUNDLED_ROOT_CERTIFICATES)
 add_subdirectory(deps/lua-corehttp/)
 target_include_directories(lcorehttp PRIVATE ${ELI_EXTRA_UTILS_INCLUDE} ${HTTP_INCLUDE_PUBLIC_DIRS} ${LSS_INCLUDE})
-add_subdirectory(deps/coreHTTP/)
+add_subdirectory(deps/corehttp/)
 add_subdirectory(deps/eli-env-extra/)
 target_include_directories(eli_env_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 add_subdirectory(deps/eli-fs-extra/)
