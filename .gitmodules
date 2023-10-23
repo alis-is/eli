@@ -91,3 +91,15 @@
 	path = deps/lua-zlib
 	url = https://github.com/brimworks/lua-zlib
 	ignore = dirty
+[submodule "deps/lua-corehttp"]
+	path = deps/lua-corehttp
+	url = https://github.com/alis-is/lua-corehttp
+	ignore = dirty
+[submodule "deps/lua-mbed-base64"]
+	path = deps/lua-mbed-base64
+	url = https://github.com/alis-is/lua-mbed-base64
+	ignore = dirty
+[submodule "deps/lua-simple-socket"]
+	path = deps/lua-simple-socket
+	url = https://github.com/alis-is/lua-simple-socket
+	ignore = dirty
