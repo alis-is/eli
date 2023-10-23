@@ -51,7 +51,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -63,7 +63,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -75,7 +75,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -88,7 +88,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -100,7 +100,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -113,7 +113,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -125,7 +125,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
