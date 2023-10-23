@@ -103,3 +103,6 @@
 	path = deps/lua-simple-socket
 	url = https://github.com/alis-is/lua-simple-socket
 	ignore = dirty
+[submodule "deps/corehttp"]
+	path = deps/corehttp
+	url = https://github.com/FreeRTOS/coreHTTP.git

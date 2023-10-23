@@ -11,6 +11,7 @@ jobs:
     outputs:
       NEEDS_RELEASE: ${{ steps.prep.outputs.NEEDS_RELEASE }}
       VERSION: ${{ steps.prep.outputs.VERSION }}
+      PRERELEASE: ${{ steps.prep.outputs.PRERELEASE }}
 
     steps:
       - uses: actions/checkout@v3
@@ -27,12 +28,22 @@ jobs:
           rm -rf release .meta
           mkdir -p "$ROOT/release"
           VERSION=$(eli -e 'io.write(require"hjson".parse(fs.read_file"config.hjson").version)')
+          # if VERSION is just 'dev' then we do not need to release
+          if [ "$VERSION" = "dev" ]; then
+            NEEDS_RELEASE=false
+            echo "NEEDS_RELEASE=$NEEDS_RELEASE" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           if git tag -l "$VERSION" | grep "$VERSION"; then 
             echo "Version $VERSION already exists";
           else
             NEEDS_RELEASE=true
             echo "NEEDS_RELEASE=$NEEDS_RELEASE" >> $GITHUB_OUTPUT
+          fi
+          if echo "$VERSION" | grep -E "dev|alpha"; then
+            PRERELEASE=true
+            echo "PRERELEASE=$PRERELEASE" >> $GITHUB_OUTPUT
           fi
           echo "Building eli $VERSION (RELEASE_REQUIRE: $NEEDS_RELEASE)"
   build-linux-x86_64:
@@ -190,3 +201,4 @@ jobs:
           tag: ${{ needs.prepare.outputs.VERSION }}
           commit: ${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: ${{needs.prepare.outputs.PRERELEASE}}
