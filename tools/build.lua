@@ -122,7 +122,8 @@ local function buildWithChain(id, buildDir)
 			target = target,
 			SYSTEM_NAME = system,
 			BUILD_TYPE = BUILD_TYPE,
-			BUILD_FLAGS = BUILD_FLAGS
+			BUILD_FLAGS = BUILD_FLAGS,
+			inject_ca = _config.inject_ca and "ON" or "OFF"
 		})
 	else
 		local _, gcc = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-gcc" -type f')
@@ -152,6 +153,7 @@ local function buildWithChain(id, buildDir)
 			SYSTEM_NAME = id:match"mingw" and "Windows" or "Linux",
 			ch = id:gsub("%-cross", ""),
 			TOOLCHAIN_ROOT = path.combine(os.cwd(), path.combine("toolchains", id)),
+			inject_ca = _config.inject_ca and "ON" or "OFF"
 		})
 		if id:match"mingw" or id:match"win" then
 			builtBinaryId = "win-" .. id:gsub("%-w64%-mingw32%-cross", "")
@@ -159,7 +161,6 @@ local function buildWithChain(id, buildDir)
 			builtBinaryId = "linux-" .. id:gsub("%-linux%-musl%-cross", "")
 		end
 	end
-
 
 	log_info("Configuring (" .. _cmd .. ")...")
 	os.execute(_cmd)

@@ -2,5 +2,31 @@
     "Lua.workspace.ignoreDir": [
         ".vscode",
         "./.meta"
+    ],
+    "files.associations": {
+        "lauxlib.h": "c",
+        "transport_plaintext.h": "c",
+        "lcorehttp_client_transport.h": "c",
+        "transport_mbedtls.h": "c",
+        "socket_mbedtls.h": "c",
+        "socket.h": "c",
+        "lua.h": "c",
+        "lutil.h": "c",
+        "lss_transport.h": "c",
+        "llhttp.h": "c",
+        "base64.h": "c",
+        "bigint.h": "c",
+        "core_http_client_private.h": "c",
+        "core_http_client.h": "c",
+        "extended_core_http_client.h": "c",
+        "winsock2.h": "c",
+        "ws2tcpip.h": "c",
+        "windows.h": "c",
+        "sysinfoapi.h": "c"
+    },
+    "C_Cpp.default.compilerPath": "/usr/bin/cpp",
+    "editor.formatOnSave": true,
+    "Lua.diagnostics.globals": [
+        "etype"
     ]
 }

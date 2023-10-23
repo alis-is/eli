@@ -1,251 +1,249 @@
-local _test = TEST or require"u-test"
-local _ok, _eliNet = pcall(require, "eli.net")
+local test = TEST or require"u-test"
+local ok, eliNet = pcall(require, "eli.net")
 
 -- https://postman-echo.com/ ?
 local HTTPBIN_URL = os.getenv"HTTPBIN_URL" or "https://httpbin.org/"
-local TIMEOUT = 180
+local TIMEOUT = 180 * 1000
 -- // TODO: find better way to test net
 local RETRIES = 3
 
-if not _ok then
-	_test["eli.net available"] = function ()
-		_test.assert(false, "eli.net not available")
+if not ok then
+	test["eli.net available"] = function ()
+		test.assert(false, "eli.net not available")
 	end
 	if not TEST then
-		_test.summary()
+		test.summary()
 		os.exit()
 	else
 		return
 	end
 end
 
-_test["eli.net available"] = function ()
-	_test.assert(true)
+test["eli.net available"] = function ()
+	test.assert(true)
 end
 
-local RestClient = _eliNet.RestClient
-_test["download_string"] = function ()
-	local _ok, _s = _eliNet.safe_download_string"https://raw.githubusercontent.com/alis-is/eli/main/LICENSE"
-	_test.assert(_ok and _s:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
+local RestClient = eliNet.RestClient
+test["download_string"] = function ()
+	local ok, s = eliNet.safe_download_string"https://raw.githubusercontent.com/alis-is/eli/main/LICENSE"
+	test.assert(ok and s:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
 end
 
-_test["download (progress)"] = function ()
+test["download (progress)"] = function ()
 	local _print = io.write
 	local _printed = ""
 	local function new_print(msg)
 		_printed = _printed .. msg
 	end
 	io.write = new_print
-	local _, _ = _eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
+	local _, _ = eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
 		{
 			followRedirects = true,
 			showDefaultProgress = 5,
-			curlOptions = { [net.curl.OPT_BUFFERSIZE] = 1024 * 100, [net.curl.OPT_MAX_RECV_SPEED_LARGE] = 1024 * 100 },
+			bufferCapacity = 1024 * 100,
 		})
 	io.write = _print -- restore
-	-- // TODO: fix progress detection
-	_test.assert(_printed:match"%%" --[[and _printed:match("15%%")]], "no progress detected")
+	test.assert(_printed:match"(%d+)%%", "no progress detected")
 	_printed = ""
 	io.write = new_print
-	local _, _ = _eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
+	local _, _ = eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
 		{
 			followRedirects = true,
 			showDefaultProgress = true,
-			curlOptions = { [net.curl.OPT_BUFFERSIZE] = 1024 * 100, [net.curl.OPT_MAX_RECV_SPEED_LARGE] = 1024 * 100 },
+			bufferCapacity = 1024 * 100,
 		})
 	io.write = _print -- restore
-	-- // TODO: fix progress detection
-	_test.assert(_printed:match"%%" --[[ and _printed:match("20%%")]], "no progress detected")
+	test.assert(_printed:match"(%d+)%%", "no progress detected")
 end
 
-_test["download_file"] = function ()
-	local _ok, _error = _eliNet.safe_download_file("https://raw.githubusercontent.com/alis-is/eli/main/LICENSE",
+test["download_file"] = function ()
+	local ok, error = eliNet.safe_download_file("https://raw.githubusercontent.com/alis-is/eli/main/LICENSE",
 		"tmp/LICENSE")
-	_test.assert(_ok, _error)
-	local _ok, _file = pcall(io.open, "tmp/LICENSE", "r")
-	_test.assert(_ok, _file)
-	local _ok, _s = pcall(_file.read, _file, "a")
-	_test.assert(_ok, _s)
-	_test.assert(_s:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
+	test.assert(ok, error)
+	local ok, file = pcall(io.open, "tmp/LICENSE", "r")
+	test.assert(ok, file)
+	local ok, s = pcall(file.read, file, "a")
+	test.assert(ok, s)
+	test.assert(s:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
 end
 
-_test["download_timeout"] = function ()
-	local _ok, _s = _eliNet.safe_download_string("https://raw.githubusercontent.com:81/alis-is/eli/main/LICENSE",
+test["download_timeout"] = function ()
+	local ok, _ = eliNet.safe_download_string("https://raw.githubusercontent.com:81/alis-is/eli/main/LICENSE",
 		{ timeout = 1 })
-	_test.assert(not _ok, "should fail")
+	test.assert(not ok, "should fail")
 end
 
-_test["RestClient get"] = function ()
-	local _client = RestClient:new"https://raw.githubusercontent.com/"
-	local _ok, _response = _client:safe_get"alis-is/eli/main/LICENSE"
-	_test.assert(_ok, "request failed")
-	_test.assert(_response.raw:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
+test["RestClient get"] = function ()
+	local client = RestClient:new"https://raw.githubusercontent.com/"
+	local ok, response = client:safe_get("alis-is/eli/main/LICENSE", { followRedirects = true })
+	test.assert(ok, "request failed - " .. tostring(response))
+	test.assert(response.raw:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
 
-	_client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
+	client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_get("get", { params = { test = "aaa", test2 = "bbb" } })
-		if _ok then break end
+		ok, response = client:safe_get("get", { params = { test = "aaa", test2 = "bbb" } })
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	local _data = _response.data
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed  - " .. tostring(response))
+	local _data = response.data
+	test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
-	_client = RestClient:new(HTTPBIN_URL .. "get", { timeout = TIMEOUT })
+	client = RestClient:new(HTTPBIN_URL .. "get", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_get{ params = { "test=aaa", "test2=bbb" } }
-		if _ok then break end
+		ok, response = client:safe_get{ params = { "test=aaa", "test2=bbb" } }
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	_data = _response.data
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed  - " .. tostring(response))
+	local data = response.data
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 end
 
-_test["RestClient post"] = function ()
-	local _client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
-	local _ok, _response
+test["RestClient post"] = function ()
+	local client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
+	local ok, response
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
-			{ params = { test = "aaa", test2 = "bbb" } })
-		if _ok then break end
+		ok, response = client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
+			{ params = { test = "aaa", test2 = "bbb", timeout = 10000 } })
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	local _data = _response.data
-	_test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed  - " .. tostring(response))
+	local data = response.data
+	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 
-	_client = RestClient:new(HTTPBIN_URL .. "post", { timeout = TIMEOUT })
+	client = RestClient:new(HTTPBIN_URL .. "post", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } },
+		ok, response = client:safe_post({ test = "data", test2 = { other = "data2" } },
 			{ params = { "test=aaa", "test2=bbb" } })
-		if _ok then break end
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	_data = _response.data
-	_test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed  - " .. tostring(response))
+	data = response.data
+	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 end
 
-_test["RestClient put"] = function ()
-	local _client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
-	local _ok, _response
+test["RestClient put"] = function ()
+	local client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
+	local ok, response
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_put({ test = "data", test2 = { other = "data2" } }, "put",
+		ok, response = client:safe_put({ test = "data", test2 = { other = "data2" } }, "put",
 			{ params = { test = "aaa", test2 = "bbb" }, timeout = TIMEOUT })
-		if _ok then break end
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	local _data = _response.data
-	_test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed - " .. tostring(response))
+	local data = response.data
+	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 
-	_client = RestClient:new(HTTPBIN_URL .. "put", { timeout = TIMEOUT })
+	client = RestClient:new(HTTPBIN_URL .. "put", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_put({ test = "data", test2 = { other = "data2" } },
+		ok, response = client:safe_put({ test = "data", test2 = { other = "data2" } },
 			{ params = { "test=aaa", "test2=bbb" } })
-		if _ok then break end
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	_data = _response.data
-	_test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed - " .. tostring(response))
+	data = response.data
+	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 
-	_client = RestClient:new(HTTPBIN_URL .. "put", { timeout = TIMEOUT })
+	client = RestClient:new(HTTPBIN_URL .. "put", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_put(io.open"assets/put.txt", { params = { "test=aaa", "test2=bbb" } })
-		if _ok then break end
+		ok, response = client:safe_put(io.open"assets/put.txt", { params = { "test=aaa", "test2=bbb" } })
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	_data = _response.data
-	_test.assert(_data.data == "simple", "Failed to verify result")
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed  - " .. tostring(response))
+	data = response.data
+	test.assert(data.data == "simple", "Failed to verify result")
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 end
 
-_test["RestClient patch"] = function ()
-	local _client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
-	local _ok, _response
+test["RestClient patch"] = function ()
+	local client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
+	local ok, response
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_patch({ test = "data", test2 = { other = "data2" } }, "patch",
+		ok, response = client:safe_patch({ test = "data", test2 = { other = "data2" } }, "patch",
 			{ params = { test = "aaa", test2 = "bbb" } })
-		if _ok then break end
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	local _data = _response.data
-	_test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed  - " .. tostring(response))
+	local data = response.data
+	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 
-	_client = RestClient:new(HTTPBIN_URL .. "patch", { timeout = TIMEOUT })
+	client = RestClient:new(HTTPBIN_URL .. "patch", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_patch({ test = "data", test2 = { other = "data2" } },
+		ok, response = client:safe_patch({ test = "data", test2 = { other = "data2" } },
 			{ params = { "test=aaa", "test2=bbb" } })
-		if _ok then break end
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	_data = _response.data
-	_test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed  - " .. tostring(response))
+	data = response.data
+	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 end
 
-_test["RestClient delete"] = function ()
-	local _client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
-	local _ok, _response
+test["RestClient delete"] = function ()
+	local client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
+	local ok, response
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_delete("delete", { params = { test = "aaa", test2 = "bbb" } })
-		if _ok then break end
+		ok, response = client:safe_delete("delete", { params = { test = "aaa", test2 = "bbb" } })
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	local _data = _response.data
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed  - " .. tostring(response))
+	local data = response.data
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 
-	_client = RestClient:new(HTTPBIN_URL .. "delete", { timeout = TIMEOUT })
+	client = RestClient:new(HTTPBIN_URL .. "delete", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_delete{ params = { "test=aaa", "test2=bbb" } }
-		if _ok then break end
+		ok, response = client:safe_delete{ params = { "test=aaa", "test2=bbb" } }
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	_data = _response.data
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed  - " .. tostring(response))
+	data = response.data
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 end
 
-_test["RestClient conf"] = function ()
-	local _client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain", timeout = TIMEOUT })
-	local _ok, _response
+test["RestClient conf"] = function ()
+	local client = RestClient:new(HTTPBIN_URL, { headers = { ["Content-Type"] = "text/plain" }, timeout = TIMEOUT })
+	local ok, response
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
+		ok, response = client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
 			{ params = { test = "aaa", test2 = "bbb" } })
-		if _ok then break end
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	local _data = _response.data
-	_test.assert(_data.json == nil, "Failed to verify result")
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed  - " .. tostring(response))
+	local data = response.data
+	test.assert(data.json == nil, "Failed to verify result")
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 
-	_client:conf{ contentType = "application/json" }
+	client:conf{ headers = { ["Content-Type"] = "application/json" } }
 	for _ = 1, RETRIES do
-		_ok, _response = _client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
+		ok, response = client:safe_post({ test = "data", test2 = { other = "data2" } }, "post",
 			{ params = { "test=aaa", "test2=bbb" } })
-		if _ok then break end
+		if ok then break end
 	end
-	_test.assert(_ok, "request failed")
-	_data = _response.data
-	_test.assert(_data.json.test == "data" and _data.json.test2.other == "data2", "Failed to verify result")
-	_test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(ok, "request failed  - " .. tostring(response))
+	data = response.data
+	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 end
 
-_test["RestClient get_url and res"] = function ()
-	local _client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain", timeout = TIMEOUT })
-	_test.assert(_client:get_url() == HTTPBIN_URL)
-	_client = _client:res"test"
-	_test.assert(_client:get_url() == HTTPBIN_URL .. "test")
-	_client = _client:res"test2/test3"
-	_test.assert(_client:get_url() == HTTPBIN_URL .. "test/test2/test3")
+test["RestClient get_url and res"] = function ()
+	local client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain", timeout = TIMEOUT })
+	test.assert(tostring(client:get_url()) == HTTPBIN_URL)
+	client = client:res"test"
+	test.assert(tostring(client:get_url()) == HTTPBIN_URL .. "test")
+	client = client:res"test2/test3"
+	test.assert(tostring(client:get_url()) == HTTPBIN_URL .. "test/test2/test3")
 end
 
-_test["RestClient res (advanced)"] = function ()
-	local _client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain", timeout = TIMEOUT })
-	_test.assert(_client:get_url() == HTTPBIN_URL)
-	local _arrayClients = _client:res{ "test", "test2/test3" }
-	_test.assert(_arrayClients[1]:get_url() == HTTPBIN_URL .. "test")
-	_test.assert(_arrayClients[2]:get_url() == HTTPBIN_URL .. "test2/test3")
+test["RestClient res (advanced)"] = function ()
+	local client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain", timeout = TIMEOUT })
+	test.assert(tostring(client:get_url()) == HTTPBIN_URL)
+	local arrayClients = client:res{ "test", "test2/test3" }
+	test.assert(tostring(arrayClients[1]:get_url()) == HTTPBIN_URL .. "test")
+	test.assert(tostring(arrayClients[2]:get_url()) == HTTPBIN_URL .. "test2/test3")
 	local _objectClientsTemplate = {
 		test = "test",
 		test2 = { "test3", "test4" },
@@ -255,25 +253,25 @@ _test["RestClient res (advanced)"] = function ()
 			test2 = "test2",
 		},
 	}
-	local _objectClients = _client:res(_objectClientsTemplate)
-	_test.assert(_objectClients.test:get_url() == HTTPBIN_URL .. "test")
-	_test.assert(_objectClients.test2[1]:get_url() == HTTPBIN_URL .. "test2/test3")
-	_test.assert(_objectClients.test2[2]:get_url() == HTTPBIN_URL .. "test2/test4")
-	_test.assert(_objectClients.test3:get_url() == HTTPBIN_URL .. "test5")
-	_test.assert(_objectClients.test3.test1:get_url() == HTTPBIN_URL .. "test5/test1")
-	_test.assert(_objectClients.test3.test2:get_url() == HTTPBIN_URL .. "test5/test2")
+	local objectClients = client:res(_objectClientsTemplate)
+	test.assert(tostring(objectClients.test:get_url()) == HTTPBIN_URL .. "test")
+	test.assert(tostring(objectClients.test2[1]:get_url()) == HTTPBIN_URL .. "test2/test3")
+	test.assert(tostring(objectClients.test2[2]:get_url()) == HTTPBIN_URL .. "test2/test4")
+	test.assert(tostring(objectClients.test3:get_url()) == HTTPBIN_URL .. "test5")
+	test.assert(tostring(objectClients.test3.test1:get_url()) == HTTPBIN_URL .. "test5/test1")
+	test.assert(tostring(objectClients.test3.test2:get_url()) == HTTPBIN_URL .. "test5/test2")
 
-	local _notOverrideClientsTemplate = { test = { __root = "t", get = "test" } }
-	local _notOverrideClients = _client:res(_notOverrideClientsTemplate)
-	_test.assert(type(_notOverrideClients.test.get) ~= "function")
-	_test.assert(_notOverrideClients.test:get_url() == HTTPBIN_URL .. "t")
+	local notOverrideClientsTemplate = { test = { __root = "t", get = "test" } }
+	local notOverrideClients = client:res(notOverrideClientsTemplate)
+	test.assert(type(notOverrideClients.test.get) ~= "function")
+	test.assert(tostring(notOverrideClients.test:get_url()) == HTTPBIN_URL .. "t")
 
-	local _overrideClientsTemplate = { test = { __root = "t", get = "test" } }
-	local _notOverrideClients = _client:res(_overrideClientsTemplate, { allowRestclientPropertyOverride = true })
-	_test.assert(type(_notOverrideClients.test.get) ~= "function")
-	_test.assert(_notOverrideClients.test:get_url() == HTTPBIN_URL .. "t")
+	local overrideClientsTemplate = { test = { __root = "t", get = "test" } }
+	local notOverrideClients = client:res(overrideClientsTemplate, { allowRestclientPropertyOverride = true })
+	test.assert(type(notOverrideClients.test.get) ~= "function")
+	test.assert(tostring(notOverrideClients.test:get_url()) == HTTPBIN_URL .. "t")
 end
 
 if not TEST then
-	_test.summary()
+	test.summary()
 end

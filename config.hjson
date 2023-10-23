@@ -1,119 +1,120 @@
 {
-   version: 0.31.0
-   global_modules: false//disables global modules loading (only looks up for modules in cwd)
-   minify: true
-   compress: true
-   inject_ca: true
-   cache_dir: .CACHE
-   c_libs: {
-      eli_fs_extra: eli.fs.extra
-      eli_proc_extra: eli.proc.extra
-      eli_env_extra: eli.env.extra
-      eli_pipe_extra: eli.pipe.extra
-      eli_stream_extra: eli.stream.extra
-      eli_os_extra: eli.os.extra
-      l_mbed_bigint: bigint
-      ltar: ltar
-      lzip: lzip
-      zlib: zlib
-      lcurl: lcurl
-      lcurl_safe: lcurl.safe
-      is_tty: is_tty
-      lmbed_hash: lmbed_hash
-   }
-   lua_libs: [
-      {
-         auto: true
-         path: deps/hjson-lua
-         ignore: .*test.*
-      },
-      {
-         auto: true
-         path: deps/lustache/src
-      },
-      {
-         auto: true
-         path: deps/Lua-cURLv3/src/lua
-      },
-      {
-         auto: true
-         path: lib
-         ignore: [ "init.lua", ".*test.*" ]
-      } 
-   ],
-   inject_docs: [
-      { 
-         source: deps/hjson-lua
-         files: [
-            { 
-               lib: hjson
-               name: hjson.lua
-               isGlobal: false
-               destination: "hjson/hjson.lua"
-            }
-         ] 
-      },
-      { 
-         source: deps/lua-is-tty
-         files: [
-            { 
-               lib: is_tty
-               name: src/is_tty.c
-               isGlobal: false
-               destination: "is_tty/is_tty.lua"
-            }
-         ] 
-      },
-      { 
-         source: deps/eli-env-extra
-         files: [
-            { 
-               lib: eli.env
-               name: src/lenv.c
-               isGlobal: true,
-               destination: "env.extra.lua"
-            }
-         ] 
-      },
-      { 
-         source: deps/eli-os-extra
-         files: [
-            { 
-               lib: eli.os
-               name: src/los.c
-               isGlobal: true,
-               destination: "os.extra.lua"
-            },
-            { 
-               lib: eli.os
-               name: src/lcwd.c
-               isGlobal: true,
-               destination: "os.extra-cwd.lua"
-            }
-         ] 
-      },
-      { 
-         source: deps/lua-mbed-hash
-         files: [
-            { 
-               lib: eli.hash
-               name: src/hash.h
-               isGlobal: true,
-               destination: "hash.h.lua"
-            }
-         ] 
-      },
-      { 
-         source: deps/lua-mbed-bigint
-         files: [
-            { 
-               lib: bigint
-               name: src/bigint.h
-               isGlobal: true,
-               destination: "bigint.h.lua"
-            }
-         ] 
-      },
-   ],
-   init: lib/init.lua
+    version: dev
+    global_modules: false //disables global modules loading (only looks up for modules in cwd)
+    minify: true
+    compress: true
+    inject_ca: true
+    cache_dir: .CACHE
+    c_libs: {
+        eli_fs_extra: eli.fs.extra
+        eli_proc_extra: eli.proc.extra
+        eli_env_extra: eli.env.extra
+        eli_pipe_extra: eli.pipe.extra
+        eli_stream_extra: eli.stream.extra
+        eli_os_extra: eli.os.extra
+        l_mbed_bigint: bigint
+        l_mbed_base64: base64
+        ltar: ltar
+        lzip: lzip
+        zlib: zlib
+        is_tty: is_tty
+        lmbed_hash: lmbed_hash
+        lua_simple_socket: simple_socket
+        lua_corehttp: corehttp
+        lua_simple_socket: simple_socket
+    }
+    lua_libs: [
+        {
+            auto: true
+            path: deps/hjson-lua
+            ignore: .*test.*
+        }
+        {
+            auto: true
+            path: deps/lustache/src
+        }
+        {
+            auto: true
+            path: lib
+            ignore: [
+                init.lua
+                .*test.*
+            ]
+        }
+    ]
+    inject_docs: [
+        {
+            source: deps/hjson-lua
+            files: [
+                {
+                    lib: hjson
+                    name: hjson.lua
+                    isGlobal: false
+                    destination: hjson/hjson.lua
+                }
+            ]
+        }
+        {
+            source: deps/lua-is-tty
+            files: [
+                {
+                    lib: is_tty
+                    name: src/is_tty.c
+                    isGlobal: false
+                    destination: is_tty/is_tty.lua
+                }
+            ]
+        }
+        {
+            source: deps/eli-env-extra
+            files: [
+                {
+                    lib: eli.env
+                    name: src/lenv.c
+                    isGlobal: true
+                    destination: env.extra.lua
+                }
+            ]
+        }
+        {
+            source: deps/eli-os-extra
+            files: [
+                {
+                    lib: eli.os
+                    name: src/los.c
+                    isGlobal: true
+                    destination: os.extra.lua
+                }
+                {
+                    lib: eli.os
+                    name: src/lcwd.c
+                    isGlobal: true
+                    destination: os.extra-cwd.lua
+                }
+            ]
+        }
+        {
+            source: deps/lua-mbed-hash
+            files: [
+                {
+                    lib: eli.hash
+                    name: src/hash.h
+                    isGlobal: true
+                    destination: hash.h.lua
+                }
+            ]
+        }
+        {
+            source: deps/lua-mbed-bigint
+            files: [
+                {
+                    lib: bigint
+                    name: src/bigint.h
+                    isGlobal: true
+                    destination: bigint.h.lua
+                }
+            ]
+        }
+    ]
+    init: lib/init.lua
 }

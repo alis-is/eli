@@ -24,12 +24,12 @@ log_info"patching env"
 
 local INIT_SOURCE = config.init
 local LINIT_C = "deps/lua/linit.c"
+local LSTATE_C = "deps/lua/lstate.c"
 local LUA_C = "deps/lua/lua.c"
 local LUA_H = "deps/lua/lua.h"
 local LUACONF_H = "deps/lua/luaconf.h"
 local LUA_ZIP_C = "deps/lua-zip/lua_zip.c"
 local LIBZIP_CMAKELISTS = "deps/libzip/CMakeLists.txt"
-local CURL_MBEDTLS_C = "deps/curl/lib/vtls/mbedtls.c"
 local MBED_MBEDTLS_CONFIG_H = "deps/mbedtls/include/mbedtls/mbedtls_config.h"
 local MBED_CMAKELISTS_TXT = "deps/mbedtls/CMakeLists.txt"
 local MBED_LIBRARY_CMAKELISTS_TXT = "deps/mbedtls/library/CMakeLists.txt"
@@ -71,6 +71,60 @@ local patches = {
 			))
 		end,
 	},
+	[LSTATE_C] = {
+		validate = function (file)
+			return file:match"lua_close%s-%(lua_State %*L%)%s-{.-\n%s*}"
+		end,
+		patch = function (file)
+			local unloadCode = [[
+			/* Begin __unload code injection */
+
+			lua_getglobal(L, "____UNLOAD_MODULE");  // Get the ____UNLOAD_MODULE table
+			if (lua_istable(L, -1)) {
+				lua_pushnil(L);  // first key for lua_next
+				while (lua_next(L, -2) != 0) {
+				  // -1 is the unload routine, -2 is the key (module name)
+				  if (lua_isfunction(L, -1)) {
+					 lua_call(L, 0, 0);  // unload
+				  } else {
+					 lua_pop(L, 1);  // pop unload if not a function
+				  }
+				}
+				
+			}	
+			lua_pop(L, 1);  // Pop ____UNLOAD_MODULE
+
+			/* End __unload code injection */
+			]]
+
+			-- check if patched alreadyt with `/* Begin __unload code injection */ .* /* End __unload code injection */`
+			local start, _end = file:find"/%* Begin __unload code injection %*/.-/%* End __unload code injection %*/\n"
+			local targetPos, targetContinueFrom
+			if not start then
+				-- find the close_state function
+				start, _end = file:find"void lua_close%s-%(lua_State %*L%)%s-{.-\n%s*}"
+				if not start then
+					error"failed to find lua_close function"
+				end
+				-- find ` close_state(L);` position
+				local closeStateStart, _ = file:sub(start, _end):find("close_state(L)", 1, true)
+				if not closeStateStart then
+					error"failed to find close_state(L);"
+				end
+
+				targetPos = start - 1 + closeStateStart - 1
+				targetContinueFrom = targetPos + 1
+			else
+				targetPos = start - 1
+				targetContinueFrom = _end
+			end
+
+			-- Locate the lua_close function and inject the __unload code
+			local _patched = file:sub(1, targetPos) .. unloadCode .. file:sub(targetContinueFrom)
+
+			return _patched
+		end,
+	},
 	[LUA_C] = {
 		validate = function (file)
 			return file:match"createargtable%(L,.-\n"
@@ -89,14 +143,16 @@ local patches = {
 	},
 	[LUA_H] = {
 		validate = function (file)
-			return file:match"LUA_COPYRIGHT" and file:match"#define LUA_COPYRIGHT[\t ]-LUA_RELEASE \"  Copyright %(C%) .- Lua.org, PUC%-Rio"
+			return file:match"LUA_COPYRIGHT" and
+				file:match"#define LUA_COPYRIGHT[\t ]-LUA_RELEASE \"  Copyright %(C%) .- Lua.org, PUC%-Rio"
 		end,
 		patch = function (file)
 			local COPYRIGHT_LINE_PATTERN = '#define LUA_COPYRIGHT[\t ]-LUA_RELEASE "  Copyright %(C%).-".-\n'
 
 			local _copyright = file:match(COPYRIGHT_LINE_PATTERN)
 			local _luaCopyright = _copyright:match"#define LUA_COPYRIGHT[\t ]-LUA_RELEASE \"  Copyright %(C%) .- Lua.org, PUC%-Rio"
-			local _newCopyright = string.interpolate("${lua_copyright}\\neli ${version}  Copyright (C) 2019-${year} alis.is\"\n", {
+			local _newCopyright = string.interpolate(
+				"${lua_copyright}\\neli ${version}  Copyright (C) 2019-${year} alis.is\"\n", {
 					lua_copyright = _luaCopyright,
 					version = config.version,
 					year = os.date"%Y",
@@ -112,7 +168,7 @@ local patches = {
 					['\n\t\tLUA_LDIR"%?%.lua;"  LUA_LDIR"%?/init%.lua;" \\'] = "",
 					['\n\t\tLUA_CDIR"%?%.lua;"  LUA_CDIR"%?/init%.lua;" \\'] = "",
 					['LUA_CDIR"%?%.so;" LUA_CDIR"loadall%.so;"'] = "",
-					['\n\t\tLUA_SHRDIR"%?%.lua;" LUA_SHRDIR"%?\\\\init%.lua;" \\'] = ""
+					['\n\t\tLUA_SHRDIR"%?%.lua;" LUA_SHRDIR"%?\\\\init%.lua;" \\'] = "",
 				}
 				for _pattern, _replacement in pairs(_toReplace) do
 					file = file:gsub(_pattern, _replacement)
@@ -127,7 +183,7 @@ local patches = {
 	[LUA_ZIP_C] = {
 		patch = function (file)
 			local _toReplace = {
-				["LUALIB_API int luaopen_brimworks_zip"] = "LUALIB_API int luaopen_lzip"
+				["LUALIB_API int luaopen_brimworks_zip"] = "LUALIB_API int luaopen_lzip",
 			}
 			for _pattern, _replacement in pairs(_toReplace) do
 				file = file:gsub(_pattern, _replacement)
@@ -137,14 +193,14 @@ local patches = {
 	},
 	[LIBZIP_CMAKELISTS] = {
 		-- // TODO: handle in root CMakeLists.txt
-			patch = function (file)
-				local _zlibPath = path.combine(os.cwd(), "build/deps/zlib/")
-				local _toReplace =    {
-					['SET%(ZLIB_INCLUDE_DIR .-\n'] = '',
-					['SET%(ZLIB_LIBRARY .-\n'] = '',
-					['option%(ZLIBINCLUDEDIR .-\n'] = '',
-					['option%(ZLIBLIBPATH .-\n'] = '',
-					['CMAKE_MINIMUM_REQUIRED.-\n'] = [[CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+		patch = function (file)
+			local _zlibPath = path.combine(os.cwd(), "build/deps/zlib/")
+			local _toReplace = {
+				["SET%(ZLIB_INCLUDE_DIR .-\n"] = "",
+				["SET%(ZLIB_LIBRARY .-\n"] = "",
+				["option%(ZLIBINCLUDEDIR .-\n"] = "",
+				["option%(ZLIBLIBPATH .-\n"] = "",
+				["CMAKE_MINIMUM_REQUIRED.-\n"] = [[CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
 option(ZLIBLIBPATH "path to zlib" ]] .. _zlibPath .. [[)
 option(ZLIBINCLUDEDIR "path to zlib include dir" ]] .. _zlibPath .. [[)
 SET(ZLIB_LIBRARY ${ZLIBLIBPATH})
@@ -154,44 +210,12 @@ message( ${ZLIB_LIBRARY} )
 message( ${ZLIBLIBPATH} )
 message( ${ZLIB_INCLUDE_DIR} )
 message( ${ZLIBINCLUDEDIR} )
-]]
-				}
-				for _pattern, _replacement in pairs(_toReplace) do
-					file = file:gsub(_pattern, _replacement)
-				end
-				return file
-			end,
-	},
-	[CURL_MBEDTLS_C] = {
-		patch = function (file)
-			if not config.inject_ca then
-				return file
+]],
+			}
+			for _pattern, _replacement in pairs(_toReplace) do
+				file = file:gsub(_pattern, _replacement)
 			end
-			local _certs = _buildUtil.get_ca_certs()
-			local _certsAsByteArrays = table.map(_certs, function (cert)
-				return table.map(
-					table.filter(
-						table.pack(string.byte(cert, 1, -1)),
-						function (k)
-							return type(k) == "number"
-						end),
-					function (b)
-						return string.format("0x%02x", b)
-					end)
-			end)
-			local _certsFormatted = string.join(",\n", table.map(_certsAsByteArrays, function (certAsByteArray)
-				return string.join(",", certAsByteArray)
-			end))
-			local _certSizes = string.join(",", table.map(_certsAsByteArrays, function (certAsByteArray)
-				return #certAsByteArray
-			end))
-
-			local _rendered = lustache:render(templates.CURL_MBED_CA_LOADER, {
-				certs = _certsFormatted,
-				certSizes = _certSizes,
-				certsCount = #_certs,
-			})
-			return file:gsub("mbedtls_x509_crt_init%(&backend%->cacert%);.-if%(ssl_cafile.-%)", _rendered)
+			return file
 		end,
 	},
 	[MBED_MBEDTLS_CONFIG_H] = {
@@ -204,35 +228,84 @@ message( ${ZLIBINCLUDEDIR} )
 		patch = function (file)
 			-- // TODO: remove after next mbedtls release
 			-- right now compilation fails because of empty retval in docs
-			if not file:match('# set%(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} %-Werror"%)') then
-				file = file:gsub('set%(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} %-Werror"%)', '# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")')
+			if not file:match'# set%(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} %-Werror"%)' then
+				file = file:gsub('set%(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} %-Werror"%)',
+					'# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")')
 			end
 			return file
-		end
+		end,
 	},
 	[MBED_LIBRARY_CMAKELISTS_TXT] = {
 		patch = function (file)
-			if file:match('<CMAKE_RANLIB> %-no_warning_for_no_symbols %-c <TARGET>') then
-				file = file:gsub('<CMAKE_RANLIB> %-no_warning_for_no_symbols %-c <TARGET>', "<CMAKE_RANLIB> <TARGET>")
+			if file:match"<CMAKE_RANLIB> %-no_warning_for_no_symbols %-c <TARGET>" then
+				file = file:gsub("<CMAKE_RANLIB> %-no_warning_for_no_symbols %-c <TARGET>", "<CMAKE_RANLIB> <TARGET>")
 			end
 			return file
-		end
-	}
+		end,
+	},
 }
 
 for filePath, spec in pairs(patches) do
 	log_info("patching " .. filePath)
 	spec.validate = spec.validate or function () return true end
-	local _file = fs.read_file(filePath)
+	local file = fs.read_file(filePath)
 
-	if not spec.validate(_file) then
+	if not spec.validate(file) then
 		error("failed to validate " .. filePath)
 	end
-	local _patched = spec.patch(_file)
+	local _patched = spec.patch(file)
 	if not _patched then
-		log_warn("can not patch "..tostring(filePath) .. " - no content returned from patch function")
+		log_warn("can not patch " .. tostring(filePath) .. " - no content returned from patch function")
 	else
 		fs.write_file(filePath, _patched)
+	end
+end
+
+local LSS_CAS = "deps/lua-simple-socket/src/certs.h"
+local injects = {
+	[LSS_CAS] = {
+		generate = function (file)
+			if not config.inject_ca then
+				return file
+			end
+			local _certs = _buildUtil.get_ca_certs()
+			local _certsAsByteArrays = table.map(_certs, function (cert)
+				return table.map(
+					table.filter(
+						table.pack(string.byte(cert, 1, -1)),
+						function (k)
+							return type(k) == "number"
+						end),
+					function (b)
+						return string.format("\\x%02x", b)
+					end)
+			end)
+			local _certsFormatted = string.join("\n", table.map(_certsAsByteArrays, function (certAsByteArray)
+				return '"' .. string.join("", certAsByteArray) .. '"'
+			end))
+			local _certSizes = string.join(",", table.map(_certsAsByteArrays, function (certAsByteArray)
+				return #certAsByteArray
+			end))
+
+			local _rendered = lustache:render(templates.LSS_CAS, {
+				certs = _certsFormatted,
+				certSizes = _certSizes,
+				certsCount = #_certs,
+			})
+			return _rendered
+		end,
+	},
+}
+
+
+for filePath, spec in pairs(injects) do
+	log_info("injecting " .. filePath)
+
+	local data = spec.generate()
+	if not data then
+		log_warn("can not inject " .. tostring(filePath) .. " - no content returned from inject function")
+	else
+		fs.write_file(filePath, data)
 	end
 end
 

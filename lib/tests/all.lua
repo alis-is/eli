@@ -1,9 +1,11 @@
-TEST = require 'u-test'
+TEST = require"u-test"
 local _test = TEST
 require"t_hjson"
 require"t_bigint"
+require"t_base64"
 require"hash"
 require"net"
+require"net.url"
 require"fs"
 require"proc"
 require"env"

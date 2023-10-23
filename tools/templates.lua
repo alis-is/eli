@@ -6,4 +6,5 @@ return {
 	MBED_ELI_OVERRIDES = fs.read_file"tools/templates/mbed-eli-overrides.mustache",
 	CMAKE_GCC = fs.read_file"tools/templates/cmake-gcc.mustache",
 	CMAKE_CLANG = fs.read_file"tools/templates/cmake-clang.mustache",
+	LSS_CAS = fs.read_file"tools/templates/lss-cas.mustache",
 }

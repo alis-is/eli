@@ -188,8 +188,8 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@param _proc EliProcess
 ---@return SpawnResult
 function proc.generate_spawn_result(_proc)
-	if ((type(_proc) ~= "userdata" or type(_proc) == "table") and _proc.__type ~= "ELI_PROCESS") or
-	type(_proc) == "ELI_PROCESS" then
+	if ((type(_proc) == "userdata" or type(_proc) == "table") and _proc.__type ~= "ELI_PROCESS") or
+	etype(_proc) == "ELI_PROCESS" then
 		return {
 			exitcode = _proc:get_exitcode(),
 			stdoutStream = _proc:get_stdout(),
