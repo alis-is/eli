@@ -5,6 +5,9 @@ local util = require"eli.util"
 ---@class UrlQuery: table<string | number, string | number | boolean>
 ---@operator band(UrlQuery, UrlQuery|string):UrlQuery
 
+---@class ParseOptions
+---@field decode boolean?
+
 ---@class Url
 ---@field scheme string
 ---@field __authority string
@@ -17,6 +20,7 @@ local util = require"eli.util"
 ---@field username string?
 ---@field password string?
 ---@operator div(string):Url
+---@field normalize fun():Url
 
 local legalInPath = ":_-.!~*'()@&=$,;"
 local legalInQuery = ":_-.,!~*';()@$"
@@ -138,20 +142,23 @@ end
 ---parses url query
 ---@param str string
 ---@param sep? string
+---@param options? ParseOptions
 ---@return UrlQuery
-function url.parse_query(str, sep)
+function url.parse_query(str, sep, options)
+	options = type(options) == "table" and options or {}
+	options.decode = options.decode == nil and true or options.decode
 	sep = sep or url.options.separator or "&"
 
 	local values = {}
 	for key, val in str:gmatch(string.format("([^%q=]+)(=*[^%q=]*)", sep, sep)) do
-		key = decodeValue(key)
+		key = options.decode and decodeValue(key) or key
 		local keys = {}
 		key = key:gsub("%[([^%]]*)%]", function (v)
 			-- extract keys between balanced brackets
 			if string.find(v, "^-?%d+$") then
 				v = tonumber(v)
 			else
-				v = decodeValue(v)
+				v = options.decode and decodeValue(v) or v
 			end
 			table.insert(keys, v)
 			return "="
@@ -167,11 +174,11 @@ function url.parse_query(str, sep)
 		if #keys > 0 and type(values[key]) ~= "table" then
 			values[key] = {}
 		elseif #keys == 0 and type(values[key]) == "table" then
-			values[key] = decodeValue(val)
+			values[key] = options.decode and decodeValue(val) or val
 		elseif url.options.cumulativeParameters
 		and    type(values[key]) == "string" then
 			values[key] = { values[key] }
-			table.insert(values[key], decodeValue(val))
+			table.insert(values[key], options.decode and decodeValue(val) or val)
 		end
 
 		local t = values[key]
@@ -198,11 +205,12 @@ end
 ---adds query to url table
 ---@param urlObj Url
 ---@param query table<string | number, string | number | boolean> | string
-function url.set_query(urlObj, query)
+---@param options? ParseOptions
+function url.set_query(urlObj, query, options)
 	if type(query) == "table" then
 		query = url.build_query(query)
 	end
-	urlObj.query = url.parse_query(query)
+	urlObj.query = url.parse_query(query, nil, options)
 end
 
 ---#DES 'url.add_segment'	
@@ -382,8 +390,11 @@ end
 
 ---parses url string
 ---@param urlStr string
+---@param options? ParseOptions
 ---@return Url
-function url.parse(urlStr)
+function url.parse(urlStr, options)
+	options = type(options) == "table" and options or {}
+	options.decode = options.decode == nil and true or options.decode
 	local result = {}
 	result.query = url.parse_query""
 
@@ -405,7 +416,8 @@ function url.parse(urlStr)
 		return ""
 	end)
 
-	result.path = urlStr:gsub("([^/]+)", function (s) return url.encode(url.decode(s), url.options.legalInPath) end)
+	result.path = urlStr:gsub("([^/]+)",
+		function (s) return url.encode(options.decode and url.decode(s) or s, url.options.legalInPath) end)
 
 	setmetatable(result, url.__URL_METATABLE)
 	return result
@@ -429,7 +441,9 @@ function url.remove_dot_segments(path)
 		endslash = true
 	end
 
-	path:gsub("[^/]+", function (c) table.insert(fields, c) end)
+	for c in path:gmatch"[^/]+" do
+		table.insert(fields, c)
+	end
 
 	local new = {}
 	local j = 0
@@ -544,7 +558,7 @@ end
 
 ---#DES 'url.to_request_parameters'
 --- returns scheme, host, port, path + query + fragment, credentials
----@param urlObj Url | string
+---@param urlObjOrStr Url | string
 ---@return string?, string?, string?, string?, string?
 function url.to_http_request_components(urlObjOrStr)
 	local urlObj = urlObjOrStr
@@ -583,7 +597,6 @@ url.__QUERY_METATABLE = {
 	__tostring = url.build_query,
 	__type = "ELI_URL_QUERY",
 	__band = url.add_query,
-	__eq,
 }
 
 return url

@@ -7,7 +7,7 @@
 	lua_pop(L, 1);  /* remove _PRELOAD table */
 	int arg = lua_gettop(L);
 {{#compress}}
-	char uncompressedLibs[{{{embedableLibsLength}}} + 1];
+	char uncompressedLibs[{{{embedableLibsLength}}}];
 	z_stream i_stream;
 	i_stream.zalloc = Z_NULL;
 	i_stream.zfree = Z_NULL;
@@ -22,12 +22,10 @@
 	inflate(&i_stream, Z_NO_FLUSH);
 	inflateEnd(&i_stream);
 
-	uncompressedLibs[{{{embedableLibsLength}}}] = '\0';
-
-	luaL_loadstring(L, uncompressedLibs);
+	luaL_loadbuffer(L, uncompressedLibs, {{{embedableLibsLength}}}, "preload-libs");
 {{/compress}}
 {{^compress}}
-	luaL_loadstring(L, lua_libs);
+	luaL_loadbuffer(L, lua_libs, {{{embedableLibsLength}}}, "preload-libs");
 {{/compress}}
 	lua_insert(L,1);
 	lua_call(L,arg,1);

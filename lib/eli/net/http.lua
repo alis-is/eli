@@ -259,7 +259,8 @@ local function request(client, path, method, options, data)
 	if options.followRedirects and exTable.includes({ 301, 302, 303, 307, 308 }, response:http_status_code()) then
 		local location = responseHeaders["Location"]
 		if location then
-			local newUrl = netUrl.parse(location):normalize()
+			-- we don't want to decode url values as they might be encoded secrets, we trust server to send us valid url
+			local newUrl = netUrl.parse(location, { decode = false }):normalize()
 			local newScheme, newHost, newPort, newPath, _ = netUrl.to_http_request_components(newUrl)
 			if newUrl.__authority ~= nil and newUrl.__authority ~= "" and not is_client_targeting_same_authority(client, location) then
 				local newClient = corehttp.new_client(newScheme, newHost, newPort, options)
