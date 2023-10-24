@@ -34,6 +34,7 @@ if not corehttpLoaded then
 end
 
 ---@class CorehttpClient
+---@field endpoint fun(): string
 
 ---@class ClientCertificate
 ---@field certificate string
@@ -161,10 +162,8 @@ end
 ---@param client CorehttpClient
 ---@param url Url | string
 local function is_client_targeting_same_authority(client, url)
-	if type(url) == "string" then url = netUrl.parse(url) end
-
-	local scheme, host, port, _, _ = netUrl.to_http_request_components(url)
-	local clientScheme, clientHost, clientPort, _, _ = netUrl.to_http_request_components(netUrl.parse(client:endpoint()))
+	local scheme, host, port, _, _ = netUrl.extract_components_for_request(url)
+	local clientScheme, clientHost, clientPort, _, _ = netUrl.extract_components_for_request(client:endpoint())
 	return scheme == clientScheme and host == clientHost and port == clientPort
 end
 
@@ -260,9 +259,8 @@ local function request(client, path, method, options, data)
 		local location = responseHeaders["Location"]
 		if location then
 			-- we don't want to decode url values as they might be encoded secrets, we trust server to send us valid url
-			local newUrl = netUrl.parse(location, { decode = false }):normalize()
-			local newScheme, newHost, newPort, newPath, _ = netUrl.to_http_request_components(newUrl)
-			if newUrl.__authority ~= nil and newUrl.__authority ~= "" and not is_client_targeting_same_authority(client, location) then
+			if not is_client_targeting_same_authority(client, location) then
+				local newScheme, newHost, newPort, newPath, _ = netUrl.extract_components_for_request(location)
 				local newClient = corehttp.new_client(newScheme, newHost, newPort, options)
 				return request(newClient, newPath, method, options, data)
 			else
@@ -365,7 +363,7 @@ function net.RestClient:new(urlOrId, parentOrOptions, options)
 	else
 		options = parentOrOptions --[[@as RestClientOptions]]
 		_restClient.__url = netUrl.parse(urlOrId)
-		local scheme, host, port, _, _ = netUrl.to_http_request_components(_restClient.__url)
+		local scheme, host, port, _, _ = netUrl.extract_components_for_request(_restClient.__url)
 		_restClient.__client = corehttp.new_client(scheme, host, port, options)
 		_restClient.__options = util.merge_tables(options, {
 			followRedirects = false,
@@ -574,7 +572,7 @@ end
 function net.RestClient:get(pathOrOptions, options)
 	local url, options = get_request_url(self, pathOrOptions,
 		options)
-	local _, _, _, path, _ = netUrl.to_http_request_components(url)
+	local _, _, _, path, _ = netUrl.extract_components_for_request(url)
 
 	return request(self.__client, path, "GET", util.merge_tables(options, self.__options))
 end
@@ -599,7 +597,7 @@ end
 function net.RestClient:post(data, pathOrOptions, options)
 	local url, options = get_request_url(self, pathOrOptions,
 		options)
-	local _, _, _, path, _ = netUrl.to_http_request_components(url)
+	local _, _, _, path, _ = netUrl.extract_components_for_request(url)
 	return request(self.__client, path, "POST", util.merge_tables(options, self.__options), data)
 end
 
@@ -624,7 +622,7 @@ end
 function net.RestClient:put(data, pathOrOptions, options)
 	local url, options = get_request_url(self, pathOrOptions,
 		options)
-	local _, _, _, path, _ = netUrl.to_http_request_components(url)
+	local _, _, _, path, _ = netUrl.extract_components_for_request(url)
 	return request(self.__client, path, "PUT", util.merge_tables(options, self.__options), data)
 end
 
@@ -649,7 +647,7 @@ end
 function net.RestClient:patch(data, pathOrOptions, options)
 	local url, options = get_request_url(self, pathOrOptions,
 		options)
-	local _, _, _, path, _ = netUrl.to_http_request_components(url)
+	local _, _, _, path, _ = netUrl.extract_components_for_request(url)
 	return request(self.__client, path, "PATCH", util.merge_tables(options, self.__options), data)
 end
 
@@ -673,7 +671,7 @@ end
 function net.RestClient:delete(pathOrOptions, options)
 	local url, options = get_request_url(self, pathOrOptions,
 		options)
-	local _, _, _, path, _ = netUrl.to_http_request_components(url)
+	local _, _, _, path, _ = netUrl.extract_components_for_request(url)
 
 	return request(self.__client, path, "DELETE", util.merge_tables(options, self.__options))
 end

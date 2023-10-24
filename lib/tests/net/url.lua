@@ -29,9 +29,11 @@ end
 test["(url) parameter removal"] = function ()
 	local u = url.parse"http://www.example.com/?last=mansion&first=bertrand&test=more"
 
-	test.assert("http://www.example.com/?first=bertrand&last=mansion&test=more" == tostring(u), "incorrectly sorted query")
+	test.assert("http://www.example.com/?first=bertrand&last=mansion&test=more" == tostring(u),
+		"incorrectly sorted query")
 	u.query.test = nil
-	test.assert("http://www.example.com/?first=bertrand&last=mansion" == tostring(u), "failed to remove query parameter 1")
+	test.assert("http://www.example.com/?first=bertrand&last=mansion" == tostring(u),
+		"failed to remove query parameter 1")
 	u.query.first = nil
 	test.assert("http://www.example.com/?last=mansion" == tostring(u), "failed to remove query parameter 2")
 	u.query.last = nil
@@ -289,9 +291,9 @@ test["(url) query mutation"] = function ()
 	url.options = optionsBackup
 end
 
-test["(url) to components"] = function ()
+test["(url) extract components"] = function ()
 	local urlObj = url.parse"https://www.example.com:8080/path/to/resource?param1=value1&param2=value2#fragment"
-	local scheme, host, port, pathQueryFragment, credentials = url.to_http_request_components(urlObj)
+	local scheme, host, port, pathQueryFragment, credentials = url.extract_components_for_request(urlObj)
 
 	test.assert(scheme == "https", "Scheme should be 'https'")
 	test.assert(host == "www.example.com", "Host should be 'www.example.com'")
@@ -302,7 +304,7 @@ test["(url) to components"] = function ()
 
 	-- // test without port
 	urlObj = url.parse"https://www.example.com/path/to/resource?param1=value1&param2=value2#fragment"
-	scheme, host, port, pathQueryFragment, credentials = url.to_http_request_components(urlObj)
+	scheme, host, port, pathQueryFragment, credentials = url.extract_components_for_request(urlObj)
 
 	test.assert(scheme == "https", "Scheme should be 'https'")
 	test.assert(host == "www.example.com", "Host should be 'www.example.com'")
@@ -313,7 +315,7 @@ test["(url) to components"] = function ()
 
 	-- // test without port and fragment and with credentials
 	urlObj = url.parse"https://user:password@localhost/path/to/resource?param1=value1&param2=value2"
-	scheme, host, port, pathQueryFragment, credentials = url.to_http_request_components(urlObj)
+	scheme, host, port, pathQueryFragment, credentials = url.extract_components_for_request(urlObj)
 
 	test.assert(scheme == "https", "Scheme should be 'https'")
 	test.assert(host == "localhost", "Host should be 'localhost'")
@@ -328,7 +330,8 @@ test["(url) add segment through /"] = function ()
 	urlObj = urlObj / "newSegment"
 
 	test.assert(
-		tostring(urlObj) == "https://www.example.com:8080/path/to/resource/newSegment?param1=value1&param2=value2#fragment",
+		tostring(urlObj) ==
+		"https://www.example.com:8080/path/to/resource/newSegment?param1=value1&param2=value2#fragment",
 		"Path should be 'https://www.example.com:8080/path/to/resource/newSegment?param1=value1&param2=value2#fragment'")
 
 	-- multiple segments

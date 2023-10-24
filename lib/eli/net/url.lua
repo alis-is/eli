@@ -5,9 +5,6 @@ local util = require"eli.util"
 ---@class UrlQuery: table<string | number, string | number | boolean>
 ---@operator band(UrlQuery, UrlQuery|string):UrlQuery
 
----@class ParseOptions
----@field decode boolean?
-
 ---@class Url
 ---@field scheme string
 ---@field __authority string
@@ -142,23 +139,20 @@ end
 ---parses url query
 ---@param str string
 ---@param sep? string
----@param options? ParseOptions
 ---@return UrlQuery
-function url.parse_query(str, sep, options)
-	options = type(options) == "table" and options or {}
-	options.decode = options.decode == nil and true or options.decode
+function url.parse_query(str, sep)
 	sep = sep or url.options.separator or "&"
 
 	local values = {}
 	for key, val in str:gmatch(string.format("([^%q=]+)(=*[^%q=]*)", sep, sep)) do
-		key = options.decode and decodeValue(key) or key
+		key = decodeValue(key)
 		local keys = {}
 		key = key:gsub("%[([^%]]*)%]", function (v)
 			-- extract keys between balanced brackets
 			if string.find(v, "^-?%d+$") then
 				v = tonumber(v)
 			else
-				v = options.decode and decodeValue(v) or v
+				v = decodeValue(v)
 			end
 			table.insert(keys, v)
 			return "="
@@ -174,11 +168,11 @@ function url.parse_query(str, sep, options)
 		if #keys > 0 and type(values[key]) ~= "table" then
 			values[key] = {}
 		elseif #keys == 0 and type(values[key]) == "table" then
-			values[key] = options.decode and decodeValue(val) or val
+			values[key] = decodeValue(val)
 		elseif url.options.cumulativeParameters
 		and    type(values[key]) == "string" then
 			values[key] = { values[key] }
-			table.insert(values[key], options.decode and decodeValue(val) or val)
+			table.insert(values[key], decodeValue(val))
 		end
 
 		local t = values[key]
@@ -205,12 +199,11 @@ end
 ---adds query to url table
 ---@param urlObj Url
 ---@param query table<string | number, string | number | boolean> | string
----@param options? ParseOptions
-function url.set_query(urlObj, query, options)
+function url.set_query(urlObj, query)
 	if type(query) == "table" then
 		query = url.build_query(query)
 	end
-	urlObj.query = url.parse_query(query, nil, options)
+	urlObj.query = url.parse_query(query)
 end
 
 ---#DES 'url.add_segment'	
@@ -291,6 +284,25 @@ function url.validate_ip(str)
 	return nil, "not-ip"
 end
 
+--- extracts authority components for http request
+--- returns scheme, host, port, path + query + fragment, credentials
+---@param authorityStr string
+---@return string, string, string
+local function extract_authority_components(authorityStr)
+	local host, port, credentials
+	local authorityStr = tostring(authorityStr or "")
+	authorityStr = authorityStr:gsub(":(%d+)$", function (v)
+		port = tonumber(v)
+		return ""
+	end)
+	authorityStr = authorityStr:gsub("^([^@]*)@", function (v)
+		credentials = v
+		return ""
+	end)
+	host = authorityStr
+	return host, port, credentials
+end
+
 ---#DES 'url.set_authority'	
 ---
 ---@param urlObj table
@@ -304,23 +316,16 @@ function url.set_authority(urlObj, authority)
 	urlObj.username = nil
 	urlObj.password = nil
 
-	local userinfo
-	authority = authority:gsub("^([^@]*)@", function (v)
-		userinfo = v
-		return ""
-	end)
-	authority = authority:gsub(":(%d+)$", function (v)
-		urlObj.port = tonumber(v)
-		return ""
-	end)
+	local hostInfo, port, userinfo = extract_authority_components(authority)
+	urlObj.port = port
 
-	local ip, kind = url.validate_ip(authority)
+	local ip, kind = url.validate_ip(hostInfo)
 	urlObj.kind = kind
 	if ip then
 		urlObj.host = ip
 	elseif kind == "not-ip" then
-		if authority ~= "" and not urlObj.host then
-			local host = authority:lower()
+		if hostInfo ~= "" and not urlObj.host then
+			local host = hostInfo:lower()
 			if string.match(host, "^[%d%a%-%.]+$") ~= nil and
 			string.sub(host, 0, 1) ~= "." and
 			string.sub(host, -1) ~= "." and
@@ -388,36 +393,55 @@ function url.build(urlObj)
 	return result
 end
 
----parses url string
+---extracts url components
+---returns scheme, authority, path, query, fragment
 ---@param urlStr string
----@param options? ParseOptions
----@return Url
-function url.parse(urlStr, options)
-	options = type(options) == "table" and options or {}
-	options.decode = options.decode == nil and true or options.decode
-	local result = {}
-	result.query = url.parse_query""
-
+---@return string, string, string, string, string
+local function extract_url_components(urlStr)
+	local scheme, authority, path, query, fragment
 	local urlStr = tostring(urlStr or "")
 	urlStr = urlStr:gsub("#(.*)$", function (v)
-		result.fragment = v
+		fragment = v
 		return ""
 	end)
 	urlStr = urlStr:gsub("^([%w][%w%+%-%.]*)%:", function (v)
-		result.scheme = v:lower()
+		scheme = v:lower()
 		return ""
 	end)
 	urlStr = urlStr:gsub("%?(.*)", function (v)
-		url.set_query(result, v)
+		query = v
 		return ""
 	end)
 	urlStr = urlStr:gsub("^//([^/]*)", function (v)
-		url.set_authority(result, v)
+		authority = v
 		return ""
 	end)
+	path = urlStr
 
-	result.path = urlStr:gsub("([^/]+)",
-		function (s) return url.encode(options.decode and url.decode(s) or s, url.options.legalInPath) end)
+	return scheme, authority, path, query, fragment
+end
+
+---parses url string
+---@param urlStr string
+---@return Url
+function url.parse(urlStr)
+	local result = {}
+	result.query = url.parse_query""
+
+	local scheme, authority, path, query, fragment = extract_url_components(urlStr)
+	result.fragment = fragment
+	result.scheme = scheme
+	if query ~= nil then
+		url.set_query(result, query)
+	end
+	if authority ~= nil then
+		url.set_authority(result, authority)
+	end
+	if path ~= nil then
+		result.path = path:gsub("([^/]+)", function (s)
+			return url.encode(url.decode(s), url.options.legalInPath)
+		end)
+	end
 
 	setmetatable(result, url.__URL_METATABLE)
 	return result
@@ -560,11 +584,14 @@ end
 --- returns scheme, host, port, path + query + fragment, credentials
 ---@param urlObjOrStr Url | string
 ---@return string?, string?, string?, string?, string?
-function url.to_http_request_components(urlObjOrStr)
-	local urlObj = urlObjOrStr
+function url.extract_components_for_request(urlObjOrStr)
 	if type(urlObjOrStr) == "string" then
-		urlObj = url.parse(urlObjOrStr)
+		local scheme, authority, path, query, fragment = extract_url_components(urlObjOrStr)
+		local host, port, credentials = extract_authority_components(authority)
+		return scheme, host, port, (path or "") .. (query and "?" .. query or "") .. (fragment and "#" .. fragment or ""),
+			credentials
 	end
+	local urlObj = urlObjOrStr
 	local scheme = urlObj.scheme
 	local host = urlObj.host
 	local port = urlObj.port
@@ -586,7 +613,7 @@ url.__URL_METATABLE = {
 		set_authority = url.set_authority,
 		set_query = url.set_query,
 		resolve = url.resolve,
-		to_http_request_components = url.to_http_request_components,
+		to_http_request_components = url.extract_http_request_components,
 	},
 	__tostring = url.build,
 	__div = url.add_segment,
