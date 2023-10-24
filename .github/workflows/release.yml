@@ -191,12 +191,15 @@ jobs:
     needs: [build-linux-x86_64]
     steps:
       - uses: actions/checkout@v4
+      - uses: "./.github/template/prepare-test"
+      - uses: actions/checkout@v4
         with:
           repository: alis-is/ami
-      - uses: "./.github/template/prepare-test"
+          path: ami
       - name: test ami
         run: |
-          ./release/eli-linux-x86_64 tests/all.lua
+          cd ami
+          ../release/eli-linux-x86_64 tests/all.lua
 
   publish:
     if: ${{ needs.prepare.outputs.NEEDS_RELEASE == 'true' }}
