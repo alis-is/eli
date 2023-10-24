@@ -1,12 +1,13 @@
 name: prepare-test
+description: downloads and chmods artifacts
 
 runs:
   using: "composite"
   steps:
-  - uses: actions/download-artifact@v3
-    with:
-      path: .
-  - name: make executable
-    if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
-    shell: sh
-    run: chmod +x ./release/* && ls -la ./release/*
+    - uses: actions/download-artifact@v3
+      with:
+        path: .
+    - name: make executable
+      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
+      shell: sh
+      run: chmod +x ./release/* && ls -la ./release/*
