@@ -13,18 +13,18 @@ if not _ok then
 	end
 end
 
-_test["eli.bigint available"] = function ()
+_test["bigint available"] = function ()
 	_test.assert(true)
 end
 
 _test["bigint.new"] = function ()
 	-- bigint from float number (5.3 -> 5)
 	local _a = _bigint.new(5.3)
-	local _b = _bigint.new("5")
+	local _b = _bigint.new"5"
 	_test.assert(_a == _b)
 
 	-- bigint from string "5.3" (should fail)
-	local success, _c = pcall(function() return _bigint.new("5.3") end)
+	local success, _c = pcall(function () return _bigint.new"5.3" end)
 	_test.assert(not success)
 
 	-- bigint from integer number (5 -> 5)
@@ -32,7 +32,7 @@ _test["bigint.new"] = function ()
 	_test.assert(_d == _b)
 
 	-- bigint from string "5" (5 -> 5)
-	local _e = _bigint.new("5")
+	local _e = _bigint.new"5"
 	_test.assert(_e == _b)
 
 	-- bigint from bigint 5 (5 -> 5)
@@ -41,7 +41,7 @@ _test["bigint.new"] = function ()
 
 	-- init with no param (0)
 	local _g = _bigint.new()
-	_test.assert(_g == _bigint.new("0"))
+	_test.assert(_g == _bigint.new"0")
 end
 
 _test["bigint.add"] = function ()

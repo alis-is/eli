@@ -17,8 +17,9 @@
 #undef MBEDTLS_X509_CREATE_C
 #undef MBEDTLS_PEM_PARSE_C
 #undef MBEDTLS_PEM_WRITE_C
-#undef MBEDTLS_BASE64_C
+#define MBEDTLS_BASE64_C
 #undef MBEDTLS_X509_CRT_WRITE_C
 #undef MBEDTLS_AESCE_C
+// #define MBEDTLS_PSA_P256M_DRIVER_ENABLED
 {{/overrides}}
 /* end eli mbedtls overrides */

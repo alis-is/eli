@@ -11,9 +11,10 @@ jobs:
     outputs:
       NEEDS_RELEASE: ${{ steps.prep.outputs.NEEDS_RELEASE }}
       VERSION: ${{ steps.prep.outputs.VERSION }}
+      PRERELEASE: ${{ steps.prep.outputs.PRERELEASE }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: setup eli
@@ -27,6 +28,12 @@ jobs:
           rm -rf release .meta
           mkdir -p "$ROOT/release"
           VERSION=$(eli -e 'io.write(require"hjson".parse(fs.read_file"config.hjson").version)')
+          # if VERSION is just 'dev' then we do not need to release
+          if [ "$VERSION" = "dev" ]; then
+            NEEDS_RELEASE=false
+            echo "NEEDS_RELEASE=$NEEDS_RELEASE" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
           if git tag -l "$VERSION" | grep "$VERSION"; then 
             echo "Version $VERSION already exists";
@@ -34,13 +41,17 @@ jobs:
             NEEDS_RELEASE=true
             echo "NEEDS_RELEASE=$NEEDS_RELEASE" >> $GITHUB_OUTPUT
           fi
+          if echo "$VERSION" | grep -E "dev|alpha"; then
+            PRERELEASE=true
+            echo "PRERELEASE=$PRERELEASE" >> $GITHUB_OUTPUT
+          fi
           echo "Building eli $VERSION (RELEASE_REQUIRE: $NEEDS_RELEASE)"
   build-linux-x86_64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -50,9 +61,9 @@ jobs:
   build-linux-aarch64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -62,9 +73,9 @@ jobs:
   build-linux-riscv64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -75,9 +86,9 @@ jobs:
   build-windows-x86_64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -87,9 +98,9 @@ jobs:
   build-windows-aarch64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -100,9 +111,9 @@ jobs:
   build-macos-x86_64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -112,9 +123,9 @@ jobs:
   build-macos-aarch64:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        submodules: true
+        submodules: recursive
     - name: build-n-cache
       uses: "./.github/template/build-n-cache"
       with:
@@ -134,7 +145,7 @@ jobs:
         ports:
           - 80:80
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: "./.github/template/prepare-test"
       - name: test x86_64
         uses: addnab/docker-run-action@v3
@@ -159,7 +170,7 @@ jobs:
     runs-on: windows-latest
     needs: [build-windows-x86_64, build-windows-aarch64] # we do not test aarch64 because there are no available aarch64 runners
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: "./.github/template/prepare-test"
       - name: test
         shell: pwsh
@@ -170,18 +181,32 @@ jobs:
     runs-on: macos-latest
     needs: [build-macos-x86_64, build-macos-aarch64] # we do not test aarch64 because there are no available aarch64 runners
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: "./.github/template/prepare-test"
       - name: test
         run: |
-          ./tools/test.sh x86_64
+
+  test-ami:
+    runs-on: ubuntu-latest
+    needs: [build-linux-x86_64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: "./.github/template/prepare-test"
+      - uses: actions/checkout@v4
+        with:
+          repository: alis-is/ami
+          path: ami
+      - name: test ami
+        run: |
+          cd ami
+          ../release/eli-linux-x86_64 tests/all.lua
 
   publish:
     if: ${{ needs.prepare.outputs.NEEDS_RELEASE == 'true' }}
     runs-on: ubuntu-latest
-    needs: [test-windows, test-linux, test-macos, prepare]
+    needs: [test-windows, test-linux, test-macos, test-ami, prepare]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: "./.github/template/prepare-test" # downloads artifacts
       - name: publish
         uses: ncipollo/release-action@v1
@@ -190,3 +215,4 @@ jobs:
           tag: ${{ needs.prepare.outputs.VERSION }}
           commit: ${{ github.sha }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: ${{needs.prepare.outputs.PRERELEASE}}

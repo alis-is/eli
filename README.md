@@ -11,11 +11,14 @@ Embedded libraries:
 - [eli.pipe.extra](https://github.com/alis-is/eli-pipe-extra)
 - [eli.stream.extra](https://github.com/alis-is/eli-stream-extra)
 - [eli.extra.utils](https://github.com/alis-is/eli-extra-utils)
-- [hjson ](https://github.com/cryi/hjson-lua)
+- [hjson](https://github.com/hjson/hjson-lua)
 - [lustache](https://github.com/Olivine-Labs/lustache)
-- [lua-cURLv3](https://github.com/Lua-cURL/Lua-cURLv3)
 - [lzip](https://github.com/brimworks/lua-zip) + [libzip](https://github.com/nih-at/libzip) + [zlib](https://github.com/madler/zlib)
+- [corehttp](https://github.com/FreeRTOS/coreHTTP)
+- [lua-corehttp](https://github.com/alis-is/lua-corehttp)
+- [lua-simple-socket](https://github.com/alis-is/lua-simple-socket)
 - [mbedtls](https://github.com/ARMmbed/mbedtls)
+- [lua-mbed-base64](https://github.com/alis-is/lua-mbed-base64) + [lua-mbed-bigint](https://github.com/alis-is/lua-mbed-bigint) + [lua-mbed-hash](https://github.com/alis-is/lua-mbed-hash)
 
 Predefined variables:
 - `interpreter` - path to interpreter
@@ -46,7 +49,7 @@ Tests:
 - Run `run_tests.sh` with args <path to built binary> and <test suite>
     * Example: `./run_tests.sh $(pwd)/build/eli all.lua`
 
-Libraries used for build: 
+Tools used for build: 
 
-- eli 0.23.2
+- eli
 - [luasrcdiet](https://github.com/jirutka/luasrcdiet) (*for minfication*)

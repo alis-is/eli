@@ -1,5 +1,5 @@
-ELI_LIB_VERSION = "0.29.1"
-ELI_VERSION = "0.29.1"
+ELI_LIB_VERSION = '0.32.0-dev'
+ELI_VERSION = '0.32.0-dev'
 do
 	local path = require"eli.path"
 	local _eos = require"eli.os"

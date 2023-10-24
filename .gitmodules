@@ -59,14 +59,6 @@
 	path = deps/lua-tar-read-native
 	url = https://github.com/alis-is/lua-tar-read-native.git
 	ignore = dirty
-[submodule "deps/Lua-cURLv3"]
-	path = deps/Lua-cURLv3
-	url = https://github.com/alis-is/Lua-cURLv3
-	ignore = dirty
-[submodule "deps/curl"]
-	path = deps/curl
-	url = https://github.com/curl/curl
-	ignore = dirty
 [submodule "deps/lua-zip"]
 	path = deps/lua-zip
 	url = https://github.com/brimworks/lua-zip
@@ -99,7 +91,19 @@
 	path = deps/lua-zlib
 	url = https://github.com/brimworks/lua-zlib
 	ignore = dirty
-[submodule "deps/c-ares"]
-	path = deps/c-ares
-	url = https://github.com/c-ares/c-ares.git
+[submodule "deps/lua-corehttp"]
+	path = deps/lua-corehttp
+	url = https://github.com/alis-is/lua-corehttp
+	ignore = dirty
+[submodule "deps/lua-mbed-base64"]
+	path = deps/lua-mbed-base64
+	url = https://github.com/alis-is/lua-mbed-base64
+	ignore = dirty
+[submodule "deps/lua-simple-socket"]
+	path = deps/lua-simple-socket
+	url = https://github.com/alis-is/lua-simple-socket
+	ignore = dirty
+[submodule "deps/corehttp"]
+	path = deps/corehttp
+	url = https://github.com/FreeRTOS/coreHTTP.git
 	ignore = dirty
