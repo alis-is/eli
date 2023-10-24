@@ -1,6 +1,10 @@
 #!/bin/sh
 
 TMP_NAME="/tmp/$(head -n 1 -c 32 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32)"
+PRERELEASE=false
+if [ "$1" = "--prerelease" ]; then
+    PRERELEASE=true
+fi
 
 if which curl >/dev/null; then
     if curl --help 2>&1 | grep "--progress-bar" >/dev/null 2>&1; then
@@ -8,20 +12,20 @@ if which curl >/dev/null; then
     fi
 
     set -- curl -L $PROGRESS -o "$TMP_NAME"
-    if [ "$1" = "--prerelease" ]; then
-        LATEST=$(curl -sL https://api.github.com/repos/alis-is/eli/releases | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g' | head -n 1)
+    if [ "$PRERELEASE" = true ]; then
+        LATEST=$(curl -sL https://api.github.com/repos/alis-is/eli/releases | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g' | head -n 1 | tr -d '[:space:]')
     else
-        LATEST=$(curl -sL https://api.github.com/repos/alis-is/eli/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g')
+        LATEST=$(curl -sL https://api.github.com/repos/alis-is/eli/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g' | tr -d '[:space:]')
     fi
 else
     if wget --help 2>&1 | grep "--show-progress" >/dev/null 2>&1; then
         PROGRESS="--show-progress"
     fi
     set -- wget -q $PROGRESS -O "$TMP_NAME"
-    if [ "$1" = "--prerelease" ]; then
-        LATEST=$(wget -qO- https://api.github.com/repos/alis-is/eli/releases | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g' | head -n 1)
+    if [ "$PRERELEASE" = true ]; then
+        LATEST=$(wget -qO- https://api.github.com/repos/alis-is/eli/releases | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g' | head -n 1 | tr -d '[:space:]')
     else
-        LATEST=$(wget -qO- https://api.github.com/repos/alis-is/eli/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g')
+        LATEST=$(wget -qO- https://api.github.com/repos/alis-is/eli/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g' | tr -d '[:space:]')
     fi
 fi
 
