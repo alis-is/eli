@@ -1,5 +1,5 @@
 local test = TEST or require"u-test"
-local ok, eliNet = pcall(require, "http")
+local ok, eliNet = pcall(require, "eli.net")
 
 -- https://postman-echo.com/ ?
 local HTTPBIN_URL = os.getenv"HTTPBIN_URL" or "https://httpbin.org/"
@@ -24,79 +24,79 @@ test["eli.net available"] = function ()
 end
 
 local RestClient = eliNet.RestClient
--- test["download_string"] = function ()
--- 	local ok, s = eliNet.safe_download_string"https://raw.githubusercontent.com/alis-is/eli/main/LICENSE"
--- 	test.assert(ok and s:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
--- end
+test["download_string"] = function ()
+	local ok, s = eliNet.safe_download_string"https://raw.githubusercontent.com/alis-is/eli/main/LICENSE"
+	test.assert(ok and s:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
+end
 
--- test["download (progress)"] = function ()
--- 	local _print = io.write
--- 	local _printed = ""
--- 	local function new_print(msg)
--- 		_printed = _printed .. msg
--- 	end
--- 	io.write = new_print
--- 	local _, _ = eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
--- 		{
--- 			followRedirects = true,
--- 			showDefaultProgress = 5,
--- 			bufferCapacity = 1024 * 100,
--- 		})
--- 	io.write = _print -- restore
--- 	test.assert(_printed:match"(%d+)%%", "no progress detected")
--- 	_printed = ""
--- 	io.write = new_print
--- 	local _, _ = eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
--- 		{
--- 			followRedirects = true,
--- 			showDefaultProgress = true,
--- 			bufferCapacity = 1024 * 100,
--- 		})
--- 	io.write = _print -- restore
--- 	test.assert(_printed:match"(%d+)%%", "no progress detected")
--- end
+test["download (progress)"] = function ()
+	local _print = io.write
+	local _printed = ""
+	local function new_print(msg)
+		_printed = _printed .. msg
+	end
+	io.write = new_print
+	local _, _ = eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
+		{
+			followRedirects = true,
+			showDefaultProgress = 5,
+			bufferCapacity = 1024 * 100,
+		})
+	io.write = _print -- restore
+	test.assert(_printed:match"(%d+)%%", "no progress detected")
+	_printed = ""
+	io.write = new_print
+	local _, _ = eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
+		{
+			followRedirects = true,
+			showDefaultProgress = true,
+			bufferCapacity = 1024 * 100,
+		})
+	io.write = _print -- restore
+	test.assert(_printed:match"(%d+)%%", "no progress detected")
+end
 
--- test["download_file"] = function ()
--- 	local ok, error = eliNet.safe_download_file("https://raw.githubusercontent.com/alis-is/eli/main/LICENSE",
--- 		"tmp/LICENSE")
--- 	test.assert(ok, error)
--- 	local ok, file = pcall(io.open, "tmp/LICENSE", "r")
--- 	test.assert(ok, file)
--- 	local ok, s = pcall(file.read, file, "a")
--- 	test.assert(ok, s)
--- 	test.assert(s:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
--- end
+test["download_file"] = function ()
+	local ok, error = eliNet.safe_download_file("https://raw.githubusercontent.com/alis-is/eli/main/LICENSE",
+		"tmp/LICENSE")
+	test.assert(ok, error)
+	local ok, file = pcall(io.open, "tmp/LICENSE", "r")
+	test.assert(ok, file)
+	local ok, s = pcall(file.read, file, "a")
+	test.assert(ok, s)
+	test.assert(s:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
+end
 
--- test["download_timeout"] = function ()
--- 	local ok, _ = eliNet.safe_download_string("https://raw.githubusercontent.com:81/alis-is/eli/main/LICENSE",
--- 		{ timeout = 1 })
--- 	test.assert(not ok, "should fail")
--- end
+test["download_timeout"] = function ()
+	local ok, _ = eliNet.safe_download_string("https://raw.githubusercontent.com:81/alis-is/eli/main/LICENSE",
+		{ timeout = 1 })
+	test.assert(not ok, "should fail")
+end
 
--- test["RestClient get"] = function ()
--- 	local client = RestClient:new"https://raw.githubusercontent.com/"
--- 	local ok, response = client:safe_get("alis-is/eli/main/LICENSE", { followRedirects = true })
--- 	test.assert(ok, "request failed - " .. tostring(response))
--- 	test.assert(response.raw:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
+test["RestClient get"] = function ()
+	local client = RestClient:new"https://raw.githubusercontent.com/"
+	local ok, response = client:safe_get("alis-is/eli/main/LICENSE", { followRedirects = true })
+	test.assert(ok, "request failed - " .. tostring(response))
+	test.assert(response.raw:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
 
--- 	client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
--- 	for _ = 1, RETRIES do
--- 		ok, response = client:safe_get("get", { params = { test = "aaa", test2 = "bbb" } })
--- 		if ok then break end
--- 	end
--- 	test.assert(ok, "request failed  - " .. tostring(response))
--- 	local _data = response.data
--- 	test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
+	for _ = 1, RETRIES do
+		ok, response = client:safe_get("get", { params = { test = "aaa", test2 = "bbb" } })
+		if ok then break end
+	end
+	test.assert(ok, "request failed  - " .. tostring(response))
+	local _data = response.data
+	test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
 
--- 	client = RestClient:new(HTTPBIN_URL .. "get", { timeout = TIMEOUT })
--- 	for _ = 1, RETRIES do
--- 		ok, response = client:safe_get{ params = { "test=aaa", "test2=bbb" } }
--- 		if ok then break end
--- 	end
--- 	test.assert(ok, "request failed  - " .. tostring(response))
--- 	local data = response.data
--- 	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
--- end
+	client = RestClient:new(HTTPBIN_URL .. "get", { timeout = TIMEOUT })
+	for _ = 1, RETRIES do
+		ok, response = client:safe_get{ params = { "test=aaa", "test2=bbb" } }
+		if ok then break end
+	end
+	test.assert(ok, "request failed  - " .. tostring(response))
+	local data = response.data
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+end
 
 test["RestClient post"] = function ()
 	local client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
