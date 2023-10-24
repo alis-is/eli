@@ -133,6 +133,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: alis-is/ami
+          path: ami
       - name: test ami
         run: |
-          ./release/eli-linux-x86_64 tests/all.lua
+          cd ami
+          ../release/eli-linux-x86_64 tests/all.lua
