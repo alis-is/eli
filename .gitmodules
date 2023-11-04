@@ -105,5 +105,5 @@
 	ignore = dirty
 [submodule "deps/corehttp"]
 	path = deps/corehttp
-	url = https://github.com/FreeRTOS/coreHTTP.git
+	url = https://github.com/alis-is/coreHTTP.git
 	ignore = dirty
