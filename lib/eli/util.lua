@@ -116,8 +116,8 @@ function util.generate_safe_functions(fnTable)
 		if type(v) == "function" and not k:match"^safe_" then
 			res["safe_" .. k] = function (...)
 				local result = table.pack(pcall(v, ...))
-				local msg, code = util.extract_error_info(result[2])
 				if not result[1] then
+					local msg, code = util.extract_error_info(result[2])
 					return result[1], msg, code
 				end
 				return table.unpack(result)

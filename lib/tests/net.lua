@@ -1,5 +1,6 @@
 local test = TEST or require"u-test"
 local ok, eliNet = pcall(require, "eli.net")
+local eliFs = require"eli.fs"
 
 -- https://postman-echo.com/ ?
 local HTTPBIN_URL = os.getenv"HTTPBIN_URL" or "https://httpbin.org/"
@@ -54,6 +55,21 @@ test["download (progress)"] = function ()
 		})
 	io.write = _print -- restore
 	test.assert(_printed:match"(%d+)%%", "no progress detected")
+end
+
+test["download_large_file"] = function ()
+	-- https://github.com/tez-capital/tezpay/releases/download/0.8.5-alpha/tezpay-linux-arm64
+	-- 07728dbf002a5857d4ecb4b30995fac46d09ea2768680852678fbc222d2cf26e
+
+	local ok, error = eliNet.safe_download_file(
+		"https://github.com/tez-capital/tezpay/releases/download/0.8.5-alpha/tezpay-linux-arm64",
+		"tmp/tezpay", { followRedirects = true })
+	test.assert(ok, error)
+
+	local ok, hash = eliFs.safe_hash_file("tmp/tezpay", { type = "sha256", hex = true })
+	test.assert(ok, hash)
+	test.assert(hash == "07728dbf002a5857d4ecb4b30995fac46d09ea2768680852678fbc222d2cf26e",
+		"hashes do not match (" .. tostring(hash) .. "<>07728dbf002a5857d4ecb4b30995fac46d09ea2768680852678fbc222d2cf26e)")
 end
 
 test["download_file"] = function ()
