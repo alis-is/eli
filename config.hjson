@@ -1,5 +1,5 @@
 {
-    version: 0.32.0-dev.2
+    version: 0.32.0-dev.3
     global_modules: false //disables global modules loading (only looks up for modules in cwd)
     minify: true
     compress: true
@@ -19,9 +19,9 @@
         zlib: zlib
         is_tty: is_tty
         lmbed_hash: lmbed_hash
-        lua_simple_socket: simple_socket
         lua_corehttp: corehttp
-        lua_simple_socket: simple_socket
+        lua_simple_socket: socket
+        lua_simple_ipc_core: ipc.core
     }
     lua_libs: [
         {
