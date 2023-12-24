@@ -28,7 +28,13 @@
         "lstream.h": "c",
         "lsi_core_socket.h": "c",
         "stdio.h": "c",
-        "xiosbase": "c"
+        "xiosbase": "c",
+        "locale": "c",
+        "thread": "c",
+        "xlocale": "c",
+        "xlocmon": "c",
+        "xlocnum": "c",
+        "xloctime": "c"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/cpp",
     "editor.formatOnSave": true,
