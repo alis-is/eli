@@ -4,7 +4,7 @@ signal.handle(signal.SIGINT, function ()
 end)
 
 local counter = 0
-while counter < 20 do
+while counter < 10 do
 	counter = counter + 1
 	os.sleep(1)
 end

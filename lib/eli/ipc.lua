@@ -18,7 +18,7 @@ local signal = require"os.signal"
 ---
 ---@class IPCServer
 ---@field process_events fun(self: IPCServer, handlers: IPCHandlers, options?: IPCServerOptions): boolean
----@field close fun(self: IPCServer)
+---@field close fun(self: IPCServer, closeClients: boolean?)
 ---@field get_clients fun(self: IPCServer): IPCSocket[]
 ---@field get_client_limit fun(self: IPCServer): number
 
@@ -61,6 +61,8 @@ local function listen(path, handlers, options)
 	end
 
 	signal.handle(signal.SIGPIPE, function () end) -- ignore SIGPIPE
+
+	coroutine.yield(server)
 
 	while true do
 		local ok, err = server:process_events(handlers, options)

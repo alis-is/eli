@@ -1,8 +1,8 @@
 local signal = require"os.signal"
 
-signal.handle(10, function ()
+signal.handle(2, function ()
 	os.exit(0)
 end)
-signal.reset(10)
+signal.reset(2)
 
-signal.raise(10)
+signal.raise(2)
