@@ -1,9 +1,10 @@
 local ipcCore = require"ipc.core"
 local util = require"eli.util"
+local signal = require"os.signal"
 
 ---@class IPCSocketReadOptions
----@field timeout number @timeout in milliseconds
----@field buffer_size number @size of the buffer in bytes
+---@field timeout number? @timeout in milliseconds
+---@field buffer_size number? @size of the buffer in bytes
 
 ---@class IPCSocket
 ---@field write fun(self: IPCSocket, data: string): boolean
@@ -16,10 +17,15 @@ local util = require"eli.util"
 ---#DES 'IPCServer'
 ---
 ---@class IPCServer
----@field process_events fun(self: IPCServer, handlers: IPCHandlers): boolean
+---@field process_events fun(self: IPCServer, handlers: IPCHandlers, options?: IPCServerOptions): boolean
 ---@field close fun(self: IPCServer)
 ---@field get_clients fun(self: IPCServer): IPCSocket[]
 ---@field get_client_limit fun(self: IPCServer): number
+
+---@class IPCServerOptions
+---@field max_clients number? @maximum number of clients
+---@field buffer_size number? @size of the buffer in bytes
+---@field timeout number? @timeout in milliseconds
 
 ---#DES 'IPCHandlers'
 ---
@@ -32,7 +38,7 @@ local util = require"eli.util"
 ---#DES 'ipc.core.listen'
 ---
 ---@param path string
----@param handlers IPCHandlers
+---@param options IPCServerOptions?
 ---@return IPCServer
 
 ---#DES 'ipc.core.connect'
@@ -45,16 +51,19 @@ local util = require"eli.util"
 --- Listens for incoming connections on the given path and calls the handlers
 ---@param path string @path to the socket on linux or name of the pipe on windows
 ---@param handlers IPCHandlers
-local function listen(path, handlers)
+---@param options IPCServerOptions?
+local function listen(path, handlers, options)
 	local _, isMainThread = coroutine.running()
 
-	local server, err = ipcCore.listen(path)
+	local server, err = ipcCore.listen(path, options)
 	if not server then
 		error(err)
 	end
 
+	signal.handle(signal.SIGPIPE, function () end) -- ignore SIGPIPE
+
 	while true do
-		local ok, err = server:process_events(handlers)
+		local ok, err = server:process_events(handlers, options)
 		if not isMainThread then
 			coroutine.yield(ok, err)
 		elseif not ok then

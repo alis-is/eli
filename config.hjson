@@ -12,7 +12,8 @@
         eli_pipe_extra: eli.pipe.extra
         eli_stream_extra: eli.stream.extra
         eli_os_extra: eli.os.extra
-        eli_os_signal: eli.os.signal
+        // we want to make signal available directly through require "os.signal"
+        eli_os_signal: os.signal
         l_mbed_bigint: bigint
         l_mbed_base64: base64
         ltar: ltar

@@ -26,7 +26,6 @@ local function _elify()
 	end
 	_overridenValues.os = os
 	os = util.merge_tables(os, require"eli.os")
-	os.signal = require"eli.os.signal"
 
 	-- extensions
 	for k, v in pairs(package.preload) do
