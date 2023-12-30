@@ -32,12 +32,18 @@ test["raise"] = function ()
 end
 
 test["reset"] = function ()
-	local ok, code = os.execute(arg[-1] .. " ./assets/signal-reset.lua")
+	local ok, code = os.execute((os.getenv"QEMU" or "") .. " " .. arg[-1] .. " ./assets/signal-reset.lua")
 	test.assert(not ok and code ~= 0, "signal catched")
 end
 
 test["out of process signal"] = function ()
-	local p = eliProc.spawn(arg[-1], { "./assets/signal-catch.lua" }, { stdio = "inherit" })
+	local bin = arg[-1]
+	local args = { "./assets/signal-catch.lua" }
+	if os.getenv"QEMU" or "" ~= "" then
+		bin = os.getenv"QEMU" or ""
+		args = { arg[-1], "./assets/signal-catch.lua" }
+	end
+	local p = eliProc.spawn(bin, args, { stdio = "inherit" })
 	os.sleep(1)
 	p:kill(signal.SIGINT)
 

@@ -67,7 +67,7 @@ test["ipc (cross process - server)"] = function ()
 	end)
 	coroutine.resume(thread)
 
-	os.execute(arg[-1] .. " ./assets/ipc-client.lua")
+	os.execute((os.getenv"QEMU" or "") .. " " .. arg[-1] .. " ./assets/ipc-client.lua")
 	local counter = 0
 	while counter < 10 and not dataReceived do
 		counter = counter + 1
@@ -78,7 +78,13 @@ test["ipc (cross process - server)"] = function ()
 end
 
 test["ipc (cross process - client)"] = function ()
-	eliProc.spawn(arg[-1], { "./assets/ipc-server.lua" })
+	local bin = arg[-1]
+	local args = { "./assets/ipc-server.lua" }
+	if os.getenv"QEMU" or "" ~= "" then
+		bin = os.getenv"QEMU" or ""
+		args = { arg[-1], "./assets/ipc-server.lua" }
+	end
+	eliProc.spawn(bin, args)
 	os.sleep(1)
 	local client, err = eliIpc.connect"/tmp/test.sock"
 	test.assert(client, err)
