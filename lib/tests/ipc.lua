@@ -34,6 +34,7 @@ test["ipc (in process)"] = function ()
 		coroutine.yield(server, err)
 	end)
 	local _, server = coroutine.resume(thread)
+
 	local client, err = eliIpc.connect"/tmp/test.sock"
 	test.assert(client, err)
 	client:write"ping"
