@@ -1,5 +1,5 @@
 local signal = require"os.signal"
-signal.handle(signal.SIGINT, function ()
+signal.handle(signal.SIGTERM, function ()
 	os.exit(0)
 end)
 

@@ -46,7 +46,9 @@ add_subdirectory(deps/mbedtls/ EXCLUDE_FROM_ALL)
 
 # subprojects
 set(ELI_STREAM_EXTRA_INCLUDE ${CMAKE_SOURCE_DIR}/deps/eli-stream-extra/src)
+set(ELI_OS_EXTRA_INCLUDE ${CMAKE_SOURCE_DIR}/deps/eli-os-extra/src)
 set(ELI_EXTRA_UTILS_INCLUDE ${CMAKE_SOURCE_DIR}/deps/eli-extra-utils/src)
+
 set(LSS_INCLUDE ${CMAKE_SOURCE_DIR}/deps/lua-simple-socket/src)
 
 add_subdirectory(deps/lua-is-tty/)
@@ -70,7 +72,7 @@ target_include_directories(eli_os_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 add_subdirectory(deps/eli-pipe-extra/)
 target_include_directories(eli_pipe_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE} ${ELI_STREAM_EXTRA_INCLUDE})
 add_subdirectory(deps/eli-proc-extra/)
-target_include_directories(eli_proc_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE} ${ELI_STREAM_EXTRA_INCLUDE})
+target_include_directories(eli_proc_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE} ${ELI_STREAM_EXTRA_INCLUDE} ${ELI_OS_EXTRA_INCLUDE})
 add_subdirectory(deps/eli-stream-extra/)
 target_include_directories(eli_stream_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 add_subdirectory(deps/lua-mbed-bigint/)

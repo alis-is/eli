@@ -46,7 +46,7 @@ test["out of process signal"] = function ()
 	end
 	local p = eliProc.spawn(bin, args, { stdio = "inherit" })
 	os.sleep(1)
-	p:kill(signal.SIGINT)
+	p:kill(signal.SIGTERM)
 
 	local code = p:wait()
 	test.assert(code == 0, "signal not catched")
