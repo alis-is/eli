@@ -16,6 +16,8 @@ require"util"
 require"ver"
 require"elios"
 require"global"
+require"signal"
+require"ipc"
 
 require"extensions.string"
 require"extensions.table"

@@ -107,3 +107,6 @@
 	path = deps/corehttp
 	url = https://github.com/alis-is/coreHTTP.git
 	ignore = dirty
+[submodule "deps/lua-simple-ipc"]
+	path = deps/lua-simple-ipc
+	url = https://github.com/alis-is/lua-simple-ipc.git

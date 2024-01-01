@@ -148,14 +148,14 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@alias StdType '"ignore"' | '"pipe"' | '"inherit"' | string | file*
 
 ---@class SpawnStdio
----@field stdin StdType
----@field stdout StdType
----@field stderr StdType
+---@field stdin StdType?
+---@field stdout StdType?
+---@field stderr StdType?
 
 ---@class SpawnOptions
----@field env table<string, string>
----@field wait boolean
----@field stdio SpawnStdio | StdType
+---@field env table<string, string>?
+---@field wait boolean?
+---@field stdio SpawnStdio | StdType | nil
 
 ---@class EliProcessStdioInfo
 ---@field stdin '"ignore"' | '"pipe"' | '"inherit"' | '"external' | '"file"'

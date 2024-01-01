@@ -1,5 +1,5 @@
 {
-    version: 0.32.0-dev.2
+    version: 0.32.0-dev.3
     global_modules: false //disables global modules loading (only looks up for modules in cwd)
     minify: true
     compress: true
@@ -12,6 +12,8 @@
         eli_pipe_extra: eli.pipe.extra
         eli_stream_extra: eli.stream.extra
         eli_os_extra: eli.os.extra
+        // we want to make signal available directly through require "os.signal"
+        eli_os_signal: os.signal
         l_mbed_bigint: bigint
         l_mbed_base64: base64
         ltar: ltar
@@ -19,9 +21,9 @@
         zlib: zlib
         is_tty: is_tty
         lmbed_hash: lmbed_hash
-        lua_simple_socket: simple_socket
         lua_corehttp: corehttp
-        lua_simple_socket: simple_socket
+        lua_simple_socket: socket
+        lua_simple_ipc_core: ipc.core
     }
     lua_libs: [
         {
