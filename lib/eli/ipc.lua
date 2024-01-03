@@ -1,6 +1,7 @@
 local ipcCore = require"ipc.core"
 local util = require"eli.util"
 local signal = require"os.signal"
+local exTable = require"eli.extensions.table"
 
 ---@class IPCSocketReadOptions
 ---@field timeout number? @timeout in milliseconds
@@ -26,6 +27,7 @@ local signal = require"os.signal"
 ---@field max_clients number? @maximum number of clients
 ---@field buffer_size number? @size of the buffer in bytes
 ---@field timeout number? @timeout in milliseconds
+---@field is_stop_requested (fun(): boolean)? @function that returns true if stop is requested
 
 ---#DES 'IPCHandlers'
 ---
@@ -66,7 +68,9 @@ function ipc.listen(path, handlers, options)
 
 	coroutine.yield(server)
 
-	while true do
+	local is_stop_requested = exTable.get(options --[[@as table]], "is_stop_requested", function () return false end) --[[@as fun(): boolean]]
+
+	while not is_stop_requested() do
 		local ok, err = server:process_events(handlers, options)
 		if not isMainThread then
 			coroutine.yield(ok, err)
