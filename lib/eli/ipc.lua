@@ -46,13 +46,15 @@ local signal = require"os.signal"
 ---@param path string
 ---@return IPCSocket
 
+local ipc = {}
+
 ---#DES 'ipc.listen'
 ---
 --- Listens for incoming connections on the given path and calls the handlers
 ---@param path string @path to the socket on linux or name of the pipe on windows
 ---@param handlers IPCHandlers
 ---@param options IPCServerOptions?
-local function listen(path, handlers, options)
+function ipc.listen(path, handlers, options)
 	local _, isMainThread = coroutine.running()
 
 	local server, err = ipcCore.listen(path, options)
@@ -81,7 +83,7 @@ end
 --- Connects to the given path and returns the socket
 ---@param path string @path to the socket on linux or name of the pipe on windows
 ---@return IPCSocket
-local function connect(path)
+function ipc.connect(path)
 	local client, err = ipcCore.connect(path)
 	if not client then
 		error(err)
@@ -89,7 +91,4 @@ local function connect(path)
 	return client
 end
 
-return util.generate_safe_functions{
-	listen = listen,
-	connect = connect,
-}
+return util.generate_safe_functions(ipc)

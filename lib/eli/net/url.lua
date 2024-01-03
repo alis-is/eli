@@ -3,7 +3,7 @@ local exTable = require"eli.extensions.table"
 local util = require"eli.util"
 
 ---@class UrlQuery: table<string | number, string | number | boolean>
----@operator band(UrlQuery, UrlQuery|string):UrlQuery
+---@operator band():UrlQuery
 
 ---@class Url
 ---@field scheme string

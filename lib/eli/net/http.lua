@@ -34,7 +34,8 @@ if not corehttpLoaded then
 end
 
 ---@class CorehttpClient
----@field endpoint fun(): string
+---@field endpoint fun(self: CorehttpClient): string
+---@field request fun(self: CorehttpClient,  path: string, method: string, options: BaseRequestOptions): BaseResponse
 
 ---@class ClientCertificate
 ---@field certificate string
@@ -42,23 +43,23 @@ end
 ---@field password string?
 
 ---@class BaseRequestOptions
----@field retryLimit integer
----@field followRedirects boolean
----@field verifyPeer boolean
----@field timeout integer @deprecated use connectTimeout
----@field connectTimeout integer timeout to wait (ms) for server response, 0 means no timeout, default 5 minuts
----@field readTimeout integer timeout to wait (ms) for bytes to arrive on sockets during recv, 0 means no timeout, default 0
----@field writeTimeout integer timeout to wait (ms) for bytes to be sent on sockets during send, 0 means no timeout, default 0
----@field contentType string @deprecated use headers
----@field ignoreHttpErrors boolean @deprecated not relevant anymore, errors are ignored by default
+---@field retryLimit integer?
+---@field followRedirects boolean?
+---@field verifyPeer boolean?
+---@field timeout integer? @deprecated use connectTimeout
+---@field connectTimeout integer? timeout to wait (ms) for server response, 0 means no timeout, default 5 minuts
+---@field readTimeout integer? timeout to wait (ms) for bytes to arrive on sockets during recv, 0 means no timeout, default 0
+---@field writeTimeout integer? timeout to wait (ms) for bytes to be sent on sockets during send, 0 means no timeout, default 0
+---@field contentType string? @deprecated use headers
+---@field ignoreHttpErrors boolean? @deprecated not relevant anymore, errors are ignored by default
 ---@field progressFunction (fun(total?: number, current: number))? @deprecated use progress_function
 ---@field progress_function (fun(total?: number, current: number))?
----@field showDefaultProgress boolean|number respected only if progressFunction not defined
+---@field showDefaultProgress boolean|number? respected only if progressFunction not defined
 ---@field bufferCapacity number? @default 16K (16 * 1024)
 ---@field drbgSeed string?
 ---@field useBundledRootCertificates boolean?
----@field caCertificates table<string>
----@field clientCertificate ClientCertificate
+---@field caCertificates table<string>?
+---@field clientCertificate ClientCertificate?
 ---@field responseBufferCapacity number? @default 16K (16 * 1024)
 ---@field credentials { username: string, password: string }?
 
@@ -78,6 +79,10 @@ end
 ---@field data any
 ---@field raw string
 ---@field headers table<string, string>
+---@field http_status_code fun(self: BaseResponse): integer
+---@field status_code fun(self: BaseResponse): integer
+---@field status fun(self: BaseResponse): string
+---@field read fun(self: BaseResponse, size: number): string
 
 ---@class RequestData
 ---@field read fun(self: any, size: number): string
@@ -126,7 +131,7 @@ local function encodeURIComponent(url)
 	return url
 end
 
----comment
+---generates progress function
 ---@param step number
 ---@return function
 local function generate_progress_function(step)
@@ -158,7 +163,7 @@ local function parse_content_type(headerValue)
 	return type, subtype, charset
 end
 
----comment
+---checks if client is targeting same authority as url
 ---@param client CorehttpClient
 ---@param url Url | string
 local function is_client_targeting_same_authority(client, url)
@@ -167,14 +172,14 @@ local function is_client_targeting_same_authority(client, url)
 	return scheme == clientScheme and host == clientHost and port == clientPort
 end
 
----comment
+---Performs request
 ---@param client CorehttpClient
 ---@param path any
 ---@param method any
 ---@param options RequestOptions
 ---@param data (string | RequestData)?
 local function request(client, path, method, options, data)
-	if type(options) ~= "table" then options = {} end
+	if type(options) ~= "table" then options = { codecs = {} } end
 	if type(options.headers) ~= "table" then options.headers = {} end
 	if type(options.codecs) ~= "table" then options.codecs = {} end
 
@@ -429,7 +434,7 @@ end
 ---@param self RestClient
 ---@return Url
 function net.RestClient:get_headers()
-	return setmetatable(util.clone(self.__options.headers, true), corehttp.HEADERS_METATABLE)
+	return setmetatable(util.clone(self.__options.headers, true) --[[@as table]], corehttp.HEADERS_METATABLE)
 end
 
 ---#DES 'net.RestClient:conf'
@@ -459,7 +464,7 @@ function net.RestClient:res(resources, options)
 	local _shortcut = options.shortcut
 	if _shortcut == nil then _shortcut = self.__options.shortcut end
 
-	---comment
+	---creates resource
 	---@param name string|number
 	---@param path string|number
 	---@return RestClient
@@ -506,7 +511,7 @@ function net.RestClient:res(resources, options)
 				local _parent = makeResource(k, v.__root or k)
 				local _options = util.clone(options, true)
 				_options.shortcut = true
-				_parent:res(table.filter(v, function (k) return k ~= "__root" end), _options)
+				_parent:res(exTable.filter(v, function (k) return k ~= "__root" end), _options)
 				_resources = _parent
 			elseif type(v) == "number" or type(v) == "string" then
 				_resources = makeResource(k, v)
@@ -712,7 +717,7 @@ local function get_retry_limit(options)
 			retryLimit = options.retryLimit
 		end
 	end
-	return retryLimit
+	return retryLimit --[[@as integer]]
 end
 
 ---#DES net.download_file

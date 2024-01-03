@@ -1,4 +1,6 @@
-local _util = require "eli.util"
+local util = require"eli.util"
+
+local te = {} -- table extensions
 
 ---#DES 'table.keys'
 ---
@@ -6,12 +8,12 @@ local _util = require "eli.util"
 ---@generic T
 ---@param t table<T, any>
 ---@return T[]
-local function _keys(t)
-    local _keyList = {}
-    for k, _ in pairs(t) do
-        table.insert(_keyList, k)
-    end
-    return _keyList
+function te.keys(t)
+	local _keyList = {}
+	for k, _ in pairs(t) do
+		table.insert(_keyList, k)
+	end
+	return _keyList
 end
 
 ---#DES 'table.values'
@@ -20,12 +22,12 @@ end
 ---@generic T
 ---@param t table<any, T>
 ---@return T[]
-local function _values(t)
-    local _vals = {}
-    for _, v in pairs(t) do
-        table.insert(_vals, v)
-    end
-    return _vals
+function te.values(t)
+	local _vals = {}
+	for _, v in pairs(t) do
+		table.insert(_vals, v)
+	end
+	return _vals
 end
 
 ---@class KeyValuePair
@@ -38,39 +40,39 @@ end
 ---@generic K, V
 ---@param t table<K, V>
 ---@return KeyValuePair --{key: K, value: V}[]
-local function _to_array(t)
-    if _util.is_array(t) then
-        return t
-    end
-    local arr = {}
-    local _keys = {}
-    for k in pairs(t) do
-        table.insert(_keys, k)
-    end
-    table.sort(_keys)
+function te.to_array(t)
+	if util.is_array(t) then
+		return t
+	end
+	local arr = {}
+	local _keys = {}
+	for k in pairs(t) do
+		table.insert(_keys, k)
+	end
+	table.sort(_keys)
 
-    for _, k in ipairs(_keys) do
-        table.insert(arr, { key = k, value = t[k] })
-    end
-    return arr
+	for _, k in ipairs(_keys) do
+		table.insert(arr, { key = k, value = t[k] })
+	end
+	return arr
 end
 
-local function _base_get(obj, path)
-    if type(obj) ~= "table" then
-        return nil
-    end
-    if type(path) == "string" or type(path) == "number" then
-        return obj[path]
-    elseif _util.is_array(path) then
-        local _part = table.remove(path, 1)
-        local _index = _util.is_array(obj) and tonumber(_part) or _part
-        if #path == 0 then
-            return obj[_index]
-        end
-        return _base_get(obj[_part], path)
-    else
-        return nil
-    end
+local function base_get(obj, path)
+	if type(obj) ~= "table" then
+		return nil
+	end
+	if type(path) == "string" or type(path) == "number" then
+		return obj[path]
+	elseif util.is_array(path) then
+		local _part = table.remove(path, 1)
+		local _index = util.is_array(obj) and tonumber(_part) or _part
+		if #path == 0 then
+			return obj[_index]
+		end
+		return base_get(obj[_part], path)
+	else
+		return nil
+	end
 end
 
 ---#DES 'table.get'
@@ -80,12 +82,12 @@ end
 ---@param path string|string[]
 ---@param default any
 ---@return any
-local function _get(obj, path, default)
-    local _result = _base_get(obj, path)
-    if _result == nil then
-        return default
-    end
-    return _result
+function te.get(obj, path, default)
+	local _result = base_get(obj, path)
+	if _result == nil then
+		return default
+	end
+	return _result
 end
 
 ---#DES 'table.set'
@@ -96,22 +98,22 @@ end
 ---@param path string|string[]
 ---@param value any
 ---@return T
-local function _set(obj, path, value)
-    if type(obj) ~= "table" then
-        return obj
-    end
-    if type(path) == "string" or type(path) == "number" then
-        obj[path] = value
-    elseif _util.is_array(path) then
-        local _part = table.remove(path, 1)
-        local _index = _util.is_array(obj) and tonumber(_part) or _part
-        if #path == 0 then
-            obj[_index] = value
-        else
-            _set(obj[_part], path, value)
-        end
-    end
-    return obj
+function te.set(obj, path, value)
+	if type(obj) ~= "table" then
+		return obj
+	end
+	if type(path) == "string" or type(path) == "number" then
+		obj[path] = value
+	elseif util.is_array(path) then
+		local _part = table.remove(path, 1)
+		local _index = util.is_array(obj) and tonumber(_part) or _part
+		if #path == 0 then
+			obj[_index] = value
+		else
+			te.set(obj[_part], path, value)
+		end
+	end
+	return obj
 end
 
 ---#DES 'table.filter'
@@ -122,23 +124,23 @@ end
 ---@param t table<string, T>|T[]
 ---@param filterFn fun(k:string|number, v: T): boolean
 ---@return table<string, T>|T[]
-local function _filter(t, filterFn)
-    if type(filterFn) ~= "function" then
-        return t
-    end
-    local isArray = _util.is_array(t)
+function te.filter(t, filterFn)
+	if type(filterFn) ~= "function" then
+		return t
+	end
+	local isArray = util.is_array(t)
 
-    local res = {}
-    for k, v in pairs(t) do
-        if filterFn(k, v) then
-            if isArray then
-                table.insert(res, v)
-            else
-                res[k] = v
-            end
-        end
-    end
-    return res
+	local res = {}
+	for k, v in pairs(t) do
+		if filterFn(k, v) then
+			if isArray then
+				table.insert(res, v)
+			else
+				res[k] = v
+			end
+		end
+	end
+	return res
 end
 
 ---#DES 'table.map'
@@ -149,15 +151,15 @@ end
 ---@param arr T[]|table<string|number, T>
 ---@param mapFn fun(element: T, k: string| number): any
 ---@return T[]|table<string|number, T>
-local function _map(arr, mapFn)
-    if type(mapFn) ~= "function" then
-        return arr
-    end
-    local _result = {}
-    for k, v in pairs(arr) do
-        _result[k] = mapFn(v, k)
-    end
-    return _result
+function te.map(arr, mapFn)
+	if type(mapFn) ~= "function" then
+		return arr
+	end
+	local _result = {}
+	for k, v in pairs(arr) do
+		_result[k] = mapFn(v, k)
+	end
+	return _result
 end
 
 ---#DES 'table.reduce'
@@ -169,15 +171,15 @@ end
 ---@param reduceFn fun(acc: U, element: T, k: string| number): U
 ---@param initial U
 ---@return T
-local function _reduce(arr, reduceFn, initial)
-    if type(reduceFn) ~= "function" then
-        return initial
-    end
-    local _acc = initial
-    for k, v in pairs(arr) do
-        _acc = reduceFn(_acc, v, k)
-    end
-    return _acc
+function te.reduce(arr, reduceFn, initial)
+	if type(reduceFn) ~= "function" then
+		return initial
+	end
+	local _acc = initial
+	for k, v in pairs(arr) do
+		_acc = reduceFn(_acc, v, k)
+	end
+	return _acc
 end
 
 ---#DES 'table.includes'
@@ -189,12 +191,12 @@ end
 ---@param val any
 ---@param useDeepComparison boolean? compares content of tables
 ---@return boolean
-local function _includes(arrOrTable, val, useDeepComparison)
-    if type(arrOrTable) ~= "table" or val == nil then return false end
-    for _, v in pairs(arrOrTable) do
-        if _util.equals(v, val, useDeepComparison) then return true end
-    end
-    return false
+function te.includes(arrOrTable, val, useDeepComparison)
+	if type(arrOrTable) ~= "table" or val == nil then return false end
+	for _, v in pairs(arrOrTable) do
+		if util.equals(v, val, useDeepComparison) then return true end
+	end
+	return false
 end
 
 ---#DES 'table.has_key'
@@ -205,42 +207,27 @@ end
 ---@param arrOrTable table
 ---@param key any
 ---@return boolean
-local function _has_key(arrOrTable, key)
-    if type(arrOrTable) ~= "table" or key == nil then return false end
-    for k, _ in pairs(arrOrTable) do
-        if k == key then return true end
-    end
-    return false
+function te.has_key(arrOrTable, key)
+	if type(arrOrTable) ~= "table" or key == nil then return false end
+	for k, _ in pairs(arrOrTable) do
+		if k == key then return true end
+	end
+	return false
 end
 
-local function _globalize()
-    table.get = _get
-    table.set = _set
-    table.map = _map
-    table.reduce = _reduce
-    table.to_array = _to_array
-    table.keys = _keys
-    table.values = _values
-    table.filter = _filter
-    table.is_array = _util.is_array
-    table.includes = _includes
-    table.has_key = _has_key
+---#DES 'table.is_array'
+---
+--- checks whether table is array
+---@param t any
+---@return boolean
+function te.is_array(t)
+	return util.is_array(t)
 end
 
-return {
-    get = _get,
-    set = _set,
-    map = _map,
-    reduce = _reduce,
-    to_array = _to_array,
-    keys = _keys,
-    values = _values,
-    filter = _filter,
-    ---#DES 'util.is_array'
-    ---@param t table
-    ---@return boolean
-    is_array = _util.is_array,
-    includes = _includes,
-    has_key = _has_key,
-    globalize = _globalize
-}
+function te.globalize()
+	for k, v in pairs(te) do
+		table[k] = v
+	end
+end
+
+return te

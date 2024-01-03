@@ -167,9 +167,9 @@ GLOBAL_LOGGER = GLOBAL_LOGGER or nil
 ---#DES 'util.global_log_factory'
 ---@param module string
 ---@param ... string
----@return fun(msg: string) ...
+---@return fun(msg: string, vars: table?) ...
 function util.global_log_factory(module, ...)
-	---@type fun(msg: string)[]
+	---@type fun(msg: string, vars: table?)[]
 	local _result = {}
 	if (type(GLOBAL_LOGGER) ~= "table" and type(GLOBAL_LOGGER) ~= "ELI_LOGGER") or
 	getmetatable(GLOBAL_LOGGER).__type ~= "ELI_LOGGER" then

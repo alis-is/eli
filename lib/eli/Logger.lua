@@ -1,15 +1,15 @@
-local hjson = require "hjson"
+local hjson = require"hjson"
 local encode_to_hjson = hjson.encode
 local encode_to_json = hjson.encode_to_json
 
-local is_tty = require "is_tty".is_stdout_tty()
-local _util = require "eli.util"
-local _exTable = require "eli.extensions.table"
+local is_tty = require"is_tty".is_stdout_tty()
+local exTable = require"eli.extensions.table"
+local util = require"eli.util"
 
 local RESET_COLOR = string.char(27) .. "[0m"
 
 ---@alias LogLevel '"trace"'|'"debug"'|'"info"'|'"success"'|'"warn"'|'"error"'
----@alias LogLevelInt '-2'|'-1'|'0'|'0'|'1'|'2'
+---@alias LogLevelInt -2|-1|0|0|1|2
 
 ---@class LogMessage
 ---@field level LogLevel
@@ -19,10 +19,10 @@ local RESET_COLOR = string.char(27) .. "[0m"
 
 ---@class EliLoggerOptions
 ---@field format '"auto"'|'"standard"'|'"json"'
----@field colorful boolean
+---@field colorful boolean?
 ---@field level LogLevel
----@field includeFields boolean
----@field noTime boolean
+---@field includeFields boolean?
+---@field noTime boolean?
 
 ---#DES 'Logger'
 ---@class Logger
@@ -37,86 +37,75 @@ Logger.__index = Logger
 ---@param options EliLoggerOptions?
 ---@return Logger
 function Logger:new(options)
-    local logger = {}
-    if options == nil then
-        options = {}
-    end
-    if options.format == nil then
-        options.format = "auto"
-    end
-    if options.format == "auto" then
-        options.format = is_tty and "standard" or "json"
-    end
-    if options.colorful == nil then
-        options.colorful = is_tty
-    end
+	local logger = {}
+	if type(options) ~= "table" then
+		options = {
+			format = "auto",
+			level = "info",
+		}
+	end
 
-    if options.level == nil then
-        options.level = "info"
-    end
+	options = util.merge_tables(options, {
+		format = is_tty and "standard" or "json",
+		colorful = is_tty,
+		level = "info",
+		includeFields = true,
+		noTime = false,
+	})
 
-    if options.includeFields == nil then
-        options.includeFields = true
-    end
+	logger.options = options
 
-    if options.noTime == nil then
-        options.noTime = false
-    end
-
-    logger.options = options
-
-    setmetatable(logger, self)
-    self.__type = "ELI_LOGGER"
-    self.__index = self
-    return logger
+	setmetatable(logger, self)
+	self.__type = "ELI_LOGGER"
+	self.__index = self
+	return logger
 end
 
 ---#DES 'Logger.__tostring'
 ---
 ---@return string
 function Logger.__tostring()
-    return "ELI_LOGGER"
+	return "ELI_LOGGER"
 end
+
+local colorMap = {
+	["success"] = string.char(27) .. "[32m",
+	["debug"] = string.char(27) .. "[30;1m",
+	["trace"] = string.char(27) .. "[30;1m",
+	["info"] = string.char(27) .. "[36m",
+	["warn"] = string.char(27) .. "[33m",
+	["warning"] = string.char(27) .. "[33m",
+	["error"] = string.char(27) .. "[31m",
+}
 
 ---returns color based on log level
 ---@param level LogLevel
 ---@return string
 local function get_log_color(level)
-    if level == "success" then
-        return string.char(27) .. "[32m"
-    elseif level == "debug" then
-        return string.char(27) .. "[30;1m"
-    elseif level == "trace" then
-        return string.char(27) .. "[30;1m"
-    elseif level == "info" then
-        return string.char(27) .. "[36m"
-    elseif level == "warn" or level == "warning" then
-        return string.char(27) .. "[33m"
-    elseif level == "error" then
-        return string.char(27) .. "[31m"
-    else
-        return RESET_COLOR
-    end
+	if colorMap[level] then
+		return colorMap[level]
+	end
+	return RESET_COLOR
 end
 
-local _levelValueMap = {
-    ["error"] = 2,
-    ["warn"] = 1,
-    ["warning"] = 1,
-    ["success"] = 0,
-    ["info"] = 0,
-    ["debug"] = -1,
-    ["trace"] = -2,
+local levelValueMap = {
+	["error"] = 2,
+	["warn"] = 1,
+	["warning"] = 1,
+	["success"] = 0,
+	["info"] = 0,
+	["debug"] = -1,
+	["trace"] = -2,
 }
 
 ---returns integer equivalent of log level
 ---@param level LogLevel
 ---@return LogLevelInt
-local function _level_value(level)
-    if type(level) ~= 'string' then return 0 end
-    local _lvl = _levelValueMap[level]
-    if (type(_lvl) == nil) then return 0 end
-    return _lvl
+local function level_value(level)
+	if type(level) ~= "string" then return 0 end
+	local lvl = levelValueMap[level]
+	if (type(lvl) == nil) then return 0 end
+	return lvl
 end
 
 ---prints log
@@ -127,53 +116,53 @@ end
 ---@param noTime boolean
 ---@param includeFields boolean|string[]
 local function log_txt(data, colorful, color, noTime, includeFields)
-    local module = ""
-    if data.module ~= nil and data.module ~= "" then
-        module = "(" .. tostring(data.module) .. ") "
-    end
+	local module = ""
+	if data.module ~= nil and data.module ~= "" then
+		module = "(" .. tostring(data.module) .. ") "
+	end
 
-    local time = not noTime and os.date("%H:%M:%S") or ""
+	local time = not noTime and os.date"%H:%M:%S" or ""
 
-    if data.msg:sub(#data.msg, #data.msg) == '\n' then
-        data.msg = data.msg:sub(1, #data.msg - 1)
-    end
+	if data.msg:sub(#data.msg, #data.msg) == "\n" then
+		data.msg = data.msg:sub(1, #data.msg - 1)
+	end
 
-    if includeFields then
-        if not _util.is_array(includeFields) then
-            includeFields = _exTable.filter(_exTable.keys(data), function(_, v)
-                return v ~= 'msg' and v ~= 'module' and v ~= 'level'
-            end)
-        end
+	if includeFields then
+		if not exTable.is_array(includeFields) then
+			includeFields = exTable.filter(exTable.keys(data), function (_, v)
+				return v ~= "msg" and v ~= "module" and v ~= "level"
+			end)
+		end
 
-        local _fields = {}
-        local _any = false
-        for _, v in ipairs(includeFields) do
-            _any = true
-            _fields[v] = data[v]
-        end
-        local _addition = _any and ('\n' .. encode_to_hjson(_fields)) or ''
-        data.msg = data.msg .. _addition
-    end
+		local _fields = {}
+		local _any = false
+		for _, v in ipairs(includeFields --[[@as table]]) do
+			_any = true
+			_fields[v] = data[v]
+		end
+		local _addition = _any and ("\n" .. encode_to_hjson(_fields)) or ""
+		data.msg = data.msg .. _addition
+	end
 
-    if colorful then
-        print(color .. time .. " [" .. string.upper(data.level) .. "] " .. module .. data.msg .. RESET_COLOR)
-    else
-        print(time .. " [" .. string.upper(data.level) .. "] " .. module .. data.msg)
-    end
+	if colorful then
+		print(color .. time .. " [" .. string.upper(data.level) .. "] " .. module .. data.msg .. RESET_COLOR)
+	else
+		print(time .. " [" .. string.upper(data.level) .. "] " .. module .. data.msg)
+	end
 end
 
 ---prints log in json format
 ---@param data table
 local function log_json(data)
-    data.timestamp = os.time()
-    print(encode_to_json(data, { indent = false, skipkeys = true }))
+	data.timestamp = os.time()
+	print(encode_to_json(data, { indent = false, skipkeys = true }))
 end
 
 local function wrap_msg(msg)
-    if type(msg) ~= 'table' then
-        return { msg = msg, level = "info" }
-    end
-    return msg
+	if type(msg) ~= "table" then
+		return { msg = msg, level = "info" }
+	end
+	return msg
 end
 
 ---#DES 'Logger:log'
@@ -184,23 +173,23 @@ end
 ---@param level LogLevel
 ---@param vars table?
 function Logger:log(msg, level, vars)
-    msg = wrap_msg(msg)
-    if level ~= nil then
-        msg.level = level
-    end
+	msg = wrap_msg(msg)
+	if level ~= nil then
+		msg.level = level
+	end
 
-    msg.msg = string.interpolate(msg.msg, vars)
+	msg.msg = string.interpolate(msg.msg, vars)
 
-    if _level_value(self.options.level) > _level_value(level) then
-        return
-    end
+	if level_value(self.options.level) > level_value(msg.level) then
+		return
+	end
 
-    if self.options.format == "json" then
-        log_json(msg)
-    else
-        local color = get_log_color(msg.level)
-        log_txt(msg, self.options.colorful, color, self.options.noTime, self.options.includeFields)
-    end
+	if self.options.format == "json" then
+		log_json(msg)
+	else
+		local color = get_log_color(msg.level)
+		log_txt(msg, self.options.colorful, color, self.options.noTime, self.options.includeFields)
+	end
 end
 
 ---#DES 'Logger:success'
@@ -209,7 +198,7 @@ end
 ---@param msg LogMessage
 ---@param vars table?
 function Logger:success(msg, vars)
-    self:log(msg, "success", vars)
+	self:log(msg, "success", vars)
 end
 
 ---#DES 'Logger:debug'
@@ -218,7 +207,7 @@ end
 ---@param msg LogMessage
 ---@param vars table?
 function Logger:debug(msg, vars)
-    self:log(msg, "debug", vars)
+	self:log(msg, "debug", vars)
 end
 
 ---#DES 'Logger:trace'
@@ -227,7 +216,7 @@ end
 ---@param msg LogMessage
 ---@param vars table?
 function Logger:trace(msg, vars)
-    self:log(msg, "trace", vars)
+	self:log(msg, "trace", vars)
 end
 
 ---#DES 'Logger:info'
@@ -236,7 +225,7 @@ end
 ---@param msg LogMessage
 ---@param vars table?
 function Logger:info(msg, vars)
-    self:log(msg, "info", vars)
+	self:log(msg, "info", vars)
 end
 
 ---#DES 'Logger:warn'
@@ -245,7 +234,7 @@ end
 ---@param msg LogMessage
 ---@param vars table?
 function Logger:warn(msg, vars)
-    self:log(msg, "warn", vars)
+	self:log(msg, "warn", vars)
 end
 
 ---#DES 'Logger:error'
@@ -254,7 +243,7 @@ end
 ---@param msg LogMessage
 ---@param vars table?
 function Logger:error(msg, vars)
-    self:log(msg, "error", vars)
+	self:log(msg, "error", vars)
 end
 
 return Logger

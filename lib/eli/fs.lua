@@ -87,7 +87,7 @@ function fs.copy_file(src, dst, options)
 		dstf = dst
 	end
 
-	local size = 2 ^ 12  -- 4K
+	local size = 2 ^ 12 -- 4K
 	while true do
 		local block = srcf:read(size)
 		if not block then
@@ -114,7 +114,7 @@ local function _internal_mkdir(path, mkdir, scopeName)
 		local f = io.open(path)
 		if f == nil then
 			_check_efs_available(scopeName)
-			return    -- we error line above if efs not available
+			return -- we error line above if efs not available
 		end
 		local _, _, _errorCode = f:read(0)
 		if _errorCode == 21 or (f:read(0) and f:seek"end" ~= 0) then
@@ -122,7 +122,7 @@ local function _internal_mkdir(path, mkdir, scopeName)
 			return
 		end
 		_check_efs_available(scopeName)
-		return   -- we error line above if efs not available
+		return -- we error line above if efs not available
 	end
 	_mkdir(path)
 end
@@ -189,11 +189,11 @@ end
 function fs.remove(path, options)
 	assert(type(path) == "string", "Invalid path type!")
 	options = _util.merge_tables({ root = path }, options, true)
-	local _pathRelativeToRoot = path:sub(#options.root + 1)  -- strip root
+	local _pathRelativeToRoot = path:sub(#options.root + 1) -- strip root
 	if _pathRelativeToRoot:sub(1, 1) == "/" then _pathRelativeToRoot = _pathRelativeToRoot:sub(2) end
 	if _pathRelativeToRoot == "" then _pathRelativeToRoot = "." end
 
-	if not efsLoaded then  -- fallback to os delete
+	if not efsLoaded then -- fallback to os delete
 		if type(options.keep) == "function" and options.keep(_pathRelativeToRoot, path) then
 			return false
 		end
@@ -204,7 +204,7 @@ function fs.remove(path, options)
 
 	local recurse = options.recurse
 	local contentOnly = options.contentOnly
-	options.contentOnly = false  -- for recursive calls
+	options.contentOnly = false      -- for recursive calls
 
 	if efs.link_type(path) == nil then -- does not exist
 		return true
@@ -226,7 +226,7 @@ function fs.remove(path, options)
 		end
 		if not contentOnly or not _allChildrenRemoved then
 			efs.rmdir(path)
-			if  options.followLinks then
+			if options.followLinks then
 				-- remove link target if it exists and we are following links
 				_remove_link_target(path)
 			end
@@ -241,7 +241,7 @@ function fs.remove(path, options)
 	local _ok, _error = os.remove(path)
 	assert(_ok, _error or "")
 
-	if  options.followLinks then
+	if options.followLinks then
 		-- remove link target if it exists and we are following links
 		_remove_link_target(path)
 	end
@@ -297,7 +297,7 @@ function fs.hash_file(pathOrFile, options)
 		assert(tostring(pathOrFile):find"file" == 1, "Not a file* - (" .. tostring(pathOrFile) .. ")")
 		srcf = pathOrFile
 	end
-	local size = 2 ^ 12  -- 4K
+	local size = 2 ^ 12 -- 4K
 
 	if options.type == "sha256" then
 		local ctx = _hash.sha256init()
@@ -351,9 +351,9 @@ local function _read_dir_recurse(path, asDirEntries, lenOfPathToRemove)
 end
 
 ---@class FsReadDirOptions
----@field recurse boolean
----@field returnFullPaths boolean
----@field asDirEntries boolean
+---@field recurse boolean?
+---@field returnFullPaths boolean?
+---@field asDirEntries boolean?
 
 ---@class DirEntry
 ---@field name fun(self: DirEntry): string
@@ -388,8 +388,8 @@ function fs.read_dir(path, options)
 end
 
 ---@class FsChownOptions
----@field recurse boolean
----@field recurseIgnoreErrors boolean
+---@field recurse boolean?
+---@field recurseIgnoreErrors boolean?
 
 ---#DES 'fs.chown'
 ---
@@ -422,8 +422,8 @@ function fs.chown(path, uid, gid, options)
 end
 
 ---@class FsChmodOptions
----@field recurse boolean
----@field recurseIgnoreErrors boolean
+---@field recurse boolean?
+---@field recurseIgnoreErrors boolean?
 
 ---#DES 'fs.chmod'
 ---
@@ -493,8 +493,8 @@ end
 function fs.unlock_file(fsLock)
 	_check_efs_available"unlock_file"
 
-	if type(fsLock) == ELI_FILE_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type == ELI_FILE_LOCK_ID) then
-		return fsLock:unlock()
+	if type(fsLock) == ELI_FILE_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type --[[@as string]] == ELI_FILE_LOCK_ID) then
+		return fsLock --[[@as EliFileLock]]:unlock()
 	else
 		return false,
 			"Invalid " .. ELI_FILE_LOCK_ID .. " type! '" .. ELI_FILE_LOCK_ID ..
@@ -529,8 +529,8 @@ end
 ---@param fsLock EliDirLock
 ---@return boolean|nil, string?
 function fs.unlock_directory(fsLock)
-	if type(fsLock) == ELI_DIR_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type == ELI_DIR_LOCK_ID) then
-		return fsLock:unlock()
+	if type(fsLock) == ELI_DIR_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type --[[@as string]] == ELI_DIR_LOCK_ID) then
+		return fsLock --[[@as EliDirLock]]:unlock()
 	else
 		return false,
 			"Invalid " .. ELI_DIR_LOCK_ID .. " type! '" .. ELI_DIR_LOCK_ID .. "' expected, got: " .. type(fsLock) .. "!"
@@ -555,7 +555,7 @@ end
 
 if efsLoaded then
 	local result = _util.generate_safe_functions(_util.merge_tables(fs, efs))
-	result.safe_iter_dir = nil  -- not supported
+	result.safe_iter_dir = nil -- not supported
 	return result
 else
 	return _util.generate_safe_functions(fs)

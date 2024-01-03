@@ -8,13 +8,15 @@ local generate_safe_functions = require"eli.util".generate_safe_functions
 ---@field prerelease string
 ---@field metadata string
 
+local ver = {}
+
 ---#DES 'ver.parse'
 ---
 ---Parses version string and returns table with major, minor, path, prerelease
 ---and metadata values
 ---@param ver string
 ---@return SemVer?
-local function _parse_semver(ver)
+function ver.parse(ver)
 	if type(ver) ~= "string" then
 		return nil
 	end
@@ -40,11 +42,11 @@ local function _parse_semver(ver)
 	}
 end
 
----#DES 'ver._compare_prerelase'
+---compare prerelease strings
 ---@param p1 string
 ---@param p2 string
 ---@return integer
-local function _compare_prerelase(p1, p2)
+local function compare_prerelase(p1, p2)
 	if p1 == nil and p2 == nil then
 		return 0
 	elseif p1 == nil and p2 ~= nil then
@@ -105,7 +107,7 @@ end
 ---@param v1 string
 ---@param v2 string
 ---@return integer
-local function _compare_version(v1, v2)
+function ver.compare(v1, v2)
 	if type(v1) == "number" and type(v2) == "number" then
 		if v1 > v2 then
 			return 1
@@ -116,11 +118,11 @@ local function _compare_version(v1, v2)
 
 	local _v1
 	if type(v1) == "string" then
-		_v1 = _parse_semver(v1)
+		_v1 = ver.parse(v1)
 	end
 	local _v2
 	if type(v2) == "string" then
-		_v2 = _parse_semver(v2)
+		_v2 = ver.parse(v2)
 	end
 	assert(type(_v1) == "table", "Invalid v1 version!")
 	assert(type(_v2) == "table", "Invalid v2 version!")
@@ -137,31 +139,7 @@ local function _compare_version(v1, v2)
 		return _v1.patch > _v2.patch and 1 or -1
 	end
 
-	return _compare_prerelase(_v1.prerelease, _v2.prerelease)
+	return compare_prerelase(_v1.prerelease, _v2.prerelease)
 end
 
----#DES 'ver.parse_semver'
----@deprecated
----Parses version string and returns table with major, minor, path, prerelease
----and metadata values
----@param ver string
----@return SemVer?
-local function _parse_semver_old(...) return _parse_semver(...) end
-
----#DES 'ver.compare_version'
----@deprecated
----If the semver v1 is newer than v2, returns 1. If the semver v2 is newer than v1,
----returns -1. If v1 equals v2, returns 0;
----@param v1 string
----@param v2 string
----@return integer
-local function _compare_version_old(...) return _compare_version(...) end
-
-return generate_safe_functions{
-	-- deprecated
-	parse_semver = _parse_semver_old,
-	compare_version = _compare_version_old,
-	-- new
-	parse = _parse_semver,
-	compare = _compare_version,
-}
+return generate_safe_functions(ver)

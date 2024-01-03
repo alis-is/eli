@@ -49,7 +49,7 @@ function lz.extract(source, destination, options)
 		if not _data then break end
 		local _inflated, eof, bytes_in, _ = _inflate(_data)
 		if type(_inflated) == "string" then _write(_df, _inflated) end
-		if eof then   -- we got end of gzip stream we return to bytes_in pos in case there are multiple stream embedded
+		if eof then -- we got end of gzip stream we return to bytes_in pos in case there are multiple stream embedded
 			_sf:seek("set", _shift + bytes_in)
 			_shift = _shift + bytes_in
 			_inflate = _zlib.inflate()
@@ -74,7 +74,7 @@ function lz.extract_from_string(data)
 		local inflated, eof, bytes_in, _ = inflate(data:sub(shift))
 		assert(eof, "lz: Compressed stream is not complete!")
 		shift = shift + bytes_in
-		result = result .. inflated   -- merge streams for cases when input is multi stream
+		result = result .. inflated -- merge streams for cases when input is multi stream
 	end
 	return result
 end
@@ -99,8 +99,8 @@ function lz.extract_string(source, options)
 end
 
 ---@class LzCompressOptions
----@field level number 0 - 9
----@field windowSize integer 9 - 15
+---@field level number? 0 - 9
+---@field windowSize integer? 9 - 15
 
 ---#DES lz.extract_string
 ---
