@@ -356,7 +356,7 @@ function zip.compress(source, target, options)
 	end
 
 	if options.contentOnly and fs.file_type(source) == "directory" and not options.preserveFullPath then
-		_skipLength = #source + 1
+		_skipLength = #source + (source:sub(-1) == "/" and 1 or 2)
 	end
 
 	local _archive = zip.new_archive(target)
