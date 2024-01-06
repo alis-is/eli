@@ -110,7 +110,7 @@ function zip.extract(source, destination, options)
 
 		-- by default we assume that mkdir is nor supported and we cannot create directories
 		local _targetPath = _path.file(stat.name)
-		if type(_transform_path) == "function" then                               -- if supplied transform with transform functions
+		if type(_transform_path) == "function" then                           -- if supplied transform with transform functions
 			_targetPath = _transform_path(stat.name:sub(il), destination)
 		elseif type(_mkdirp) == "function" and type(destination) == "string" then --mkdir supported we can use path as is :)
 			_targetPath = _path.combine(destination, stat.name:sub(il))
@@ -136,7 +136,7 @@ function zip.extract(source, destination, options)
 			_close_file(_f)
 		end
 		local _externalAtrributes = zipArch:get_external_attributes(i)
-		if _externalChmod then                            -- we got supplied chmod
+		if _externalChmod then                        -- we got supplied chmod
 			_chmod(_targetPath, _externalAtrributes)
 		elseif type(_externalAtrributes) == "number" then -- we use built in chmod
 			local _permissions = math.floor(_externalAtrributes / 2 ^ 16)
@@ -322,6 +322,8 @@ end
 ---@field preserveFullPath nil|boolean
 ---#DES 'CompressOptions.recurse'
 ---@field recurse nil|boolean
+---#DES 'CompressOptions.contentOnly'
+---@field contentOnly boolean? aplicable only when source is directory
 
 ---#DES 'zip.compress'
 ---
@@ -351,6 +353,10 @@ function zip.compress(source, target, options)
 	if not options.preserveFullPath then
 		local _targetName = _path.file(source)
 		_skipLength = #source - #_targetName + 1
+	end
+
+	if options.contentOnly and fs.file_type(source) == "directory" and not options.preserveFullPath then
+		_skipLength = #source + 1
 	end
 
 	local _archive = zip.new_archive(target)
