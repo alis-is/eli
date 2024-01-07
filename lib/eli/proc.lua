@@ -170,6 +170,9 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field __type '"ELI_STREAM_R_METATABLE"'
 ---@field read fun(self: EliReadableStream): string
 
+---@class EliProcessGroup
+---@field kill fun(self: EliProcessGroup, signal: integer?): integer
+
 ---@class EliProcess
 ---@field __type '"ELI_PROCESS"'
 ---@field __tostring fun(self: EliProcess): string
@@ -182,6 +185,7 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field get_stderr fun(self: EliProcess): EliReadableStream | file* | nil
 ---@field get_stdin fun(self: EliProcess): EliReadableStream | file* | nil
 ---@field get_stdio_info fun(self: EliProcess): EliProcessStdioInfo
+---@field get_group fun(self: EliProcess): EliProcessGroup | nil
 
 ---#DES 'proc.generate_spawn_result'
 ---
