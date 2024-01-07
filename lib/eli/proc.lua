@@ -214,12 +214,11 @@ function proc.spawn(path, argsOrOptions, options)
 	end
 	if type(options) ~= "table" then options = {} end
 
-	local _proc, err = eproc.spawn{
+	local spawnParams = _util.merge_tables({
 		command = path,
 		args = argsOrOptions,
-		env = options.env,
-		stdio = options.stdio,
-	}
+	}, options)
+	local _proc, err = eproc.spawn(spawnParams)
 	if not _proc then error(err) end
 
 	if type(options.wait) == "boolean" and options.wait then
@@ -233,6 +232,15 @@ function proc.spawn(path, argsOrOptions, options)
 	end
 
 	return _proc
+end
+
+---#DES 'proc.get_by_pid'
+---
+--- gets process by pid
+---@param pid integer
+---@return EliProcess
+function proc.get_by_pid(pid)
+	return eproc.get_by_pid(pid)
 end
 
 return _util.generate_safe_functions(proc)
