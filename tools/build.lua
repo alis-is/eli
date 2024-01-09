@@ -1,7 +1,6 @@
 local lustache = require"lustache"
 local hjson = require"hjson"
 local _templates = require"tools.templates"
-local _buildUtil = require"tools.util"
 
 local log_success, log_info = util.global_log_factory("build", "success", "info")
 GLOBAL_LOGGER.options.format = "standard"
@@ -26,7 +25,7 @@ for _, v in ipairs(arg) do
 	if v:find"--debug" then
 		isDebug = true
 		if v == "--debug" then
-			BUILD_FLAGS = "-O0 -g3"
+			BUILD_FLAGS = "-O0 -gfull"
 		else
 			BUILD_FLAGS = v:gsub("--debug=", "")
 		end
@@ -42,7 +41,7 @@ for _, v in ipairs(arg) do
 end
 -- defaults
 BUILD_TYPE = BUILD_TYPE or "MINSIZEREL"
-BUILD_FLAGS = BUILD_FLAGS or "-Os -s"
+BUILD_FLAGS = BUILD_FLAGS or "-Os -s -g0"
 
 
 local _toolchains = os.getenv"TOOLCHAINS"
@@ -62,6 +61,72 @@ local _isMultitoolchain = _toolchains:find";"
 local function execute_collect_stdout(cmd)
 	local _result = proc.exec(cmd, { stdout = "pipe" })
 	return _result.exitcode, _result.stdoutStream:read"a"
+end
+
+local function configure(id, rootDir, isZig, toolchainDor)
+	local _cmd, builtBinaryId
+
+	if isZig then
+		local target = id:sub(#isZig + 1)
+		local _start = target:find"-"
+		local _end = target:find("-", _start + 1) or 0
+		local system = target:sub(_start + 1, #target - (#target - _end) - 1)
+		builtBinaryId = system .. "-" .. target:sub(0, _start - 1)
+		if system:find"^macos" then
+			system = "darwin"
+		end
+		-- capitalize
+		system = system:sub(1, 1):upper() .. system:sub(2)
+
+		_cmd = lustache:render(_templates.CMAKE_CLANG, {
+			rootDir = rootDir,
+			toolchainFile = path.combine(toolchainDor or rootDir, "misc/toolchains/zig/toolchain.cmake"),
+			target = target,
+			SYSTEM_NAME = system,
+			BUILD_TYPE = BUILD_TYPE,
+			BUILD_FLAGS = BUILD_FLAGS,
+			inject_ca = _config.inject_ca and "ON" or "OFF",
+		})
+	else
+		local _, gcc = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-gcc" -type f')
+		local _, gpp = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-g++" -type f')
+		local _, ld = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-ld" -type f')
+		local _, ar = execute_collect_stdout("find -H /opt/cross/" .. id .. '/bin -name "*-ar" -type f ! -name "*-gcc-ar"')
+		local _, ranlib = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-ranlib" -type f')
+		local _, rc = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-windres" -type f')
+		local _, strip = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-strip" -type f')
+		local _, objdump = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-objdump" -type f')
+		local _, as = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-as" -type f')
+
+		_cmd = lustache:render(_templates.CMAKE_GCC, {
+			ld = ld:gsub("\n", ""),
+			ranlib = ranlib:gsub("\n", ""),
+			ar = ar:gsub("\n", ""),
+			as = as:gsub("\n", ""),
+			objdump = objdump:gsub("\n", ""),
+			gcc = gcc:gsub("\n", ""),
+			gpp = gpp:gsub("\n", ""),
+			strip = strip:gsub("\n", ""),
+			rootDir = rootDir,
+			rc = rc:gsub("\n", ""),
+			BUILD_TYPE = BUILD_TYPE,
+			BUILD_FLAGS = BUILD_FLAGS,
+			ccf = BUILD_TYPE == "MINSIZEREL" and "-s" or "",
+			SYSTEM_NAME = id:match"mingw" and "Windows" or "Linux",
+			ch = id:gsub("%-cross", ""),
+			TOOLCHAIN_ROOT = path.combine(os.cwd(), path.combine("toolchains", id)),
+			inject_ca = _config.inject_ca and "ON" or "OFF",
+		})
+		if id:match"mingw" or id:match"win" then
+			builtBinaryId = "win-" .. id:gsub("%-w64%-mingw32%-cross", "")
+		else
+			builtBinaryId = "linux-" .. id:gsub("%-linux%-musl%-cross", "")
+		end
+	end
+
+	log_info("Configuring (" .. _cmd .. ")...")
+	os.execute(_cmd)
+	return builtBinaryId
 end
 
 local function buildWithChain(id, buildDir)
@@ -93,6 +158,40 @@ local function buildWithChain(id, buildDir)
 		os.remove(tmp2)
 		log_success("Toolchain " .. id .. " downloaded.")
 	end
+	if id:match"mingw" or id:match"win" then -- build kill binary
+		log_info("Initiating build eli-kill for " .. id .. "...")
+		local buildDir = "deps/eli-proc-extra/kill/build"
+		if shouldRemoveOldBuild then
+			fs.remove(buildDir, { recurse = true })
+		end
+		fs.mkdirp(buildDir)
+		local _oldCwd = os.cwd()
+		os.chdir(buildDir)
+		local builtBinaryId = configure(id, path.combine(_oldCwd, "deps/eli-proc-extra/kill"), isZig, _oldCwd)
+		log_info"Building eli-kill (make)..."
+		if not os.execute"make" then
+			error"Failed to build eli-kill!"
+		end
+		os.chdir(_oldCwd)
+
+		-- patch eli proc extra
+		local eliProcExtraKillBinary = fs.read_file"deps/eli-proc-extra/kill/build/kill.exe"
+		local killBinaryBytes = table.map(
+			table.filter(
+				table.pack(string.byte(eliProcExtraKillBinary, 1, -1)),
+				function (k)
+					return type(k) == "number"
+				end),
+			function (b)
+				return string.format("\\x%02x", b)
+			end)
+		local rendered = lustache:render(_templates.ELI_PROC_EXTRA_KILL_H, {
+			binarySize = #eliProcExtraKillBinary + 1,
+			binary = '"' .. string.join("", killBinaryBytes) .. '"',
+		})
+		fs.write_file("deps/eli-proc-extra/src/kill.h", rendered)
+	end
+
 	log_info("Initiating build eli for " .. id .. "...")
 	buildDir = buildDir or path.combine("build", id)
 	if shouldRemoveOldBuild then
@@ -102,69 +201,8 @@ local function buildWithChain(id, buildDir)
 
 	local _oldCwd = os.cwd()
 	os.chdir(buildDir)
-	local _cmd, builtBinaryId
-
-	if isZig then
-		local target = id:sub(#isZig + 1)
-		local _start = target:find"-"
-		local _end = target:find("-", _start + 1) or 0
-		local system = target:sub(_start + 1, #target - (#target - _end) - 1)
-		builtBinaryId = system .. "-" .. target:sub(0, _start - 1)
-		if system:find"^macos" then
-			system = "darwin"
-		end
-		-- capitalize
-		system = system:sub(1, 1):upper() .. system:sub(2)
-
-		_cmd = lustache:render(_templates.CMAKE_CLANG, {
-			rootDir = _oldCwd,
-			toolchainFile = path.combine(_oldCwd, "misc/toolchains/zig/toolchain.cmake"),
-			target = target,
-			SYSTEM_NAME = system,
-			BUILD_TYPE = BUILD_TYPE,
-			BUILD_FLAGS = BUILD_FLAGS,
-			inject_ca = _config.inject_ca and "ON" or "OFF"
-		})
-	else
-		local _, gcc = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-gcc" -type f')
-		local _, gpp = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-g++" -type f')
-		local _, ld = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-ld" -type f')
-		local _, ar = execute_collect_stdout("find -H /opt/cross/" .. id .. '/bin -name "*-ar" -type f ! -name "*-gcc-ar"')
-		local _, ranlib = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-ranlib" -type f')
-		local _, rc = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-windres" -type f')
-		local _, strip = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-strip" -type f')
-		local _, objdump = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-objdump" -type f')
-		local _, as = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-as" -type f')
-
-		_cmd = lustache:render(_templates.CMAKE_GCC, {
-			ld = ld:gsub("\n", ""),
-			ranlib = ranlib:gsub("\n", ""),
-			ar = ar:gsub("\n", ""),
-			as = as:gsub("\n", ""),
-			objdump = objdump:gsub("\n", ""),
-			gcc = gcc:gsub("\n", ""),
-			gpp = gpp:gsub("\n", ""),
-			strip = strip:gsub("\n", ""),
-			rootDir = _oldCwd,
-			rc = rc:gsub("\n", ""),
-			BUILD_TYPE = BUILD_TYPE,
-			BUILD_FLAGS = BUILD_FLAGS,
-			ccf = BUILD_TYPE == "MINSIZEREL" and "-s" or "",
-			SYSTEM_NAME = id:match"mingw" and "Windows" or "Linux",
-			ch = id:gsub("%-cross", ""),
-			TOOLCHAIN_ROOT = path.combine(os.cwd(), path.combine("toolchains", id)),
-			inject_ca = _config.inject_ca and "ON" or "OFF"
-		})
-		if id:match"mingw" or id:match"win" then
-			builtBinaryId = "win-" .. id:gsub("%-w64%-mingw32%-cross", "")
-		else
-			builtBinaryId = "linux-" .. id:gsub("%-linux%-musl%-cross", "")
-		end
-	end
-
-	log_info("Configuring (" .. _cmd .. ")...")
-	os.execute(_cmd)
-	log_info"Building (make)..."
+	local builtBinaryId = configure(id, _oldCwd, isZig)
+	log_info"Building eli (make)..."
 	os.execute"make"
 	os.chdir(_oldCwd)
 	fs.mkdirp"release"

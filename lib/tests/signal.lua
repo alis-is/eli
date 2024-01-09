@@ -2,6 +2,8 @@ local test = TEST or require"u-test"
 local ok, signal = pcall(require, "os.signal")
 local ok, eliProc = pcall(require, "eli.proc")
 
+local isWindows = package.config:sub(1, 1) == "\\"
+
 if not ok then
 	test["os.signal available"] = function ()
 		test.assert(false, "os.signal not available")
@@ -46,7 +48,7 @@ test["out of process signal"] = function ()
 	end
 	local p = eliProc.spawn(bin, args, { stdio = "inherit" })
 	os.sleep(1)
-	p:kill(signal.SIGTERM)
+	p:kill(isWindows and signal.SIGBREAK or signal.SIGTERM)
 
 	local code = p:wait()
 	test.assert(code == 0, "signal not catched")

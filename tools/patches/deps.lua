@@ -33,8 +33,6 @@ local LIBZIP_CMAKELISTS = "deps/libzip/CMakeLists.txt"
 local MBED_MBEDTLS_CONFIG_H = "deps/mbedtls/include/mbedtls/mbedtls_config.h"
 local MBED_CMAKELISTS_TXT = "deps/mbedtls/CMakeLists.txt"
 local MBED_LIBRARY_CMAKELISTS_TXT = "deps/mbedtls/library/CMakeLists.txt"
-local CORE_HTTP_CLIENT_H = "deps/corehttp/source/include/core_http_client.h"
-local CORE_HTTP_CLIENT_C = "deps/corehttp/source/core_http_client.c"
 local LUA_COREHTTP_CONFIG_H = "deps/lua-corehttp/include/core_http_config.h"
 
 local patches = {
@@ -246,32 +244,6 @@ message( ${ZLIBINCLUDEDIR} )
 			return file
 		end,
 	},
-	-- [CORE_HTTP_CLIENT_H] = {
-	-- 	validate = function (file)
-	-- 		return file:match"define CORE_HTTP_CLIENT_H_"
-	-- 	end,
-	-- 	patch = function (file)
-	-- 		-- injected code starts with /* injected eli corehttp patch */
-	-- 		local injectedStart = file:find"/%* injected eli corehttp patch %*/"
-	-- 		if injectedStart then
-	-- 			file = file:sub(1, injectedStart - 1)
-	-- 		end
-	-- 		return file .. lustache:render(templates.CORE_HTTP_CLIENT_H, { config = config })
-	-- 	end,
-	-- },
-	-- [CORE_HTTP_CLIENT_C] = {
-	-- 	validate = function (file)
-	-- 		return file:match"sendHttpHeaders" and file:match"sendHttpHeaders" and file:match"sendHttpData"
-	-- 	end,
-	-- 	patch = function (file)
-	-- 		-- injected code starts with /* injected eli corehttp patch */
-	-- 		local injectedStart = file:find"/%* injected eli corehttp patch %*/"
-	-- 		if injectedStart then
-	-- 			file = file:sub(1, injectedStart - 1)
-	-- 		end
-	-- 		return file .. lustache:render(templates.CORE_HTTP_CLIENT_C, { config = config })
-	-- 	end,
-	-- },
 	[LUA_COREHTTP_CONFIG_H] = {
 		validate = function (file)
 			return file:match"HTTP_USER_AGENT_VALUE"

@@ -1,0 +1,11 @@
+#ifndef ELI_PROC_EXTRA_KILL_H_
+#define ELI_PROC_EXTRA_KILL_H_
+
+#ifdef _WIN32
+
+#define KILL_BINARY_SIZE {{{binarySize}}}
+unsigned char killBinary[KILL_BINARY_SIZE] = {{{binary}}};
+
+#endif
+
+#endif
