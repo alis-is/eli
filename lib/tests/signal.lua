@@ -16,11 +16,11 @@ if not ok then
 	end
 end
 
-test["os.signal available"] = function ()
+test["os.signal available"]       = function ()
 	test.assert(true)
 end
 
-test["raise"] = function ()
+test["raise"]                     = function ()
 	local catched = false
 
 	signal.handle(signal.SIGTERM, function ()
@@ -33,13 +33,13 @@ test["raise"] = function ()
 	test.assert(catched, "signal not catched")
 end
 
-test["reset"] = function ()
+test["reset"]                     = function ()
 	local ok, code = os.execute((os.getenv"QEMU" or "") ..
 		" " .. arg[-1] .. " " .. path.combine("assets", "signal-reset.lua"))
 	test.assert(not ok and code ~= 0, "signal catched")
 end
 
-test["out of process signal"] = function ()
+test["out of process signal"]     = function ()
 	local bin = arg[-1]
 	local args = { path.combine("assets", "signal-catch.lua") }
 	if os.getenv"QEMU" or "" ~= "" then
@@ -53,6 +53,103 @@ test["out of process signal"] = function ()
 	local code = p:wait()
 	test.assert(code == 0, "signal not catched")
 end
+
+test["kill process"]              = function ()
+	local bin = arg[-1]
+	local args = { path.combine("assets", "signal-catch.lua") }
+	if os.getenv"QEMU" or "" ~= "" then
+		bin = os.getenv"QEMU" or ""
+		args = { arg[-1], path.combine("assets", "signal-catch.lua") }
+	end
+	local p = eliProc.spawn(bin, args, { stdio = "inherit" })
+	os.sleep(1)
+	p:kill(signal.SIGKILL)
+
+	local code = p:wait()
+	test.assert(code ~= 0, "signal not catched")
+end
+
+test["process group"]             = function ()
+	local bin = arg[-1]
+	local args = { path.combine("assets", "signal-catch.lua") }
+	if os.getenv"QEMU" or "" ~= "" then
+		bin = os.getenv"QEMU" or ""
+		args = { arg[-1], path.combine("assets", "signal-catch.lua") }
+	end
+	local p = eliProc.spawn(bin, args, { stdio = "inherit", createProcessGroup = true })
+
+	local g = p:get_group()
+	assert(g, "process group not created")
+	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", processGroup = g })
+	os.sleep(1)
+	g:kill(signal.SIGINT)
+
+	local code = p:wait()
+	local code2 = p2:wait()
+	test.assert(code == 0 and code2 == 0, "signal not catched")
+end
+
+test["windows ctrl events group"] = function ()
+	if not isWindows then
+		return
+	end
+	local bin = arg[-1]
+	local args = { path.combine("assets", "signal-catch-win.lua") }
+	if os.getenv"QEMU" or "" ~= "" then
+		bin = os.getenv"QEMU" or ""
+		args = { arg[-1], path.combine("assets", "signal-catch-win.lua") }
+	end
+
+	local p = eliProc.spawn(bin, args, { stdio = "inherit" })
+	os.sleep(1)
+
+	p:kill(signal.SIGBREAK)
+
+	local code = p:wait()
+	test.assert(code == 0, "signal not catched")
+end
+
+test["kill group"]                = function ()
+	local bin = arg[-1]
+	local args = { path.combine("assets", "signal-catch.lua") }
+	if os.getenv"QEMU" or "" ~= "" then
+		bin = os.getenv"QEMU" or ""
+		args = { arg[-1], path.combine("assets", "signal-catch.lua") }
+	end
+	local p = eliProc.spawn(bin, args, { stdio = "inherit", createProcessGroup = true })
+	local g = p:get_group()
+	assert(g, "process group not created")
+	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", processGroup = g })
+	os.sleep(1)
+	g:kill(signal.SIGKILL)
+
+	local code = p:wait()
+	local code2 = p2:wait()
+	test.assert(code ~= 0 and code2 ~= 0, "signal not catched")
+end
+
+test["process by pid"]            = function ()
+	local bin = arg[-1]
+	local args = { path.combine("assets", "signal-catch.lua") }
+	if os.getenv"QEMU" or "" ~= "" then
+		bin = os.getenv"QEMU" or ""
+		args = { arg[-1], path.combine("assets", "signal-catch.lua") }
+	end
+	local p = eliProc.spawn(bin, args, { stdio = "inherit", createProcessGroup = true })
+
+	local pid = p:pid()
+	local pref = eliProc.get_by_pid(pid, { isSeparateProcessGroup = true })
+
+	local g = pref:get_group()
+	assert(g, "process group not created")
+	os.sleep(1)
+	g:kill(signal.SIGINT)
+
+	local code = p:wait()
+	test.assert(code == 0, "signal not catched")
+end
+
+
 
 if not TEST then
 	test.summary()

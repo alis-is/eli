@@ -238,13 +238,17 @@ function proc.spawn(path, argsOrOptions, options)
 	return _proc
 end
 
+---@class GetByPidOptions
+---@field isSeparateProcessGroup boolean?
+
 ---#DES 'proc.get_by_pid'
 ---
 --- gets process by pid
 ---@param pid integer
+---@param options GetByPidOptions?
 ---@return EliProcess
-function proc.get_by_pid(pid)
-	return eproc.get_by_pid(pid)
+function proc.get_by_pid(pid, options)
+	return eproc.get_by_pid(pid, options)
 end
 
 return _util.generate_safe_functions(proc)
