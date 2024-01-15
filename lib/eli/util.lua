@@ -21,9 +21,9 @@ end
 ---@field arrayMergeStrategy "default" | "hybrid" | "combine" | "prefer-t1" | "prefer-t2" | "overlay" | nil
 ---@field overwrite boolean? relevant only for hybrid/default strategy - overwrites nested fields of elements in t1 based on values in t2
 
----@type table<string, fun(t1: any[], t2: any[], overwrite: boolean?): any[]>
+---@type table<string, fun(t1: any[], t2: any[], options: MergeTablesOptions?): any[]>
 local mergeArrayStrategies = {
-	hybrid = function (t1, t2, overwrite)
+	hybrid = function (t1, t2, options)
 		local taken = {}
 		local result = {}
 		for _, v in ipairs(t1) do
@@ -32,7 +32,7 @@ local mergeArrayStrategies = {
 				for i = 1, #t2, 1 do
 					local v2 = t2[i]
 					if type(v2) == "table" and v2.id == v.id then
-						v = util.merge_tables(v, v2, overwrite)
+						v = util.merge_tables(v, v2, options)
 						taken[i] = true
 						break
 					end
@@ -84,7 +84,7 @@ local function merge_arrays(t1, t2, options)
 		mergeFn = mergeArrayStrategies.hybrid
 	end
 
-	return mergeFn(t1, t2, options.overwrite)
+	return mergeFn(t1, t2, options --[[@as MergeTablesOptions]])
 end
 
 ---#DES 'util.merge_arrays'
@@ -125,7 +125,12 @@ function util.merge_tables(t1, t2, options)
 	if type(options) == "boolean" then
 		options = { overwrite = options }
 	end
-	options = util.merge_tables(options, { overwrite = false })
+	if type(options) ~= "table" then
+		options = { overwrite = false }
+	end
+	if type(options.overwrite) ~= "boolean" then
+		options.overwrite = false
+	end
 
 	local _result = {}
 	if util.is_array(t1) and util.is_array(t2) then
@@ -137,7 +142,7 @@ function util.merge_tables(t1, t2, options)
 		for k, v2 in pairs(t2) do
 			local v1 = _result[k]
 			if type(v1) == "table" and type(v2) == "table" then
-				_result[k] = util.merge_tables(v1, v2, options.overwrite)
+				_result[k] = util.merge_tables(v1, v2, options)
 			elseif type(v1) == "nil" then
 				_result[k] = v2
 			elseif options.overwrite then
