@@ -17,30 +17,101 @@ function util.is_array(t)
 	return true
 end
 
+---@class MergeArraysOptions
+---@field arrayMergeStrategy "default" | "hybrid" | "combine" | "prefer-t1" | "prefer-t2" | "overlay" | nil
+---@field overwrite boolean? relevant only for hybrid/default strategy - overwrites nested fields of elements in t1 based on values in t2
+
+---@type table<string, fun(t1: any[], t2: any[], overwrite: boolean?): any[]>
+local mergeArrayStrategies = {
+	hybrid = function (t1, t2, overwrite)
+		local taken = {}
+		local result = {}
+		for _, v in ipairs(t1) do
+			-- merge id based arrays
+			if type(v) == "table" and (type(v.id) == "string" or type(v.id) == "number") then
+				for i = 1, #t2, 1 do
+					local v2 = t2[i]
+					if type(v2) == "table" and v2.id == v.id then
+						v = util.merge_tables(v, v2, overwrite)
+						taken[i] = true
+						break
+					end
+				end
+			end
+
+			table.insert(result, v)
+		end
+
+		for i, v in ipairs(t2) do
+			if not taken[i] then
+				table.insert(result, v)
+			end
+		end
+		return result
+	end,
+	combine = function (t1, t2)
+		local _result = { table.unpack(t1) }
+		for _, v in ipairs(t2) do
+			table.insert(_result, v)
+		end
+		return _result
+	end,
+	["prefer-t1"] = function (t1, t2)
+		if t1 then return t1 end
+		return t2
+	end,
+	["prefer-t2"] = function (t1, t2)
+		if t2 then return t2 end
+		return t1
+	end,
+	overlay = function (t1, t2)
+		local _result = util.clone(t1)
+		for k, v in pairs(t2) do
+			_result[k] = v
+		end
+		return _result
+	end,
+}
+
+---@param t1 any[]
+---@param t2 any[]
+---@param options MergeArraysOptions
+---@return any[]
+local function merge_arrays(t1, t2, options)
+	local mergeStrategy = options.arrayMergeStrategy
+	local mergeFn = mergeArrayStrategies[mergeStrategy]
+	if type(mergeFn) ~= "function" then
+		mergeFn = mergeArrayStrategies.hybrid
+	end
+
+	return mergeFn(t1, t2, options.overwrite)
+end
+
 ---#DES 'util.merge_arrays'
 ---@param t1 table
 ---@param t2 table
+---@param options MergeArraysOptions?
 ---@return table?, string?
-function util.merge_arrays(t1, t2)
+function util.merge_arrays(t1, t2, options)
 	if not util.is_array(t1) then
 		return nil, "t1 is not an array"
 	end
 	if not util.is_array(t2) then
 		return nil, "t2 is not an array"
 	end
-	local _result = { table.unpack(t1) }
-	for _, v in ipairs(t2) do
-		table.insert(_result, v)
-	end
-	return _result
+	options = util.merge_tables(options, { arrayMergeStrategy = "default", overwrite = false })
+
+	return merge_arrays(t1, t2, options)
 end
+
+---@class MergeTablesOptions: MergeArraysOptions
 
 ---#DES 'util.merge_tables'
 ---@param t1? table
 ---@param t2? table
----@param overwrite? boolean
+---@param options boolean|MergeTablesOptions | nil
 ---@return table
-function util.merge_tables(t1, t2, overwrite)
+function util.merge_tables(t1, t2, options)
 	if t1 == nil then
 		return t2 or {}
 	end
@@ -50,27 +121,15 @@ function util.merge_tables(t1, t2, overwrite)
 	if type(t1) ~= "table" then
 		return t2
 	end
+
+	if type(options) == "boolean" then
+		options = { overwrite = options }
+	end
+	options = util.merge_tables(options, { overwrite = false })
+
 	local _result = {}
 	if util.is_array(t1) and util.is_array(t2) then
-		for _, v in ipairs(t1) do
-			-- merge id based arrays
-			if type(v.id) == "string" then
-				for i = 1, #t2, 1 do
-					local v2 = t2[i]
-					if type(v2.id) == "string" and v2.id == v.id then
-						v = util.merge_tables(v, v2, overwrite)
-						table.remove(t2, i)
-						break
-					end
-				end
-			end
-
-			table.insert(_result, v)
-		end
-
-		for _, v in ipairs(t2) do
-			table.insert(_result, v)
-		end
+		_result = merge_arrays(t1, t2, options)
 	else
 		for k, v in pairs(t1) do
 			_result[k] = v
@@ -78,10 +137,10 @@ function util.merge_tables(t1, t2, overwrite)
 		for k, v2 in pairs(t2) do
 			local v1 = _result[k]
 			if type(v1) == "table" and type(v2) == "table" then
-				_result[k] = util.merge_tables(v1, v2, overwrite)
+				_result[k] = util.merge_tables(v1, v2, options.overwrite)
 			elseif type(v1) == "nil" then
 				_result[k] = v2
-			elseif overwrite then
+			elseif options.overwrite then
 				_result[k] = v2
 			end
 		end
