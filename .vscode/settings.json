@@ -35,7 +35,8 @@
         "xlocmon": "c",
         "xlocnum": "c",
         "xloctime": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "xstring": "c"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/cpp",
     "editor.formatOnSave": true,

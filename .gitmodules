@@ -105,7 +105,7 @@
 	ignore = dirty
 [submodule "deps/corehttp"]
 	path = deps/corehttp
-	url = https://github.com/alis-is/coreHTTP.git
+	url = https://github.com/cryi/coreHTTP.git
 	ignore = dirty
 [submodule "deps/lua-simple-ipc"]
 	path = deps/lua-simple-ipc

@@ -122,7 +122,7 @@ test["RestClient post"] = function ()
 			{ params = { test = "aaa", test2 = "bbb", timeout = 10000 } })
 		if ok then break end
 	end
-	print(ok, response)
+
 	test.assert(ok, "request failed  - " .. tostring(response))
 	local data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")

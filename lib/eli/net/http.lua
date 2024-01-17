@@ -172,6 +172,126 @@ local function is_client_targeting_same_authority(client, url)
 	return scheme == clientScheme and host == clientHost and port == clientPort
 end
 
+
+---@param response BaseResponse
+---@param options RequestOptions
+---@param progress_function (fun(total?: number, current: number))?
+---@return string
+local function read_content(response, options, progress_function)
+	local rawResponseData = ""
+
+	local responseHeaders = response:headers()
+	local contentLength = responseHeaders["Content-Length"] and tonumber(responseHeaders["Content-Length"])
+	local contentEncoding = responseHeaders["Content-Encoding"]
+
+	local totalBytesRead = 0
+	local inflate = (contentEncoding == "deflate" or contentEncoding == "gzip") and zlib.inflate() or false
+	local inflateCache = ""
+
+	while true do
+		local bufferCapacity = math.min(options.bufferCapacity or DEFAULT_BUFFER_CAPACITY, contentLength - totalBytesRead)
+		local chunk = response:read(bufferCapacity)
+		if not chunk or type(chunk) ~= "string" then
+			if contentLength > 0 and totalBytesRead ~= contentLength then
+				error("expected " .. contentLength .. " bytes, got " .. totalBytesRead)
+			end
+			break
+		end
+		totalBytesRead = totalBytesRead + #chunk
+		if type(progress_function) == "function" then
+			progress_function(contentLength, totalBytesRead)
+		end
+		if inflate then
+			inflateCache = inflateCache .. chunk
+			local eos, bytes_in
+			chunk, eos, bytes_in = inflate(inflateCache)
+			if eos then
+				inflateCache = inflateCache:sub(bytes_in + 1) -- remove inflated part
+			end
+		end
+		if type(options.write_function) == "function" then
+			options.write_function(chunk)
+		else
+			rawResponseData = rawResponseData .. chunk
+		end
+		if totalBytesRead == contentLength then break end
+	end
+	return rawResponseData
+end
+
+local function read_chunked_content(response, options)
+	local rawResponseData = ""
+
+	local responseHeaders = response:headers()
+	local contentEncoding = responseHeaders["Content-Encoding"]
+
+	local inflate = (contentEncoding == "deflate" or contentEncoding == "gzip") and zlib.inflate() or false
+	local inflateCache = ""
+
+	local dataCache = ""
+	local expectedChunkSize = 0
+	local availableDataSize = 0
+
+	while true do
+		local data, dataLen = response:read(options.responseBufferCapacity or DEFAULT_BUFFER_CAPACITY)
+		if not data or type(data) ~= "string" then
+			error(string.interpolate("cannot retreive data: ${error}", { error = dataLen }))
+		end
+		dataCache = dataCache .. data
+		availableDataSize = availableDataSize + dataLen
+		::NEXT_CHUNK::
+		if expectedChunkSize == 0 then
+			local _start, _end = dataCache:find("\r\n", 1, true);
+			if _start and _start == 1 then
+				_start, _end = dataCache:find("\r\n", 3, true); -- skip \r\n
+			end
+			if not _end then
+				goto CONTINUE
+			end
+			expectedChunkSize = tonumber(dataCache:sub(1, _end), 16)
+			if expectedChunkSize == 0 then -- last chunk
+				break
+			end
+			dataCache = dataCache:sub(_end + 1)
+			availableDataSize = availableDataSize - _end
+		end
+		if expectedChunkSize > 0 then
+			local chunk = dataCache:sub(1, expectedChunkSize)
+			if expectedChunkSize > availableDataSize then
+				expectedChunkSize = expectedChunkSize - availableDataSize
+				dataCache = ""
+				availableDataSize = 0
+			else
+				dataCache = dataCache:sub(expectedChunkSize + 1)
+				availableDataSize = availableDataSize - expectedChunkSize
+				expectedChunkSize = 0
+			end
+
+			if inflate then
+				inflateCache = inflateCache .. chunk
+				local eos, bytes_in
+				chunk, eos, bytes_in = inflate(inflateCache)
+				if eos then
+					inflateCache = inflateCache:sub(bytes_in + 1) -- remove inflated part
+				end
+			end
+
+			if type(options.write_function) == "function" then
+				options.write_function(chunk)
+			else
+				rawResponseData = rawResponseData .. chunk
+			end
+			if expectedChunkSize == 0 then
+				goto NEXT_CHUNK
+			end
+		end
+
+		::CONTINUE::
+	end
+	print"exit"
+	return rawResponseData
+end
+
 ---Performs request
 ---@param client CorehttpClient
 ---@param path any
@@ -274,41 +394,16 @@ local function request(client, path, method, options, data)
 		end
 	end
 
-	local rawResponseData = ""
+	local rawResponseData
+	local isChunkedEncoding = responseHeaders["Transfer-Encoding"] == "chunked"
+	local isEventStream = responseHeaders["Content-Type"] == "text/event-stream"
 
-	local contentLength = responseHeaders["Content-Length"] and tonumber(responseHeaders["Content-Length"])
-	local contentEncoding = responseHeaders["Content-Encoding"]
-
-	local totalBytesRead = 0
-	local inflate = (contentEncoding == "deflate" or contentEncoding == "gzip") and zlib.inflate() or false
-	local inflateCache = ""
-	while true do
-		local bufferCapacity = math.min(options.bufferCapacity or DEFAULT_BUFFER_CAPACITY, contentLength - totalBytesRead)
-		local chunk = response:read(bufferCapacity)
-		if not chunk or type(chunk) ~= "string" then
-			if contentLength > 0 and totalBytesRead ~= contentLength then
-				error("expected " .. contentLength .. " bytes, got " .. totalBytesRead)
-			end
-			break
-		end
-		totalBytesRead = totalBytesRead + #chunk
-		if type(progress_function) == "function" then
-			progress_function(contentLength, totalBytesRead)
-		end
-		if inflate then
-			inflateCache = inflateCache .. chunk
-			local eos, bytes_in
-			chunk, eos, bytes_in = inflate(inflateCache)
-			if eos then
-				inflateCache = inflateCache:sub(bytes_in + 1) -- remove inflated part
-			end
-		end
-		if type(options.write_function) == "function" then
-			options.write_function(chunk)
-		else
-			rawResponseData = rawResponseData .. chunk
-		end
-		if totalBytesRead == contentLength then break end
+	if isChunkedEncoding then
+		rawResponseData = read_chunked_content(response, options)
+	elseif isEventStream then
+		error"event stream not supported yet"
+	else
+		rawResponseData = read_content(response, options, progress_function)
 	end
 
 	local responseData = nil
