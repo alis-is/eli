@@ -172,7 +172,7 @@ local function is_client_targeting_same_authority(client, url)
 	return scheme == clientScheme and host == clientHost and port == clientPort
 end
 
-
+-- // TODO: port to C
 ---@param response BaseResponse
 ---@param options RequestOptions
 ---@param progress_function (fun(total?: number, current: number))?
@@ -203,11 +203,9 @@ local function read_content(response, options, progress_function)
 		end
 		if inflate then
 			inflateCache = inflateCache .. chunk
-			local eos, bytes_in
-			chunk, eos, bytes_in = inflate(inflateCache)
-			if eos then
-				inflateCache = inflateCache:sub(bytes_in + 1) -- remove inflated part
-			end
+			local bytes_in
+			chunk, _, bytes_in = inflate(inflateCache)
+			inflateCache = inflateCache:sub(bytes_in + 1) -- remove inflated part
 		end
 		if type(options.write_function) == "function" then
 			options.write_function(chunk)
@@ -219,6 +217,7 @@ local function read_content(response, options, progress_function)
 	return rawResponseData
 end
 
+-- // TODO: port to C
 local function read_chunked_content(response, options)
 	local rawResponseData = ""
 
@@ -229,51 +228,53 @@ local function read_chunked_content(response, options)
 	local inflateCache = ""
 
 	local dataCache = ""
-	local expectedChunkSize = 0
+	---@type integer|nil
+	local expectedChunkSize
 	local availableDataSize = 0
 
 	while true do
-		local data, dataLen = response:read(options.responseBufferCapacity or DEFAULT_BUFFER_CAPACITY)
+		-- we always need either chunk size and 5 bytes for next chunk size or at least 3 bytes for chunk header
+		local bytesNeeded = expectedChunkSize and (expectedChunkSize - availableDataSize) + 5 or 3
+		if bytesNeeded == 3 and availableDataSize > 1 then
+			bytesNeeded = dataCache:sub(-1) == "\r" and 1 or 2 -- we need only 1 or 2 bytes to close chunk header
+		end
+		local bufferCapacity = math.min(options.bufferCapacity or DEFAULT_BUFFER_CAPACITY, bytesNeeded)
+
+		local data, dataLen = response:read(bufferCapacity)
 		if not data or type(data) ~= "string" then
 			error(string.interpolate("cannot retreive data: ${error}", { error = dataLen }))
 		end
 		dataCache = dataCache .. data
 		availableDataSize = availableDataSize + dataLen
-		::NEXT_CHUNK::
-		if expectedChunkSize == 0 then
-			local _start, _end = dataCache:find("\r\n", 1, true);
-			if _start and _start == 1 then
-				_start, _end = dataCache:find("\r\n", 3, true); -- skip \r\n
+
+		while true do
+			if expectedChunkSize == nil then
+				local _, _end = dataCache:find("\r\n", 1, true)
+				if _end == 2 then
+					_, _end = dataCache:find("\r\n", 3, true) -- skip \r\n
+				end
+				if not _end then break end         -- Not enough data to determine chunk size
+
+				expectedChunkSize = tonumber(dataCache:sub(1, _end), 16)
+				if expectedChunkSize == 0 then return rawResponseData end -- Last chunk
+				dataCache = dataCache:sub(_end + 1)
+				availableDataSize = availableDataSize - _end
 			end
-			if not _end then
-				goto CONTINUE
+
+			if availableDataSize < expectedChunkSize then
+				break -- Not enough data to read the full chunk
 			end
-			expectedChunkSize = tonumber(dataCache:sub(1, _end), 16)
-			if expectedChunkSize == 0 then -- last chunk
-				break
-			end
-			dataCache = dataCache:sub(_end + 1)
-			availableDataSize = availableDataSize - _end
-		end
-		if expectedChunkSize > 0 then
+
 			local chunk = dataCache:sub(1, expectedChunkSize)
-			if expectedChunkSize > availableDataSize then
-				expectedChunkSize = expectedChunkSize - availableDataSize
-				dataCache = ""
-				availableDataSize = 0
-			else
-				dataCache = dataCache:sub(expectedChunkSize + 1)
-				availableDataSize = availableDataSize - expectedChunkSize
-				expectedChunkSize = 0
-			end
+			dataCache = dataCache:sub(expectedChunkSize + 1)
+			availableDataSize = availableDataSize - expectedChunkSize
+			expectedChunkSize = nil
 
 			if inflate then
 				inflateCache = inflateCache .. chunk
-				local eos, bytes_in
-				chunk, eos, bytes_in = inflate(inflateCache)
-				if eos then
-					inflateCache = inflateCache:sub(bytes_in + 1) -- remove inflated part
-				end
+				local bytes_in
+				chunk, _, bytes_in, _ = inflate(inflateCache)
+				inflateCache = inflateCache:sub(bytes_in + 1) -- remove inflated part
 			end
 
 			if type(options.write_function) == "function" then
@@ -281,15 +282,8 @@ local function read_chunked_content(response, options)
 			else
 				rawResponseData = rawResponseData .. chunk
 			end
-			if expectedChunkSize == 0 then
-				goto NEXT_CHUNK
-			end
 		end
-
-		::CONTINUE::
 	end
-	print"exit"
-	return rawResponseData
 end
 
 ---Performs request
