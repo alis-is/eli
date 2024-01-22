@@ -133,7 +133,7 @@ function te.filter(t, filterFn)
 	local res = {}
 	for k, v in pairs(t) do
 		if filterFn(k, v) then
-			if isArray then
+			if isArray and k ~= "n" then
 				table.insert(res, v)
 			else
 				res[k] = v
