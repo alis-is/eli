@@ -638,7 +638,7 @@ local function get_request_url(client, pathOrOptions, options)
 
 	local url = client:get_url()
 	if #path > 0 then
-		url = url / path
+		url = netUrl.add_path(url, path)
 	end
 	if type(options.params) == "table" then
 		local query = {}

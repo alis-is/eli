@@ -344,7 +344,24 @@ test["(url) add segment through /"] = function ()
 		"Path should be 'https://www.example.com:8080/path/to/resource/newSegment/anotherSegment?param1=value1&param2=value2#fragment'")
 end
 
+test["(url) add path through //"] = function ()
+	local urlObj = url.parse"https://www.example.com:8080/path/to/resource?param1=value1&param2=value2#fragment"
+	urlObj = urlObj // "newSegment"
 
+	test.assert(
+		tostring(urlObj) ==
+		"https://www.example.com:8080/path/to/resource/newSegment?param1=value1&param2=value2#fragment",
+		"Path should be 'https://www.example.com:8080/path/to/resource/newSegment?param1=value1&param2=value2#fragment'")
+
+	-- multiple segments
+	urlObj = url.parse"https://www.example.com:8080/path/to/resource?param1=value1&param2=value2#fragment"
+	urlObj = urlObj // "newSegment/anotherSegment"
+
+	test.assert(
+		tostring(urlObj) ==
+		"https://www.example.com:8080/path/to/resource/newSegment/anotherSegment?param1=value1&param2=value2#fragment",
+		"Path should be 'https://www.example.com:8080/path/to/resource/newSegment/anotherSegment?param1=value1&param2=value2#fragment'")
+end
 
 test["(queries) string with array values"] = function ()
 	local s = "first=abc&a[]=123&a[]=false&b[]=str&c[]=3.5&a[]=last"

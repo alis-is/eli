@@ -208,6 +208,7 @@ end
 
 ---#DES 'url.add_segment'	
 ---
+--- Adds segment to url path, each / is encoded
 ---@param urlObj table
 ---@param path string
 ---@return Url
@@ -215,6 +216,19 @@ function url.add_segment(urlObj, path, legalInPath)
 	if type(path) == "string" then
 		urlObj.path = urlObj.path ..
 			"/" .. url.encode(path:gsub("^/+", ""), type(legalInPath) == "table" and legalInPath or url.options.legalInPath)
+	end
+	return urlObj
+end
+
+---#DES 'url.add_path'	
+---
+--- adds path to url path without encoding characters
+---@param urlObj table
+---@param path string
+---@return Url
+function url.add_path(urlObj, path)
+	if type(path) == "string" then
+		urlObj.path = urlObj.path .. "/" .. path
 	end
 	return urlObj
 end
@@ -610,6 +624,7 @@ url.__URL_METATABLE = {
 		build = url.build,
 		normalize = url.normalize,
 		add_segment = url.add_segment,
+		add_path = url.add_path,
 		set_authority = url.set_authority,
 		set_query = url.set_query,
 		resolve = url.resolve,
@@ -618,6 +633,7 @@ url.__URL_METATABLE = {
 	__tostring = url.build,
 	__div = url.add_segment,
 	__eq = url.equals,
+	__idiv = url.add_path,
 }
 
 url.__QUERY_METATABLE = {
