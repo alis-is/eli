@@ -87,6 +87,9 @@ test["copy (directory)"] = function ()
 	local paths = eliFs.read_dir(SOURCE_DIR, { recurse = true })
 	for _, filePath in ipairs(paths) do
 		local sourceFilePath = eliPath.combine(SOURCE_DIR, filePath)
+		if eliFs.file_type(sourceFilePath) == "directory" then
+			goto continue
+		end
 		local _ok, _hash = eliFs.safe_hash_file(sourceFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
@@ -94,6 +97,7 @@ test["copy (directory)"] = function ()
 			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
+		::continue::
 	end
 end
 
@@ -108,6 +112,9 @@ test["copy (directory - overwrite)"] = function ()
 	local paths = eliFs.read_dir(SOURCE_DIR, { recurse = true })
 	for _, filePath in ipairs(paths) do
 		local sourceFilePath = eliPath.combine(SOURCE_DIR, filePath)
+		if eliFs.file_type(sourceFilePath) == "directory" then
+			goto continue
+		end
 		local _ok, _hash = eliFs.safe_hash_file(sourceFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
@@ -115,12 +122,16 @@ test["copy (directory - overwrite)"] = function ()
 			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
+		::continue::
 	end
 
 	local _ok, _error = eliFs.safe_copy(SOURCE_DIR2, DEST_DIR)
 	test.assert(_ok, _error)
 	for _, filePath in ipairs(paths) do
 		local sourceFilePath = eliPath.combine(SOURCE_DIR, filePath)
+		if eliFs.file_type(sourceFilePath) == "directory" then
+			goto continue
+		end
 		local _ok, _hash = eliFs.safe_hash_file(sourceFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
@@ -128,6 +139,7 @@ test["copy (directory - overwrite)"] = function ()
 			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
+		::continue::
 	end
 
 	local _ok, _error = eliFs.safe_copy(SOURCE_DIR2, DEST_DIR, { overwrite = true })
@@ -135,6 +147,9 @@ test["copy (directory - overwrite)"] = function ()
 	local paths = eliFs.read_dir(SOURCE_DIR2, { recurse = true })
 	for _, filePath in ipairs(paths) do
 		local sourceFilePath = eliPath.combine(SOURCE_DIR2, filePath)
+		if eliFs.file_type(sourceFilePath) == "directory" then
+			goto continue
+		end
 		local _ok, _hash = eliFs.safe_hash_file(sourceFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
@@ -142,6 +157,7 @@ test["copy (directory - overwrite)"] = function ()
 			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
+		::continue::
 	end
 end
 

@@ -415,12 +415,9 @@ function fs.read_dir(path, options)
 		error("Not a directory: " .. path)
 	end
 
-	if path:sub(#path, #path) ~= default_sep() then
-		path = path .. default_sep()
-	end
-
 	if options.recurse or options.recursive then
-		local _lenOfPathToRemove = path:match".*/$" and #path or #path + 1
+		local pattern = package.config:sub(1, 1) == "\\" and ".*\\$" or ".*/$"
+		local _lenOfPathToRemove = path:match(pattern) and #path or #path + 1
 		if options.returnFullPaths then
 			_lenOfPathToRemove = 0
 		end

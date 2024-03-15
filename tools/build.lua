@@ -194,6 +194,9 @@ local function buildWithChain(id, buildDir)
 
 	log_info("Initiating build eli for " .. id .. "...")
 	buildDir = buildDir or path.combine("build", id)
+	if isZig then
+		buildDir = buildDir:gsub("zig:", "")
+	end
 	if shouldRemoveOldBuild then
 		fs.remove(buildDir, { recurse = true })
 	end
