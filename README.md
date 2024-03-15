@@ -39,7 +39,7 @@ Steps:
 1. `git clone https://github.com/alis-is/eli && cd eli`
 2. `docker build -t elibuild ./containers/build`
 3. `docker build -t elitest ./containers/test`
-4. `docker run -w "/root/luabuild" -v $(pwd):"/root/luabuild" -v "$(pwd)/toolchains:/opt/cross" -e TOOLCHAINS='x86_64-linux-musl-cross;i686-linux-musl-cross;aarch64-linux-musl-cross' -it elibuild`
+4. `docker run -w "/root/luabuild" -v $(pwd):"/root/luabuild" -v "$(pwd)/toolchains:/opt/cross" -e TOOLCHAINS='zig:x86_64-linux-musl;zig:x86_64-windows-gnu;zig:x86_64-macos-none' -it elibuild`
 6. `docker run -w "/root/luabuild" -v $(pwd):"/root/luabuild" -it elitest`
 7. Built binaries `eli` and `elic` will be created in release directory
 
