@@ -17,6 +17,7 @@ Embedded libraries:
 - [corehttp](https://github.com/FreeRTOS/coreHTTP)
 - [lua-corehttp](https://github.com/alis-is/lua-corehttp)
 - [lua-simple-socket](https://github.com/alis-is/lua-simple-socket)
+- [lua-simple-ipc](https://github.com/alis-is/lua-simple-ipc)
 - [mbedtls](https://github.com/ARMmbed/mbedtls)
 - [lua-mbed-base64](https://github.com/alis-is/lua-mbed-base64) + [lua-mbed-bigint](https://github.com/alis-is/lua-mbed-bigint) + [lua-mbed-hash](https://github.com/alis-is/lua-mbed-hash)
 
