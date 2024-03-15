@@ -1,0 +1,13 @@
+corehttp (#46)
+
+* corehttp
+* net.url
+* initial corehttp
+* proc groups in new proc extra
+* removed curl
+* build as prerelease if alpha or dev, do not release if only 'dev' 
+* fix http redirects - added url optional parse without decoding
+* patched hjson
+* restored `type` behavior to match lua
+* added etype which check __type on metatables to determine inner type
+** ___UNLOAD_MODULE table for finalizers

@@ -99,6 +99,46 @@ function fs.copy_file(src, dst, options)
 	if type(dst) == "string" then dstf:close() end
 end
 
+---@class FsCopyoptions
+---@field overwrite boolean?
+---@field ignore string[]|fun(path: string, fullPath: string): boolean?
+
+---#DES fs.copy'
+---
+---@param src string
+---@param dst string
+---@param options any
+function fs.copy(src, dst, options)
+	if type(options) ~= "table" then
+		options = {}
+	end
+	if fs.file_type(src) ~= "directory" then
+		return fs.copy_file(src, dst, options)
+	end
+	_check_efs_available"read_dir"
+	local srcFiles = fs.read_dir(src, { recurse = true, returnFullPaths = false })
+	for _, srcFile in ipairs(srcFiles) do
+		if type(options.ignore) == "function" and options.ignore(srcFile, src) then
+			goto continue
+		end
+		if type(options.ignore) == "table" and _extTable.includes(options.ignore, srcFile) then
+			goto continue
+		end
+
+		local dstFile = _eliPath.combine(dst, srcFile)
+		if fs.file_type(srcFile --[[@as string]]) == "directory" then
+			if fs.exists(dstFile) and fs.file_type(dstFile) ~= "directory" then
+				error"Cannot copy directory to file!"
+			end
+			fs.mkdirp(dstFile)
+		elseif not fs.exists(dstFile) or options.overwrite then
+			fs.mkdirp(_eliPath.dir(dstFile))
+			fs.copy_file(_eliPath.combine(src, srcFile) --[[@as string]], dstFile, options)
+		end
+		::continue::
+	end
+end
+
 ---Creates directory
 ---@param path string
 ---@param mkdir (fun(path: string))?
@@ -371,6 +411,14 @@ function fs.read_dir(path, options)
 	_check_efs_available"read_dir"
 	options = _util.merge_tables({}, options, true)
 
+	if fs.file_type(path) ~= "directory" then
+		error("Not a directory: " .. path)
+	end
+
+	if path:sub(#path, #path) ~= default_sep() then
+		path = path .. default_sep()
+	end
+
 	if options.recurse or options.recursive then
 		local _lenOfPathToRemove = path:match".*/$" and #path or #path + 1
 		if options.returnFullPaths then
@@ -549,9 +597,6 @@ function fs.file_type(path)
 	end
 	return efs.file_type(path)
 end
-
----// TODO: copy(src, dst, { recurse = true, overwrite = true, ignoreErrors = true, ignore = { "file1", "file2" } })
---- including directories if fs extra
 
 if efsLoaded then
 	local result = _util.generate_safe_functions(_util.merge_tables(fs, efs))
