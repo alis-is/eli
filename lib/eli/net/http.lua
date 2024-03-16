@@ -323,12 +323,13 @@ local function request(client, path, method, options, data)
 
 	-- progress function
 	local progress_function = nil
-	if options.showDefaultProgress == true or (type(options.showDefaultProgress) == "number" and options.showDefaultProgress > 0) then
-		local step = type(options.showDefaultProgress) == "boolean" and 10 or options
-			.showDefaultProgress --[[@as number]]
-		if type(options.progressFunction) == "function" then
-			progress_function = options.progressFunction
-		elseif type(step) == "number" and step > 0 then
+	if type(options.progress_function) == "function" then
+		progress_function = options.progress_function
+	elseif type(options.progressFunction) == "function" then
+		progress_function = options.progressFunction
+	elseif options.showDefaultProgress == true or (type(options.showDefaultProgress) == "number" and options.showDefaultProgress > 0) then
+		local step = type(options.showDefaultProgress) == "boolean" and 10 or options.showDefaultProgress --[[@as number]]
+		if type(step) == "number" and step > 0 then
 			progress_function = generate_progress_function(step)
 		end
 	end
