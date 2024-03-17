@@ -4,7 +4,13 @@ description: downloads and chmods artifacts
 runs:
   using: "composite"
   steps:
-  - name: prepare
+  - name: prepare linux/macos
+    if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
+    shell: sh
+    run: mkdir release
+  - name: prepare windows
+    if: ${{ runner.os == 'Windows' }}
+    shell: pwsh
     run: mkdir release
 
   - uses: actions/download-artifact@v4
