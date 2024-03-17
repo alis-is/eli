@@ -38,6 +38,7 @@ runs:
 
   - uses: actions/upload-artifact@v4
     with:
-      name: release
+      name: release-meta
       path: ./release/meta.zip
+      overwrite: true
       if-no-files-found: ignore # meta is generated only on x86_64 linux

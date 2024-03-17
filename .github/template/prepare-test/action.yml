@@ -4,9 +4,12 @@ description: downloads and chmods artifacts
 runs:
   using: "composite"
   steps:
+  - name: prepare
+    run: mkdir release
+
   - uses: actions/download-artifact@v4
     with:
-      path: .
+      path: ./release
       pattern: release-*
       merge-multiple: true
 
