@@ -156,6 +156,8 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field env table<string, string>?
 ---@field wait boolean?
 ---@field stdio SpawnStdio | StdType | nil
+---@field username string? user to run process as (may require root)
+---@field password string? password for user to run process as (only on windows, not implemented yet)
 
 ---@class EliProcessStdioInfo
 ---@field stdin '"ignore"' | '"pipe"' | '"inherit"' | '"external' | '"file"'

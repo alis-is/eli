@@ -24,16 +24,16 @@ runs:
       image: ghcr.io/alis-is/eli-build:latest
       run: eli tools/build.lua --debug
       options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }}
-  - uses: actions/upload-artifact@v3
+  - uses: actions/upload-artifact@v4
     with:
       name: release
       path: ./release/${{ inputs.artifact-id }}
-  - uses: actions/upload-artifact@v3
+  - uses: actions/upload-artifact@v4
     if: ${{ inputs.debug-artifact-id != '' }}
     with:
       name: debug
       path: ./release/${{ inputs.debug-artifact-id }}
-  - uses: actions/upload-artifact@v3
+  - uses: actions/upload-artifact@v4
     with:
       name: release
       path: ./release/meta.zip
