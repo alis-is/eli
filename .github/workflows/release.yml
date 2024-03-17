@@ -208,7 +208,9 @@ jobs:
     needs: [test-windows, test-linux, test-macos, test-ami, prepare]
     steps:
       - uses: actions/checkout@v4
+
       - uses: "./.github/template/prepare-test" # downloads artifacts
+      
       - name: publish
         uses: ncipollo/release-action@v1
         with:
