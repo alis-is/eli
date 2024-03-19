@@ -37,7 +37,10 @@
         "xloctime": "c",
         "string.h": "c",
         "xstring": "c",
-        "stdiochannel.h": "c"
+        "stdiochannel.h": "c",
+        "execvpe.h": "c",
+        "execve_spawnp.h": "c",
+        "ostream": "c"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/cpp",
     "editor.formatOnSave": true,

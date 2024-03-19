@@ -137,7 +137,7 @@ test["process by pid"]            = function ()
 	end
 	local p = eliProc.spawn(bin, args, { stdio = "inherit", createProcessGroup = true })
 
-	local pid = p:pid()
+	local pid = p:get_pid()
 	local pref = eliProc.get_by_pid(pid, { isSeparateProcessGroup = true })
 
 	local g = pref:get_group()

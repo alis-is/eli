@@ -156,6 +156,8 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field env table<string, string>?
 ---@field wait boolean?
 ---@field stdio SpawnStdio | StdType | nil
+---@field createProcessGroup boolean? create new process group (preffered over processGroup)
+---@field processGroup EliProcessGroup? process group to run process in
 ---@field username string? user to run process as (may require root)
 ---@field password string? password for user to run process as (only on windows, not implemented yet)
 
@@ -178,7 +180,7 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@class EliProcess
 ---@field __type '"ELI_PROCESS"'
 ---@field __tostring fun(self: EliProcess): string
----@field pid fun(self: EliProcess): integer
+---@field get_pid fun(self: EliProcess): integer
 ---@field wait fun(self: EliProcess, intervalSeconds: integer?, unitsDivider: integer?): integer
 ---@field kill fun(self: EliProcess, signal: integer?): integer
 ---@field get_exitcode fun(self: EliProcess): integer

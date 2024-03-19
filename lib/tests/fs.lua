@@ -23,7 +23,7 @@ test["copy file (path)"] = function ()
 	local _ok, _hash = eliFs.safe_hash_file("assets/test.file", { type = "sha256", hex = true })
 	test.assert(_ok, _hash)
 	local _ok, _hash2 =
-		eliFs.safe_hash_file("tmp/test.file", { type = "sha256", hex = true })
+	   eliFs.safe_hash_file("tmp/test.file", { type = "sha256", hex = true })
 	test.assert(_ok, _hash)
 	test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
@@ -72,7 +72,7 @@ test["copy (file)"] = function ()
 	local _ok, _hash = eliFs.safe_hash_file("assets/test.file", { type = "sha256", hex = true })
 	test.assert(_ok, _hash)
 	local _ok, _hash2 =
-		eliFs.safe_hash_file("tmp/test.file", { type = "sha256", hex = true })
+	   eliFs.safe_hash_file("tmp/test.file", { type = "sha256", hex = true })
 	test.assert(_ok, _hash)
 	test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
@@ -94,7 +94,7 @@ test["copy (directory)"] = function ()
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
 		local _ok, _hash2 =
-			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
+		   eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 		::continue::
@@ -119,7 +119,7 @@ test["copy (directory - overwrite)"] = function ()
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
 		local _ok, _hash2 =
-			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
+		   eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 		::continue::
@@ -136,7 +136,7 @@ test["copy (directory - overwrite)"] = function ()
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
 		local _ok, _hash2 =
-			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
+		   eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 		::continue::
@@ -154,7 +154,7 @@ test["copy (directory - overwrite)"] = function ()
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
 		local _ok, _hash2 =
-			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
+		   eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 		::continue::
@@ -371,9 +371,9 @@ end
 
 local function _external_lock(file)
 	local _cmd = (os.getenv"QEMU" or "") ..
-		" " .. arg[-1] .. " -e \"x, err = fs.lock_file('" .. file .. "','w'); " ..
-		"if etype(x) == 'ELI_FILE_LOCK' then os.exit(0); end; notAvailable = tostring(err):match('Resource temporarily unavailable') or tostring(err):match('locked a portion of the file'); " ..
-		"exitCode = notAvailable and 11 or 12; os.exit(exitCode)\""
+	   " " .. arg[-1] .. " -e \"x, err = fs.lock_file('" .. file .. "','w'); " ..
+	   "if etype(x) == 'ELI_FILE_LOCK' then os.exit(0); end; notAvailable = tostring(err):match('Resource temporarily unavailable') or tostring(err):match('locked a portion of the file'); " ..
+	   "exitCode = notAvailable and 11 or 12; os.exit(exitCode)\""
 	local _ok, _, _code = os.execute(_cmd)
 	return _ok, _code
 end
@@ -430,13 +430,13 @@ test["lock (not active - owned file)"] = function ()
 end
 
 test["lock (cleanup)"] = function ()
-	function _t()
+	function t()
 		local _lock, _error = eliFs.lock_file("tmp/test.file", "w")
 		test.assert(_lock ~= nil, _error)
 		_lock:unlock()
 	end
 
-	_t()
+	t()
 	-- we would segfault/sigbus here if cleanup does not work properly
 	test.assert(true)
 end
