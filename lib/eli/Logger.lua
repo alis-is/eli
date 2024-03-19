@@ -12,7 +12,7 @@ local RESET_COLOR = string.char(27) .. "[0m"
 ---@alias LogLevelInt -2|-1|0|0|1|2
 
 ---@class LogMessage
----@field level LogLevel
+---@field level LogLevel?
 ---@field msg string
 ---@field module nil|string
 
