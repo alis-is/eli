@@ -139,7 +139,7 @@ local function _collect_field(_, libName, docBlock, isGlobal)
 		["table"] = "{}",
 		["number"] = "0",
 		["thread"] = "nil",
-		["userdata"] = "nil"
+		["userdata"] = "nil",
 	}
 	local _type = docBlock.fieldType
 	if _type == "nil" then
@@ -167,6 +167,42 @@ local _collectors = {
 	["field"] = _collect_field,
 }
 
+local function patchMetaReturns(sourceCode)
+	local lines = {}
+	local returnVarPattern = "--- #META_RETURNS ([%w_]+)"
+	local returnVar = nil
+	local lastReturnIndex = nil
+
+	-- Split the source code into lines
+	for line in sourceCode:gmatch"([^\n]*)\n?" do
+		table.insert(lines, line)
+		if line:match(returnVarPattern) then
+			returnVar = line:match(returnVarPattern)
+		end
+	end
+
+	-- Find the last 'return' statement
+	for i = #lines, 1, -1 do
+		if lines[i]:match"^return" then
+			lastReturnIndex = i
+			break
+		end
+	end
+
+	if not returnVar then
+		return sourceCode
+	end
+
+	if not lastReturnIndex then
+		return sourceCode
+	end
+
+	-- Replace the last 'return' statement with the variable assignment
+	lines[lastReturnIndex] = returnVar .. " = " .. lines[lastReturnIndex]:match"^return%s+(.+)"
+
+	return table.concat(lines, "\n")
+end
+
 ---comment
 ---@param libPath string
 ---@param libReference any
@@ -182,7 +218,9 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 	for k, _ in pairs(_lib) do table.insert(_fields, k) end
 	table.sort(_fields)
 
-	local _generatedDoc = "---@meta \n" -- inject meta header, meta name should be used for libs which are meant to be required
+	-- inject meta header, meta name should be used for libs which are meant to be required
+	local _generatedDoc = "---@meta\n"
+
 	--- @type string | table
 	local _sourcePaths = { "lib/eli/" .. _libName:gsub("%.", "/") .. ".lua" }
 	if type(sourceFiles) == "string" then
@@ -192,10 +230,16 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 	end
 	local _code = ""
 	for _, v in ipairs(_sourcePaths) do
-		local _ok, _codePart = fs.safe_read_file(v)
-		if _ok then _code = _code .. _codePart .. "\n" end
+		local ok, codePart = fs.safe_read_file(v)
+		if ok then
+			if codePart:find("--- #META_HINT keep-file", 0, true) then
+				_generatedDoc = _generatedDoc .. patchMetaReturns(codePart)
+			else
+				_code = _code .. codePart .. "\n"
+			end
+		end
 	end
-	if _code == "" then return "" end
+	if _code == "" then return #_generatedDoc > 8 and _generatedDoc or "" end
 
 	---@type DocBlock[]
 	local _docsBlocks = {}
@@ -206,8 +250,8 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 		_docBlock, _blockEnds, _field = _get_next_doc_block(_code, _libName,
 			_blockEnds)
 		if _docBlock == nil then break end
-		if _field == nil then                                                -- dangling
-			if _docBlock:match"@class" or _docBlock:match"@alias" then        -- only classes and aliases are allowed into danglings
+		if _field == nil then                                   -- dangling
+			if _docBlock:match"@class" or _docBlock:match"@alias" then -- only classes and aliases are allowed into danglings
 				table.insert(_docsBlocks, {
 					name = _field,
 					kind = "independent",
@@ -238,7 +282,7 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 				value = _lib[_field],
 				libFieldSeparator = _docBlock:match(
 						"%-%-%-[ ]?#DES '?" .. _libName .. "(.)[%w_:]+'?.-\n%s*") or
-					"."
+					".",
 			})
 		end
 		::continue::

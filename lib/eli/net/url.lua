@@ -107,7 +107,7 @@ function url.build_query(tab, sep, key)
 	return table.concat(query, sep)
 end
 
----#DES 'url.query_equals'
+---#DES 'net.url.query_equals'
 --- compares two url queries
 ---@param query1 UrlQuery
 ---@param query2 UrlQuery|string
@@ -120,7 +120,7 @@ function url.query_equals(query1, query2)
 	return url.build_query(query1) == url.build_query(query2)
 end
 
----#DES 'url.add_query'
+---#DES 'net.url.add_query'
 --- adds values to url query,
 --- replaces existing values
 ---@param queryObj UrlQuery
@@ -206,7 +206,7 @@ function url.set_query(urlObj, query)
 	urlObj.query = url.parse_query(query)
 end
 
----#DES 'url.add_segment'	
+---#DES 'net.url.add_segment'	
 ---
 --- Adds segment to url path, each / is encoded
 ---@param urlObj table
@@ -220,7 +220,7 @@ function url.add_segment(urlObj, path, legalInPath)
 	return urlObj
 end
 
----#DES 'url.add_path'	
+---#DES 'net.url.add_path'	
 ---
 --- adds path to url path without encoding characters
 ---@param urlObj table
@@ -233,7 +233,7 @@ function url.add_path(urlObj, path)
 	return urlObj
 end
 
----#DES 'url.equals'
+---#DES 'net.url.equals'
 ---
 ---@param urlObj1 Url|string
 ---@param urlObj2 Url|string
@@ -247,7 +247,7 @@ function url.equals(urlObj1, urlObj2)
 	return url.build(urlObj1) == url.build(urlObj2)
 end
 
----#DES 'url.extract_ip'
+---#DES 'net.url.extract_ip'
 ---
 ---@param str any
 ---@return string?, string
@@ -317,7 +317,7 @@ local function extract_authority_components(authorityStr)
 	return host, port, credentials
 end
 
----#DES 'url.set_authority'	
+---#DES 'net.url.set_authority'	
 ---
 ---@param urlObj table
 ---@param authority string
@@ -369,7 +369,7 @@ function url.set_authority(urlObj, authority)
 	return urlObj
 end
 
----#DES 'url.clone'	
+---#DES 'net.url.clone'	
 ---
 ---@param urlObj Url
 ---@return Url
@@ -377,7 +377,7 @@ function url.clone(urlObj)
 	return util.clone(urlObj, true)
 end
 
----#DES 'url.build'	
+---#DES 'net.url.build'	
 ---
 ---@param urlObj Url
 ---@return string
@@ -461,7 +461,7 @@ function url.parse(urlStr)
 	return result
 end
 
----#DES 'url.remove_dot_segments'
+---#DES 'net.url.remove_dot_segments'
 ---
 ---@param path string
 ---@return string
@@ -543,7 +543,7 @@ local function reduce_path(basePath, relativePath)
 	return (startslash and "" or "/") .. path
 end
 
----#DES 'url.resolve'
+---#DES 'net.url.resolve'
 --- builds a new url by using the one given as parameter and resolving paths
 ---@param base Url|string
 ---@param other Url|string
@@ -575,7 +575,7 @@ function url.resolve(base, other)
 	end
 end
 
----#DES 'url.normalize'
+---#DES 'net.url.normalize'
 --- normalize a url path following some common normalization rules
 --- described on <a href="http://en.wikipedia.org/wiki/URL_normalization">The URL normalization page of Wikipedia</a>
 ---@param urlObj Url|string
@@ -594,7 +594,7 @@ function url.normalize(urlObj)
 	return urlObj
 end
 
----#DES 'url.to_request_parameters'
+---#DES 'net.url.to_request_parameters'
 --- returns scheme, host, port, path + query + fragment, credentials
 ---@param urlObjOrStr Url | string
 ---@return string?, string?, string?, string?, string?

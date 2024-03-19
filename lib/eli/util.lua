@@ -107,10 +107,12 @@ end
 ---@class MergeTablesOptions: MergeArraysOptions
 
 ---#DES 'util.merge_tables'
----@param t1? table
----@param t2? table
+---@generic TTable1: table
+---@generic TTable2: table
+---@param t1? TTable1
+---@param t2? TTable2
 ---@param options boolean|MergeTablesOptions | nil
----@return table
+---@return TTable1 | TTable2
 function util.merge_tables(t1, t2, options)
 	if t1 == nil then
 		return t2 or {}
@@ -228,14 +230,15 @@ end
 ---@type Logger?
 GLOBAL_LOGGER = GLOBAL_LOGGER or nil
 
+
 ---#DES 'util.global_log_factory'
 ---@param module string
 ---@param ... string
----@return fun(msg: string, vars: table?) ...
+---@return fun(msg: string | LogMessage, vars: table?) ...
 function util.global_log_factory(module, ...)
 	---@type fun(msg: string, vars: table?)[]
 	local _result = {}
-	if (type(GLOBAL_LOGGER) ~= "table" and type(GLOBAL_LOGGER) ~= "ELI_LOGGER") or
+	if (type(GLOBAL_LOGGER) ~= "table" and etype(GLOBAL_LOGGER) ~= "ELI_LOGGER") or
 	getmetatable(GLOBAL_LOGGER).__type ~= "ELI_LOGGER" then
 		GLOBAL_LOGGER = (require"eli.Logger"):new()
 	end

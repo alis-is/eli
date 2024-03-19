@@ -16,8 +16,7 @@ local RESET_COLOR = string.char(27) .. "[0m"
 ---@field msg string
 ---@field module nil|string
 
-
----@class EliLoggerOptions
+---@class LoggerOptions
 ---@field format '"auto"'|'"standard"'|'"json"'
 ---@field colorful boolean?
 ---@field level LogLevel
@@ -26,7 +25,7 @@ local RESET_COLOR = string.char(27) .. "[0m"
 
 ---#DES 'Logger'
 ---@class Logger
----@field options EliLoggerOptions
+---@field options LoggerOptions
 ---@field __type '"ELI_LOGGER"'
 local Logger = {}
 Logger.__index = Logger
@@ -34,7 +33,7 @@ Logger.__index = Logger
 ---#DES 'Logger:new'
 ---
 ---@param self Logger
----@param options EliLoggerOptions?
+---@param options LoggerOptions?
 ---@return Logger
 function Logger:new(options)
 	local logger = {}
@@ -158,18 +157,21 @@ local function log_json(data)
 	print(encode_to_json(data, { indent = false, skipkeys = true }))
 end
 
+---makes sure string is converted to EliLogMessage
+---@param msg LogMessage | string
+---@return LogMessage
 local function wrap_msg(msg)
 	if type(msg) ~= "table" then
-		return { msg = msg, level = "info" }
+		return { msg = msg, level = "info" } --[[@as LogMessage]]
 	end
-	return msg
+	return msg --[[@as LogMessage]]
 end
 
 ---#DES 'Logger:log'
 ---
 ---Logs message with specified level
 ---@param self Logger
----@param msg LogMessage
+---@param msg LogMessage | string
 ---@param level LogLevel
 ---@param vars table?
 function Logger:log(msg, level, vars)
@@ -195,7 +197,7 @@ end
 ---#DES 'Logger:success'
 ---
 ---@param self Logger
----@param msg LogMessage
+---@param msg LogMessage | string
 ---@param vars table?
 function Logger:success(msg, vars)
 	self:log(msg, "success", vars)
@@ -204,7 +206,7 @@ end
 ---#DES 'Logger:debug'
 ---
 ---@param self Logger
----@param msg LogMessage
+---@param msg LogMessage | string
 ---@param vars table?
 function Logger:debug(msg, vars)
 	self:log(msg, "debug", vars)
@@ -213,7 +215,7 @@ end
 ---#DES 'Logger:trace'
 ---
 ---@param self Logger
----@param msg LogMessage
+---@param msg LogMessage | string
 ---@param vars table?
 function Logger:trace(msg, vars)
 	self:log(msg, "trace", vars)
@@ -222,7 +224,7 @@ end
 ---#DES 'Logger:info'
 ---
 ---@param self Logger
----@param msg LogMessage
+---@param msg LogMessage | string
 ---@param vars table?
 function Logger:info(msg, vars)
 	self:log(msg, "info", vars)
@@ -231,7 +233,7 @@ end
 ---#DES 'Logger:warn'
 ---
 ---@param self Logger
----@param msg LogMessage
+---@param msg LogMessage | string
 ---@param vars table?
 function Logger:warn(msg, vars)
 	self:log(msg, "warn", vars)
@@ -240,7 +242,7 @@ end
 ---#DES 'Logger:error'
 ---
 ---@param self Logger
----@param msg LogMessage
+---@param msg LogMessage | string
 ---@param vars table?
 function Logger:error(msg, vars)
 	self:log(msg, "error", vars)

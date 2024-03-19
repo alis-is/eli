@@ -428,7 +428,7 @@ local function request(client, path, method, options, data)
 	return result
 end
 
----#DES 'net.RestClient:new'
+---#DES 'net.http.RestClient:new'
 ---
 ---@param self RestClient
 ---@param urlOrId string
@@ -497,7 +497,7 @@ function net.RestClient:new(urlOrId, parentOrOptions, options)
 	return _restClient
 end
 
----#DES 'net.RestClient:__tostring'
+---#DES 'net.http.RestClient:__tostring'
 ---
 ---@param self RestClient
 ---@return string
@@ -506,7 +506,7 @@ function net.RestClient:__tostring()
 		(tostring(self.__url) or self.__id or "unknown host or id")
 end
 
----#DES 'net.RestClient:get_url'
+---#DES 'net.http.RestClient:get_url'
 ---
 ---@param self RestClient
 ---@return Url
@@ -519,7 +519,7 @@ function net.RestClient:get_url()
 	return url:normalize()
 end
 
----#DES 'net.RestClient:get_headers'
+---#DES 'net.http.RestClient:get_headers'
 ---
 ---@param self RestClient
 ---@return Url
@@ -527,7 +527,7 @@ function net.RestClient:get_headers()
 	return setmetatable(util.clone(self.__options.headers, true) --[[@as table]], corehttp.HEADERS_METATABLE)
 end
 
----#DES 'net.RestClient:conf'
+---#DES 'net.http.RestClient:conf'
 ---
 --- configures RestClient
 ---@param self RestClient
@@ -543,7 +543,7 @@ end
 ---@field allowRestclientPropertyOverride boolean?
 ---@field shortcutRules fun(name: string, path: string): string
 
----#DES 'net.RestClient:res'
+---#DES 'net.http.RestClient:res'
 ---
 --- creates resource
 ---@overload fun(self: RestClient, resources: string, options: ResourceCreationOptions?):RestClient?
@@ -612,7 +612,7 @@ function net.RestClient:res(resources, options)
 	end
 end
 
----#DES 'net.RestClient:safe_res'
+---#DES 'net.http.RestClient:safe_res'
 ---
 --- creates resource
 ---@overload fun(self: RestClient, resources: string, options: RestClientOptions?):boolean, RestClient?
@@ -658,7 +658,7 @@ local function get_request_url(client, pathOrOptions, options)
 	return url:normalize(), options
 end
 
----#DES 'net.RestClient:get'
+---#DES 'net.http.RestClient:get'
 ---
 ---@param self RestClient
 ---@param pathOrOptions (string|RestClientOptions)?
@@ -672,7 +672,7 @@ function net.RestClient:get(pathOrOptions, options)
 	return request(self.__client, path, "GET", util.merge_tables(options, self.__options))
 end
 
----#DES 'net.RestClient:safe_get'
+---#DES 'net.http.RestClient:safe_get'
 ---
 ---@param self RestClient
 ---@param pathOrOptions (string|RestClientOptions)?
@@ -682,7 +682,7 @@ function net.RestClient:safe_get(pathOrOptions, options)
 	return unwrap_safe_result(pcall(self.get, self, pathOrOptions, options))
 end
 
----#DES 'net.RestClient:post'
+---#DES 'net.http.RestClient:post'
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
@@ -696,7 +696,7 @@ function net.RestClient:post(data, pathOrOptions, options)
 	return request(self.__client, path, "POST", util.merge_tables(options, self.__options), data)
 end
 
----#DES 'net.RestClient:safe_post'
+---#DES 'net.http.RestClient:safe_post'
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
@@ -707,7 +707,7 @@ function net.RestClient:safe_post(data, pathOrOptions, options)
 	return unwrap_safe_result(pcall(self.post, self, data, pathOrOptions, options))
 end
 
----#DES 'net.RestClient:put'
+---#DES 'net.http.RestClient:put'
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
@@ -721,7 +721,7 @@ function net.RestClient:put(data, pathOrOptions, options)
 	return request(self.__client, path, "PUT", util.merge_tables(options, self.__options), data)
 end
 
----#DES 'net.RestClient:safe_put'
+---#DES 'net.http.RestClient:safe_put'
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
@@ -732,7 +732,7 @@ function net.RestClient:safe_put(data, pathOrOptions, options)
 	return unwrap_safe_result(pcall(self.put, self, data, pathOrOptions, options))
 end
 
----#DES 'net.RestClient:patch'
+---#DES 'net.http.RestClient:patch'
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
@@ -746,7 +746,7 @@ function net.RestClient:patch(data, pathOrOptions, options)
 	return request(self.__client, path, "PATCH", util.merge_tables(options, self.__options), data)
 end
 
----#DES 'net.RestClient:safe_patch'
+---#DES 'net.http.RestClient:safe_patch'
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
@@ -757,7 +757,7 @@ function net.RestClient:safe_patch(data, pathOrOptions, options)
 	return unwrap_safe_result(pcall(self.patch, self, data, pathOrOptions, options))
 end
 
----#DES 'net.RestClient:delete'
+---#DES 'net.http.RestClient:delete'
 ---
 ---@param self RestClient
 ---@param pathOrOptions (string|RestClientOptions)?
@@ -771,7 +771,7 @@ function net.RestClient:delete(pathOrOptions, options)
 	return request(self.__client, path, "DELETE", util.merge_tables(options, self.__options))
 end
 
----#DES 'net.RestClient:safe_delete'
+---#DES 'net.http.RestClient:safe_delete'
 ---
 ---@param self RestClient
 ---@param pathOrOptions (string|RestClientOptions)?
@@ -810,7 +810,7 @@ local function get_retry_limit(options)
 	return retryLimit --[[@as integer]]
 end
 
----#DES net.download_file
+---#DES net.http.download_file
 ---
 --- Downloads file from url to destination
 ---@param url string
@@ -837,7 +837,7 @@ function net.download_file(url, destination, options)
 	end
 end
 
----#DES net.download_string
+---#DES net.http.download_string
 ---
 --- Downloads file from url to destination
 ---@param url string
