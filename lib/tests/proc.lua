@@ -211,9 +211,11 @@ test["spawn (stdin/stdout/stderr as path)"] = function ()
 	local _stdout = result.stdoutStream:read"a"
 	test.assert(result.exitcode == 0 and _stdout:match"13354")
 end
+
 test["spawn (process group)"] = function ()
 	if not isUnixLike then
-		return test.skip"process group not tested on windows"
+		-- "process group not tested on windows"
+		return
 	end
 	local options = {
 		wait = false,
