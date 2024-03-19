@@ -57,6 +57,9 @@ end
 local ExecTmpFile = {}
 ExecTmpFile.__index = ExecTmpFile
 
+---#DES 'ExecTmpFile:new'
+---
+---@param path string
 function ExecTmpFile:new(path)
 	local _tmpFile = {}
 	_tmpFile.path = path
@@ -72,11 +75,15 @@ end
 ---@return string
 function ExecTmpFile.__tostring() return "ELI_EXEC_TMP_FILE" end
 
+---#DES 'ExecTmpFile:read'
+---
 ---@param self ExecTmpFile
----@param mode string|number
+---@param mode integer | "a" | "l" | "L"
 ---@return string
 function ExecTmpFile:read(mode) return self.__file:read(mode) end
 
+---#DES 'ExecTmpFile:close'
+---
 ---@param self ExecTmpFile
 function ExecTmpFile:close() return self.__file:close() end
 
@@ -172,7 +179,7 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 
 ---@class EliReadableStream
 ---@field __type '"ELI_STREAM_R_METATABLE"'
----@field read fun(self: EliReadableStream): string
+---@field read fun(self: EliReadableStream, opt: integer | "a" | "l" | "L"): string
 
 ---@class EliProcessGroup
 ---@field kill fun(self: EliProcessGroup, signal: integer?): integer
@@ -185,9 +192,9 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field kill fun(self: EliProcess, signal: integer?): integer
 ---@field get_exitcode fun(self: EliProcess): integer
 ---@field exited fun(self: EliProcess): boolean
----@field get_stdout fun(self: EliProcess): EliWritableStream | nil
+---@field get_stdout fun(self: EliProcess): EliReadableStream | nil
 ---@field get_stderr fun(self: EliProcess): EliReadableStream | file* | nil
----@field get_stdin fun(self: EliProcess): EliReadableStream | file* | nil
+---@field get_stdin fun(self: EliProcess): EliWritableStream | file* | nil
 ---@field get_stdio_info fun(self: EliProcess): EliProcessStdioInfo
 ---@field get_group fun(self: EliProcess): EliProcessGroup | nil
 
