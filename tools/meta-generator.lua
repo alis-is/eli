@@ -4,8 +4,9 @@ local _exclude = { "eli.internals.util", "eli.pipe.extra", "eli.proc.extra", "el
 ---comment
 ---@param code string
 ---@param libName string
----@return string, number, string
+---@return string, number, string, boolean
 local function _get_next_doc_block(code, libName, position)
+	local isInject = code:match"^--- META_INJECT"
 	local _blockContent = ""
 	local _blockStart, _blockEnd = code:find("%s-%-%-%-.-\n[^%S\n]*", position)
 	if _blockStart == nil then return nil end
@@ -32,7 +33,7 @@ local function _get_next_doc_block(code, libName, position)
 			code:sub(_start, _end):match"^%s*(.-)%s*$" .. "\n"
 		_blockEnd = _end
 	end
-	return _blockContent, _blockEnd, _field
+	return _blockContent, _blockEnd, _field, isInject
 end
 
 ---@alias DocBlockKind
@@ -41,6 +42,7 @@ end
 ---| '"function"'
 ---| '"class"'
 ---| '"safe_function"'
+---| '"inject"'
 
 ---@class DocBlock
 ---@field kind DocBlockKind
@@ -158,6 +160,19 @@ local function _collect_field(_, libName, docBlock, isGlobal)
 	end
 end
 
+local function collect_inject(_, libName, docBlock, isGlobal)
+	local content = docBlock.content
+	-- strip "--- META_INJECT"
+	local _, _end = content:find("META_INJECT", 0, true)
+	-- strip leading --- from each line
+	content = content:sub(_end + 1):gsub("\n%s*%-%-%-", "\n")
+
+	--- trim empty lines
+	content = content:gsub("\n\n+", "\n")
+
+	return content
+end
+
 ---@type table<string, fun(code: string, libName: string, docBlock: DocBlock, isGlobal: boolean): string>
 local _collectors = {
 	["independent"] = function (_, _, docBlock, _) return docBlock.content end,
@@ -165,43 +180,8 @@ local _collectors = {
 	["safe_function"] = _collect_safe_function,
 	["class"] = _collect_class,
 	["field"] = _collect_field,
+	["inject"] = collect_inject,
 }
-
-local function patchMetaReturns(sourceCode)
-	local lines = {}
-	local returnVarPattern = "--- #META_RETURNS ([%w_]+)"
-	local returnVar = nil
-	local lastReturnIndex = nil
-
-	-- Split the source code into lines
-	for line in sourceCode:gmatch"([^\n]*)\n?" do
-		table.insert(lines, line)
-		if line:match(returnVarPattern) then
-			returnVar = line:match(returnVarPattern)
-		end
-	end
-
-	-- Find the last 'return' statement
-	for i = #lines, 1, -1 do
-		if lines[i]:match"^return" then
-			lastReturnIndex = i
-			break
-		end
-	end
-
-	if not returnVar then
-		return sourceCode
-	end
-
-	if not lastReturnIndex then
-		return sourceCode
-	end
-
-	-- Replace the last 'return' statement with the variable assignment
-	lines[lastReturnIndex] = returnVar .. " = " .. lines[lastReturnIndex]:match"^return%s+(.+)"
-
-	return table.concat(lines, "\n")
-end
 
 ---comment
 ---@param libPath string
@@ -232,11 +212,7 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 	for _, v in ipairs(_sourcePaths) do
 		local ok, codePart = fs.safe_read_file(v)
 		if ok then
-			if codePart:find("--- #META_HINT keep-file", 0, true) then
-				_generatedDoc = _generatedDoc .. patchMetaReturns(codePart)
-			else
-				_code = _code .. codePart .. "\n"
-			end
+			_code = _code .. codePart .. "\n"
 		end
 	end
 	if _code == "" then return #_generatedDoc > 8 and _generatedDoc or "" end
@@ -246,10 +222,18 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 	local _blockEnds = 0
 
 	while true do
-		local _docBlock, _field
-		_docBlock, _blockEnds, _field = _get_next_doc_block(_code, _libName,
-			_blockEnds)
+		local _docBlock, _field, isInject
+		_docBlock, _blockEnds, _field, isInject = _get_next_doc_block(_code, _libName, _blockEnds)
 		if _docBlock == nil then break end
+		if isInject then
+			table.insert(_docsBlocks, {
+				name = _field,
+				kind = "inject",
+				content = _docBlock,
+				blockEnd = _blockEnds,
+			})
+		end
+
 		if _field == nil then                                   -- dangling
 			if _docBlock:match"@class" or _docBlock:match"@alias" then -- only classes and aliases are allowed into danglings
 				table.insert(_docsBlocks, {
