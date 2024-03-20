@@ -2,7 +2,6 @@ local io = require"io"
 local _eliPath = require"eli.path"
 local dir = _eliPath.dir
 local combine = _eliPath.combine
-local default_sep = _eliPath.default_sep
 local _extTable = require"eli.extensions.table"
 local _util = require"eli.util"
 local efsLoaded, efs = pcall(require, "eli.fs.extra")
@@ -204,11 +203,11 @@ function fs.create_dir(path, recurse, mkdir)
 end
 
 ---@class FsRemoveOptions
----@field recurse boolean
----@field contentOnly boolean
----@field followLinks boolean
+---@field recurse boolean?
+---@field contentOnly boolean?
+---@field followLinks boolean?
 ---@field keep (fun(path: string, fullPath: string): boolean?)? whitelist function for files to keep
----@field root string path to strip from path before passing to keep function, this is usually done internally
+---@field root string? path to strip from path before passing to keep function, this is usually done internally
 
 local function _remove_link_target(path)
 	local _linkInfo = efs.link_info(path)
