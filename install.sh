@@ -42,7 +42,7 @@ else
 fi
 
 if "$@" "https://github.com/alis-is/eli/releases/download/$LATEST/eli-linux-$PLATFORM" &&
-    mv "$TMP_NAME" /usr/sbin/eli &&
+    cp "$TMP_NAME" /usr/sbin/eli && rm "$TMP_NAME" &&
     chmod +x /usr/sbin/eli; then
     if [ "$1" = "--prerelease" ]; then
         echo "Latest eli prerelease for $PLATFORM successfully installed."
