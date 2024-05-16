@@ -6,7 +6,7 @@ RUN mkdir /usr/local/zig
 RUN wget -q https://raw.githubusercontent.com/alis-is/eli/main/install.sh -O /tmp/install.sh && \
 	sh /tmp/install.sh
 # setup zig
-RUN export ZIG_VERSION=0.12.0-dev.1830+779b8e259 && \
+RUN export ZIG_VERSION=0.12.0 && \
 	wget https://ziglang.org/builds/zig-linux-x86_64-$ZIG_VERSION.tar.xz && \
 	mkdir zig && tar --xz -xf zig-linux-x86_64-$ZIG_VERSION.tar.xz --directory zig && \
 	cp -rf zig/zig*/* --target-directory=/usr/local/zig
