@@ -67,10 +67,6 @@
 	path = deps/mbedtls
 	url = https://github.com/Mbed-TLS/mbedtls
 	ignore = dirty
-[submodule "deps/zlib"]
-	path = deps/zlib
-	url = https://github.com/madler/zlib
-	ignore = dirty
 [submodule "deps/libzip"]
 	path = deps/libzip
 	url = https://github.com/nih-at/libzip
@@ -110,3 +106,8 @@
 [submodule "deps/lua-simple-ipc"]
 	path = deps/lua-simple-ipc
 	url = https://github.com/alis-is/lua-simple-ipc.git
+	ignore = dirty
+[submodule "deps/zlib-ng"]
+	path = deps/zlib-ng
+	url = https://github.com/zlib-ng/zlib-ng.git
+	ignore = dirty

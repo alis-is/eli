@@ -30,15 +30,15 @@ endif()
 set(LUA_INCLUDE ${CMAKE_SOURCE_DIR}/deps/lua/)
 set(ZIP_LIB_INCLUDE ${CMAKE_BINARY_DIR}/deps/libzip/ ${CMAKE_SOURCE_DIR}/deps/libzip/lib/)
 
-set(ZLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/deps/zlib/ CACHE STRING "zlib" FORCE)
-set(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/deps/zlib/libz.a)
+set(ZLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/deps/zlib-ng/ CACHE STRING "zlib" FORCE)
+set(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/deps/zlib-ng/libz.a)
 set(MbedTLS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/include)
 set(MbedTLS_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/library/libmbedtls.a)
 
 include(${CMAKE_SOURCE_DIR}/deps/corehttp/httpFilePaths.cmake)
 
 # include_directories(deps/lua/ ${ZLIB_INCLUDE_DIR} ${HTTP_INCLUDE_PUBLIC_DIRS} deps/libzip deps/mbedtls/include deps/curl/include ${CMAKE_SOURCE_DIR}/deps/zlib)
-include_directories(deps/lua/ ${ZLIB_INCLUDE_DIR} ${HTTP_INCLUDE_PUBLIC_DIRS} deps/libzip deps/mbedtls/include ${CMAKE_SOURCE_DIR}/deps/zlib ${CMAKE_SOURCE_DIR}/deps/lua-corehttp/include)
+include_directories(deps/lua/ ${ZLIB_INCLUDE_DIR} ${HTTP_INCLUDE_PUBLIC_DIRS} deps/libzip deps/mbedtls/include ${CMAKE_SOURCE_DIR}/deps/zlib-ng ${CMAKE_SOURCE_DIR}/deps/lua-corehttp/include)
 
 # MBEDTLS
 set(ENABLE_ZLIB_SUPPORT ON CACHE BOOL "")
@@ -83,7 +83,10 @@ add_subdirectory(deps/lua-tar-read-native/)
 target_include_directories(ltar PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 
 # ZLIB
-add_subdirectory(deps/zlib/ EXCLUDE_FROM_ALL)
+set(ZLIB_COMPAT ON CACHE BOOL "")
+set(ZLIB_ENABLE_TESTS OFF CACHE BOOL "")
+set(ZLIBNG_ENABLE_TESTS OFF CACHE BOOL "")
+add_subdirectory(deps/zlib-ng/ EXCLUDE_FROM_ALL)
 add_custom_target(copy_zlib_files ALL DEPENDS zlibstatic)
 add_custom_command(TARGET copy_zlib_files POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy ${ZLIB_INCLUDE_DIR}/libzlibstatic.a ${ZLIB_INCLUDE_DIR}/libz.a || exit 0
