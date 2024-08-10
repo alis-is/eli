@@ -41,7 +41,8 @@
         "execvpe.h": "c",
         "execve_spawnp.h": "c",
         "ostream": "c",
-        "crypto.h": "c"
+        "crypto.h": "c",
+        "types.h": "c"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/cpp",
     "editor.formatOnSave": true,

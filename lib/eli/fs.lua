@@ -300,6 +300,7 @@ end
 ---
 ---Returns true if specified path exists
 ---@param path string
+---@return boolean
 function fs.exists(path)
 	local _ok, _, _code = os.rename(path, path)
 	return _ok or _code == 13
@@ -309,6 +310,7 @@ end
 ---
 ---Returns true if specified path exists
 ---@param path string
+---@return boolean
 function fs.dir_exists(path)
 	path = path:sub(#path, #path) == "/" and path or path .. "/"
 	return fs.exists(path)
