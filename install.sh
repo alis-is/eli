@@ -41,9 +41,26 @@ else
     echo "Downloading eli-linux-$PLATFORM $LATEST..."
 fi
 
+if [ -f "/usr/sbin/eli" ]; then
+    rm -f /usr/sbin/eli # remove old eli
+fi
+
+# check destination folder
+if [ -d "/usr/bin" ]; then
+    DESTINATION="/usr/bin/eli"
+elif [ -d "/bin" ]; then
+    DESTINATION="/bin/eli"
+elif [ -d "/usr/local/bin" ]; then
+    DESTINATION="/usr/local/bin/eli"
+elif [ -d "/usr/sbin" ]; then
+    DESTINATION="/usr/sbin/eli"
+else
+    echo "No destination folder found." 1>&2
+    exit 1
+fi
+
 if "$@" "https://github.com/alis-is/eli/releases/download/$LATEST/eli-linux-$PLATFORM" &&
-    cp "$TMP_NAME" /usr/sbin/eli && rm "$TMP_NAME" &&
-    chmod +x /usr/sbin/eli; then
+    cp "$TMP_NAME" "$DESTINATION" && rm "$TMP_NAME" && chmod +x "$DESTINATION"; then
     if [ "$1" = "--prerelease" ]; then
         echo "Latest eli prerelease for $PLATFORM successfully installed."
     else
