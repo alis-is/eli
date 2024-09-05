@@ -117,16 +117,16 @@ end
 test["spawn (wait)"] = function ()
 	local options = { wait = true }
 	local result = isUnixLike and
-		eliProc.spawn("sh", { "-c", "printf '173'" }, options) or
-		eliProc.spawn("cmd", { "/c", "echo 173" }, options)
+	   eliProc.spawn("sh", { "-c", "printf '173'" }, options) or
+	   eliProc.spawn("cmd", { "/c", "echo 173" }, options)
 	test.assert(result.exitcode == 0 and result.stdoutStream:read"a":match"173")
 end
 
 test["spawn (custom env)"] = function ()
 	local options = { wait = true, env = { TEST = "test env variable" } }
 	local result = isUnixLike and
-		eliProc.spawn("sh", { "-c", "printf \"$TEST\"" }, options) or
-		eliProc.spawn("cmd", { "/c", "echo", '"%TEST%"' }, options)
+	   eliProc.spawn("sh", { "-c", "printf \"$TEST\"" }, options) or
+	   eliProc.spawn("cmd", { "/c", "echo", '"%TEST%"' }, options)
 	test.assert(0 == result.exitcode and result.stdoutStream:read"a":match"test env variable")
 end
 
@@ -134,8 +134,8 @@ test["spawn (custom stdout)"] = function ()
 	local stdoutFile = io.open("tmp/test.stdout", "w+")
 	local options = { wait = true, stdio = { stdout = stdoutFile } }
 	local result = isUnixLike and
-		eliProc.spawn("sh", { "-c", "printf '173'" }, options) or
-		eliProc.spawn("cmd", { "/c", "echo 173" }, options)
+	   eliProc.spawn("sh", { "-c", "printf '173'" }, options) or
+	   eliProc.spawn("cmd", { "/c", "echo 173" }, options)
 	local _stdout = string.trim(eliFs.read_file"tmp/test.stdout")
 	test.assert(result.exitcode == 0 and _stdout == "173")
 end
@@ -144,11 +144,11 @@ test["spawn (custom stderr)"] = function ()
 	local stderrFile = io.open("tmp/test.stderr", "w+")
 	local options = { stdio = { stderr = stderrFile } }
 	local command = isUnixLike and
-		"printf 'error 173' >&2;\n" or
-		"echo error 173 >&2;\n"
+	   "printf 'error 173' >&2;\n" or
+	   "echo error 173 >&2;\n"
 	local proc = isUnixLike and
-		eliProc.spawn("sh", {}, options) or
-		eliProc.spawn("cmd", {}, options)
+	   eliProc.spawn("sh", {}, options) or
+	   eliProc.spawn("cmd", {}, options)
 	local wr = proc:get_stdin()
 	wr:write(command)
 	wr:write"exit\n"
@@ -172,26 +172,26 @@ end
 test["spawn (stdio=ignore)"] = function ()
 	local options = { wait = true, stdio = "ignore" }
 	local result = isUnixLike and
-		eliProc.spawn("sh", { "-c", "printf '173'" }, options) or
-		eliProc.spawn("cmd", { "/c", "echo 173" }, options)
+	   eliProc.spawn("sh", { "-c", "printf '173'" }, options) or
+	   eliProc.spawn("cmd", { "/c", "echo 173" }, options)
 	test.assert(result.exitcode == 0 and result.stdoutStream == nil and result.stderrStream == nil)
 end
 
 test["spawn (stdio=ignore stdout and stderr only)"] = function ()
 	local options = { stdio = { stdout = "ignore", stderr = "ignore" } }
 	local proc = isUnixLike and
-		eliProc.spawn("sh", { "-c", "printf '173'" }, options) or
-		eliProc.spawn("cmd", { "/c", "echo 173" }, options)
+	   eliProc.spawn("sh", { "-c", "printf '173'" }, options) or
+	   eliProc.spawn("cmd", { "/c", "echo 173" }, options)
 	local wr, rd, rderr = proc:get_stdin(), proc:get_stdout(), proc:get_stderr()
 	test.assert(proc:wait() == 0 and rd == nil and rderr == nil, wr ~= nil)
 end
 
 test["spawn (file as stdin)"] = function ()
-	local stdinFile = io.open("assets/test" .. (isUnixLike and ".unix" or ".win") .. ".script", "r");
+	local stdinFile = io.open("assets/scripts/echo.script", "r");
 	local options = { wait = true, stdio = { stdin = stdinFile } }
 	local result = isUnixLike and
-		eliProc.spawn("sh", options) or
-		eliProc.spawn("cmd", options)
+	   eliProc.spawn("sh", options) or
+	   eliProc.spawn("cmd", options)
 	local stdout = result.stdoutStream:read"a"
 	test.assert(result.exitcode == 0 and stdout:match"13354")
 end
@@ -200,14 +200,14 @@ test["spawn (stdin/stdout/stderr as path)"] = function ()
 	local options = {
 		wait = true,
 		stdio = {
-			stdin = "assets/test" .. (isUnixLike and ".unix" or ".win") .. ".script",
+			stdin = "assets/scripts/echo.script",
 			stdout = "tmp/stdout.log",
 			stderr = "tmp/stderr.log",
 		},
 	}
 	local result = isUnixLike and
-		eliProc.spawn("sh", options) or
-		eliProc.spawn("cmd", options)
+	   eliProc.spawn("sh", options) or
+	   eliProc.spawn("cmd", options)
 	local _stdout = result.stdoutStream:read"a"
 	test.assert(result.exitcode == 0 and _stdout:match"13354")
 end
@@ -226,6 +226,24 @@ test["spawn (process group)"] = function ()
 	test.assert(os.execute(testCmd))
 end
 
+test["spawn (separated output)"] = function ()
+	local options = { wait = true, stdio = { stdout = "pipe", stderr = "pipe" } }
+	local result = isUnixLike and
+	   eliProc.spawn("sh", { "assets/scripts/stdout_stderr.script" }, options) or
+	   eliProc.spawn("cmd", { "assets/scripts/stdout_stderr.script" }, options)
+	local stdout = result.stdoutStream:read"a"
+	local stderr = result.stderrStream:read"a"
+	test.assert(result.exitcode == 0 and stdout:match"stdout" and stderr:match"stderr")
+end
+
+test["spawn (combined output)"] = function ()
+	local options = { wait = true, stdio = { output = "pipe" } }
+	local result = isUnixLike and
+	   eliProc.spawn("sh", { "assets/scripts/stdout_stderr.script" }, options) or
+	   eliProc.spawn("cmd", { "assets/scripts/stdout_stderr.script" }, options)
+	local stdout = result.stdoutStream:read"a"
+	test.assert(result.exitcode == 0 and stdout:match"stdout" and stdout:match"stderr")
+end
 
 if not TEST then
 	test.summary()
