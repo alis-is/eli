@@ -230,7 +230,7 @@ test["spawn (separated output)"] = function ()
 	local options = { wait = true, stdio = { stdout = "pipe", stderr = "pipe" } }
 	local result = isUnixLike and
 	   eliProc.spawn("sh", { "assets/scripts/stdout_stderr.script" }, options) or
-	   eliProc.spawn("cmd", { "/c", "assets/scripts/stdout_stderr.script" }, options)
+	   eliProc.spawn("cmd", { "/c", "call", "assets/scripts/stdout_stderr.script" }, options)
 	local stdout = result.stdoutStream:read"a"
 	local stderr = result.stderrStream:read"a"
 	test.assert(result.exitcode == 0 and stdout:match"stdout" and stderr:match"stderr")
@@ -240,7 +240,7 @@ test["spawn (combined output)"] = function ()
 	local options = { wait = true, stdio = { output = "pipe" } }
 	local result = isUnixLike and
 	   eliProc.spawn("sh", { "assets/scripts/stdout_stderr.script" }, options) or
-	   eliProc.spawn("cmd", { "/c", "assets/scripts/stdout_stderr.script" }, options)
+	   eliProc.spawn("cmd", { "/c", "call", "assets/scripts/stdout_stderr.script" }, options)
 	local stdout = result.stdoutStream:read"a"
 	test.assert(result.exitcode == 0 and stdout:match"stdout" and stdout:match"stderr")
 end
