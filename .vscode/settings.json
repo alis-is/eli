@@ -42,7 +42,8 @@
         "execve_spawnp.h": "c",
         "ostream": "c",
         "crypto.h": "c",
-        "types.h": "c"
+        "types.h": "c",
+        "utime.h": "c"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/cpp",
     "editor.formatOnSave": true,

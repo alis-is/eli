@@ -243,7 +243,7 @@ function fs.remove(path, options)
 
 	local recurse = options.recurse
 	local contentOnly = options.contentOnly
-	options.contentOnly = false      -- for recursive calls
+	options.contentOnly = false     -- for recursive calls
 
 	if efs.link_type(path) == nil then -- does not exist
 		return true
@@ -543,8 +543,8 @@ function fs.unlock_file(fsLock)
 		return fsLock --[[@as EliFileLock]]:unlock()
 	else
 		return false,
-			"Invalid " .. ELI_FILE_LOCK_ID .. " type! '" .. ELI_FILE_LOCK_ID ..
-			"' expected, got: " .. type(fsLock) .. "!"
+		   "Invalid " .. ELI_FILE_LOCK_ID .. " type! '" .. ELI_FILE_LOCK_ID ..
+		   "' expected, got: " .. type(fsLock) .. "!"
 	end
 end
 
@@ -579,7 +579,7 @@ function fs.unlock_directory(fsLock)
 		return fsLock --[[@as EliDirLock]]:unlock()
 	else
 		return false,
-			"Invalid " .. ELI_DIR_LOCK_ID .. " type! '" .. ELI_DIR_LOCK_ID .. "' expected, got: " .. type(fsLock) .. "!"
+		   "Invalid " .. ELI_DIR_LOCK_ID .. " type! '" .. ELI_DIR_LOCK_ID .. "' expected, got: " .. type(fsLock) .. "!"
 	end
 end
 
@@ -594,6 +594,21 @@ function fs.file_type(path)
 		path = path:sub(1, #path - 1)
 	end
 	return efs.file_type(path)
+end
+
+---#DES 'fs.file_type'
+---
+---returns type of file
+---@param pathOrFile string|file*
+---@return boolean|nil, string
+function fs.file_info(pathOrFile)
+	if type(pathOrFile) == "string" then
+		local _last = pathOrFile:sub(#pathOrFile, #pathOrFile)
+		if _extTable.includes({ "/", "\\" }, _last) then
+			pathOrFile = pathOrFile:sub(1, #pathOrFile - 1)
+		end
+	end
+	return efs.file_info(pathOrFile)
 end
 
 if efsLoaded then

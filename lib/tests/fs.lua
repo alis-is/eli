@@ -355,6 +355,36 @@ test["file_type (dir)"] = function ()
 	test.assert(_ok and _type == "directory")
 end
 
+test["file_info (file)"] = function ()
+	eliFs.safe_remove"tmp/test.file"
+	local ok, info = eliFs.safe_file_info"assets/test.file"
+	test.assert(ok and info ~= nil)
+	test.assert(info.mode == "file")
+	test.assert(type(info.size) == "number" and info.size > 0)
+
+	local size_from_path = info.size
+	local f <close> = io.open("assets/test.file", "rb")
+	local ok, info = eliFs.safe_file_info(f)
+	test.assert(ok and info ~= nil)
+	test.assert(info.mode == "file")
+	test.assert(type(info.size) == "number" and info.size > 0)
+	test.assert(info.size == size_from_path)
+
+	local ok, info = eliFs.safe_file_info"assets/test.file.not-existing"
+	test.assert(ok and info == nil)
+end
+
+test["file_info (dir)"] = function ()
+	local ok, info = eliFs.safe_file_info"assets"
+	test.assert(ok and info ~= nil)
+	test.assert(info.mode == "directory")
+	test.assert(type(info.size) == "number" and info.size > 0)
+
+	local ok, info = eliFs.safe_file_info"assets.not-existing"
+	test.assert(ok and info == nil)
+end
+
+
 test["open_dir"] = function ()
 	local _ok, _dir = eliFs.safe_open_dir"tmp/"
 	test.assert(_ok and _dir.__type == "ELI_DIR")
