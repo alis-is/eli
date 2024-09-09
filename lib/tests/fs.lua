@@ -409,12 +409,12 @@ local function _external_lock(file)
 end
 
 local _lock
-local _lockedFile = io.open("tmp/test.file", "ab")
+local _lockedFile = io.open("assets/test.file", "ab")
 test["lock_file (passed file)"] = function ()
 	local _error
 	_lock, _error = eliFs.lock_file(_lockedFile, "w")
 	test.assert(_lock ~= nil, _error)
-	local _ok, _code, _ = _external_lock"tmp/test.file"
+	local _ok, _code, _ = _external_lock"assets/test.file"
 	test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
 end
 test["lock (active - passed file)"] = function ()
@@ -422,11 +422,11 @@ test["lock (active - passed file)"] = function ()
 end
 
 test["unlock_file (passed file)"] = function ()
-	local _ok, _code, _ = _external_lock"tmp/test.file"
+	local _ok, _code, _ = _external_lock"assets/test.file"
 	test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
 	local _ok, _error = eliFs.unlock_file(_lock)
 	test.assert(_ok, _error)
-	local _ok, _code, _ = _external_lock"tmp/test.file"
+	local _ok, _code, _ = _external_lock"assets/test.file"
 	test.assert(_ok and _code == 0, "Should be able to lock now!")
 end
 
@@ -438,20 +438,20 @@ if _lockedFile ~= nil then _lockedFile:close() end
 local _lock
 test["lock_file (owned file)"] = function ()
 	local _error
-	_lock, _error = eliFs.lock_file("tmp/test.file", "w")
+	_lock, _error = eliFs.lock_file("assets/test.file", "w")
 	test.assert(_lock ~= nil, _error)
-	local _ok, _code, _ = _external_lock"tmp/test.file"
+	local _ok, _code, _ = _external_lock"assets/test.file"
 	test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
 end
 test["lock (active - owned file)"] = function ()
 	test.assert(_lock:is_active(), "Lock should be active")
 end
 test["unlock_file (owned file)"] = function ()
-	local _ok, _code, _ = _external_lock"tmp/test.file"
+	local _ok, _code, _ = _external_lock"assets/test.file"
 	test.assert(not _ok and _code == 11, "Should not be able to lock twice!")
 	local _ok, _error = eliFs.unlock_file(_lock)
 	test.assert(_ok, _error)
-	local _ok, _code, _ = _external_lock"tmp/test.file"
+	local _ok, _code, _ = _external_lock"assets/test.file"
 	test.assert(_ok and _code == 0, "Should be able to lock now!")
 end
 
@@ -461,7 +461,7 @@ end
 
 test["lock (cleanup)"] = function ()
 	function t()
-		local _lock, _error = eliFs.lock_file("tmp/test.file", "w")
+		local _lock, _error = eliFs.lock_file("assets/test.file", "w")
 		test.assert(_lock ~= nil, _error)
 		_lock:unlock()
 	end
@@ -473,11 +473,11 @@ end
 
 test["lock_file (owned file - <close>)"] = function ()
 	do
-		local _lock <close>, _error = eliFs.lock_file("tmp/test.file", "w")
+		local _lock <close>, _error = eliFs.lock_file("assets/test.file", "w")
 		test.assert(_lock ~= nil, _error)
 		test.assert(_lock:is_active(), "Lock should be active")
 	end
-	local _lock <close>, _error = eliFs.lock_file("tmp/test.file", "w")
+	local _lock <close>, _error = eliFs.lock_file("assets/test.file", "w")
 	test.assert(_lock ~= nil, _error)
 	test.assert(_lock:is_active(), "Lock should be active")
 end

@@ -522,7 +522,7 @@ local ELI_FILE_LOCK_ID = "ELI_FILE_LOCK"
 ---
 ---Locks access to file
 ---@param pathOrFile string|file*
----@param mode '"rb"'|'"wb"'
+---@param mode '"r"'|'"w"'
 ---@param start integer?
 ---@param len integer?
 ---@return EliFileLock?, string?, integer?

@@ -43,7 +43,8 @@
         "ostream": "c",
         "crypto.h": "c",
         "types.h": "c",
-        "utime.h": "c"
+        "utime.h": "c",
+        "system_error": "c"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/cpp",
     "editor.formatOnSave": true,
