@@ -1,8 +1,9 @@
-ELI_LIB_VERSION = '0.33.1'
-ELI_VERSION = '0.33.1'
+ELI_LIB_VERSION = "0.33.1"
+ELI_VERSION = "0.33.1"
 do
 	local path = require"eli.path"
 	local _eos = require"eli.os"
+	local exString = require"eli.extensions.string"
 	local i_min = 0
 	while arg[i_min] do
 		i_min = i_min - 1
@@ -30,8 +31,9 @@ do
 	elseif not path.isabs(INTERPRETER) and _eos.EOS then
 		INTERPRETER = path.abs(INTERPRETER, _eos.cwd())
 	end
+	INTERPRETER = exString.trim(INTERPRETER) -- remove leading and trailing whitespaces
 
-	if i_min == -1 then -- we are running without script (interactive mode)
+	if i_min == -1 then                   -- we are running without script (interactive mode)
 		APP_ROOT = nil
 	else
 		if _eos.EOS and not path.isabs(arg[0]) then
@@ -41,6 +43,9 @@ do
 		end
 		APP_ROOT = path.dir(APP_ROOT_SCRIPT)
 	end
+
+	APP_ROOT = exString.trim(APP_ROOT)            -- remove leading and trailing whitespaces
+	APP_ROOT_SCRIPT = exString.trim(APP_ROOT_SCRIPT) -- remove leading and trailing whitespaces
 
 	local _shouldElify = true
 	for i, v in ipairs(arg) do
