@@ -508,7 +508,7 @@ function fs.chmod(path, mode, options)
 	return true
 end
 
----#DES fs.EliFileLock'
+---#DES 'fs.EliFileLock'
 ---
 ---@class EliFileLock
 ---@field free fun(eliFileLock: EliFileLock):nil

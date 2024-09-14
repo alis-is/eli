@@ -247,6 +247,57 @@ test["spawn (combined output)"] = function ()
 	test.assert(result.exitcode == 0 and stdout:match"stdout" and stdout:match"stderr")
 end
 
+test["spawn (read timeout)"] = function ()
+	local stdinFile = io.open("assets/scripts/delayed.script", "r");
+	local options = { stdio = { stdin = stdinFile, output = "pipe" } }
+	local result = isUnixLike and
+	   eliProc.spawn("sh", options) or
+	   eliProc.spawn("cmd", options) --[[@as EliProcess]]
+	local output = result:get_stdout()
+	test.assert(output ~= nil)
+	local content = output:read("a", 1, "s")
+	test.assert(content == "")
+	content = output:read("a", 5, "s")
+	test.assert(content:match"12345")
+	test.assert(result:wait() == 0)
+end
+
+test["spawn (read timeout ms)"] = function ()
+	local stdinFile = io.open("assets/scripts/delayed.script", "r");
+	local options = { stdio = { stdin = stdinFile, output = "pipe" } }
+	local result = isUnixLike and
+	   eliProc.spawn("sh", options) or
+	   eliProc.spawn("cmd", options) --[[@as EliProcess]]
+	local output = result:get_stdout()
+	test.assert(output ~= nil)
+	local beforeRead = os.time()
+	local content = output:read("a", 10, "ms")
+	test.assert(os.time() - beforeRead <= 1)
+	test.assert(content == "")
+	content = output:read("a", 5, "s")
+	test.assert(content:match"12345")
+	test.assert(result:wait() == 0)
+	test.assert(output:read("a", 5, "ms") == nil)
+end
+
+test["spawn (read timeout divider)"] = function ()
+	local stdinFile = io.open("assets/scripts/delayed.script", "r");
+	local options = { stdio = { stdin = stdinFile, output = "pipe" } }
+	local result = isUnixLike and
+	   eliProc.spawn("sh", options) or
+	   eliProc.spawn("cmd", options) --[[@as EliProcess]]
+	local output = result:get_stdout()
+	test.assert(output ~= nil)
+	local beforeRead = os.time()
+	local content = output:read("a", 10, 1000)
+	test.assert(os.time() - beforeRead <= 1)
+	test.assert(content == "")
+	content = output:read("a", 5, "s")
+	test.assert(content:match"12345")
+	test.assert(result:wait() == 0)
+	test.assert(output:read("a", 5, "ms") == nil)
+end
+
 if not TEST then
 	test.summary()
 end

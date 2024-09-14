@@ -44,7 +44,8 @@
         "crypto.h": "c",
         "types.h": "c",
         "utime.h": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "variant": "c"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/cpp",
     "editor.formatOnSave": true,
