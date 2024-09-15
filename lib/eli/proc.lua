@@ -173,21 +173,19 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field stdout '"ignore"' | '"pipe"' | '"inherit"' | '"external' | '"file"'
 ---@field stderr '"ignore"' | '"pipe"' | '"inherit"' | '"external' | '"file"'
 
----@class EliWritableStream
----@field __type '"ELI_STREAM_W_METATABLE"'
----@field write fun(self: EliWritableStream, content: string)
----@field set_nonblocking fun(self: EliWritableStream, nonblocking: boolean)
----@field is_nonblocking fun(self: EliWritableStream): boolean
----@field close fun(self: EliWritableStream)
-
----@class EliReadableStream
----@field __type '"ELI_STREAM_R_METATABLE"'
----@field read fun(self: EliReadableStream, opt: integer | "a" | "l" | "L", timeout: integer,  divider_or_units: "s" | "ms" | integer | nil): string
----@field set_nonblocking fun(self: EliReadableStream, nonblocking: boolean)
----@field is_nonblocking fun(self: EliReadableStream): boolean
+---@class EliStreamBase
 ---@field close fun(self: EliReadableStream)
 
+---@class EliWritableStream : EliStreamBase
+---@field __type '"ELI_STREAM_W_METATABLE"'
+---@field write fun(self: EliWritableStream, content: string)
+
+---@class EliReadableStream : EliStreamBase
+---@field __type '"ELI_STREAM_R_METATABLE"'
+---@field read fun(self: EliReadableStream, opt: integer | "a" | "l" | "L", timeout: integer?,  divider_or_units: "s" | "ms" | integer | nil): string
+
 ---@class EliRWStream: EliReadableStream, EliWritableStream
+---@field __type '"ELI_STREAM_RW_METATABLE"'
 
 ---@class EliProcessGroup
 ---@field kill fun(self: EliProcessGroup, signal: integer?): integer

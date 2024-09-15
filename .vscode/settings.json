@@ -45,7 +45,17 @@
         "types.h": "c",
         "utime.h": "c",
         "system_error": "c",
-        "variant": "c"
+        "variant": "c",
+        "istream": "c",
+        "cstring": "c",
+        "cstdlib": "c",
+        "array": "c",
+        "string_view": "c",
+        "format": "c",
+        "initializer_list": "c",
+        "span": "c",
+        "cerrno": "c",
+        "string": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/cpp",
     "editor.formatOnSave": true,

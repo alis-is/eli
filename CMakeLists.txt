@@ -48,6 +48,7 @@ add_subdirectory(deps/mbedtls/ EXCLUDE_FROM_ALL)
 set(ELI_STREAM_EXTRA_INCLUDE ${CMAKE_SOURCE_DIR}/deps/eli-stream-extra/src)
 set(ELI_OS_EXTRA_INCLUDE ${CMAKE_SOURCE_DIR}/deps/eli-os-extra/src)
 set(ELI_EXTRA_UTILS_INCLUDE ${CMAKE_SOURCE_DIR}/deps/eli-extra-utils/src)
+set(ELI_PIPE_EXTRA_INCLUDE ${CMAKE_SOURCE_DIR}/deps/eli-pipe-extra/src)
 
 set(LSS_INCLUDE ${CMAKE_SOURCE_DIR}/deps/lua-simple-socket/src)
 
@@ -72,7 +73,7 @@ target_include_directories(eli_os_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 add_subdirectory(deps/eli-pipe-extra/)
 target_include_directories(eli_pipe_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE} ${ELI_STREAM_EXTRA_INCLUDE})
 add_subdirectory(deps/eli-proc-extra/)
-target_include_directories(eli_proc_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE} ${ELI_STREAM_EXTRA_INCLUDE} ${ELI_OS_EXTRA_INCLUDE})
+target_include_directories(eli_proc_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE} ${ELI_STREAM_EXTRA_INCLUDE} ${ELI_OS_EXTRA_INCLUDE} ${ELI_PIPE_EXTRA_INCLUDE})
 add_subdirectory(deps/eli-stream-extra/)
 target_include_directories(eli_stream_extra PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 add_subdirectory(deps/lua-mbed-bigint/)
@@ -118,7 +119,7 @@ set(MBEDTLS_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/include CACHE 
 # ELI
 # 1. eli interpreter
 add_executable(eli deps/lua/onelua.c)
-target_link_libraries(eli lis_tty lua_zip ltar eli_fs_extra eli_proc_extra eli_pipe_extra eli_stream_extra eli_os_extra eli_env_extra eli_extra_utils lua_mbed_bigint lua_mbed_base64 lua_simple_ipc lssocket corehttp lcorehttp mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic "-static")
+target_link_libraries(eli lis_tty lua_zip ltar eli_fs_extra eli_pipe_extra eli_proc_extra eli_stream_extra eli_os_extra eli_env_extra eli_extra_utils lua_mbed_bigint lua_mbed_base64 lua_simple_ipc lssocket corehttp lcorehttp mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic "-static")
 
 if(WIN32 OR MINGW)
   target_link_libraries(eli bcrypt advapi32 ws2_32)

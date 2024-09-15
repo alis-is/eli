@@ -19,12 +19,12 @@ end
 
 test["file as stream - line"] = function ()
     local refContent = io.open"assets/test.file":read"l"
-    local streamContent = exIo.file_as_stream(io.open"assets/test.file"):read"l"
+    local streamContent = exIo.open_fstream"assets/test.file":read"l"
 
     test.assert(refContent == streamContent, "content does not match")
 
     local refContent = io.open"assets/test.file":read"a"
-    local stream = exIo.file_as_stream(io.open"assets/test.file")
+    local stream = exIo.open_fstream"assets/test.file"
     local streamContent = stream:read"a"
     while true do
         local line = stream:read"L"
@@ -39,19 +39,19 @@ end
 
 test["file as stream - all"] = function ()
     local refContent = io.open"assets/test.file":read"a"
-    local streamContent = exIo.file_as_stream(io.open"assets/test.file"):read"a"
+    local streamContent = exIo.open_fstream"assets/test.file":read"a"
 
     test.assert(refContent == streamContent, "content does not match")
 end
 
 test["file as stream - bytes"] = function ()
     local refContent = io.open"assets/test.file":read"l"
-    local streamContent = exIo.file_as_stream(io.open"assets/test.file"):read"l"
+    local streamContent = exIo.open_fstream"assets/test.file":read"l"
 
     test.assert(refContent == streamContent, "content does not match")
 
     local refContent = io.open"assets/test.file":read"a"
-    local stream = exIo.file_as_stream(io.open"assets/test.file")
+    local stream = exIo.open_fstream"assets/test.file"
     local streamContent = stream:read"a"
     while true do
         local line = stream:read(100)
