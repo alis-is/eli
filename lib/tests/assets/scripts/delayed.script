@@ -1,2 +1,0 @@
-sh -c "sleep 2" || timeout /t 2 /nobreak
-echo 12345
