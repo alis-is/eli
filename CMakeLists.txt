@@ -48,13 +48,16 @@ set(ELI_STREAM_EXTRA_INCLUDE ${CMAKE_SOURCE_DIR}/deps/eli-stream-extra/src)
 set(ELI_OS_EXTRA_INCLUDE ${CMAKE_SOURCE_DIR}/deps/eli-os-extra/src)
 set(ELI_EXTRA_UTILS_INCLUDE ${CMAKE_SOURCE_DIR}/deps/eli-extra-utils/src)
 set(ELI_PIPE_EXTRA_INCLUDE ${CMAKE_SOURCE_DIR}/deps/eli-pipe-extra/src)
+set(C11THREADS_INCLUDE ${CMAKE_SOURCE_DIR}/deps/c11threads)
 
 set(LSS_INCLUDE ${CMAKE_SOURCE_DIR}/deps/lua-simple-socket/src)
 
 add_subdirectory(deps/lua-is-tty/)
 add_subdirectory(deps/lua-mbed-hash/)
 
+add_subdirectory(deps/c11threads/)
 add_subdirectory(deps/eli-extra-utils/)
+target_include_directories(eli_extra_utils PRIVATE ${C11THREADS_INCLUDE})
 add_subdirectory(deps/lua-simple-socket/)
 target_include_directories(lssocket PRIVATE ${ELI_EXTRA_UTILS_INCLUDE} ${HTTP_INCLUDE_PUBLIC_DIRS})
 target_compile_definitions(lssocket PRIVATE LSS_HAS_BUNDLED_ROOT_CERTIFICATES)
@@ -120,8 +123,12 @@ set(MBEDTLS_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/include CACHE 
 add_executable(eli deps/lua/onelua.c)
 target_link_libraries(eli lis_tty lua_zip ltar eli_fs_extra eli_pipe_extra eli_proc_extra eli_stream_extra eli_os_extra eli_env_extra eli_extra_utils lua_mbed_bigint lua_mbed_base64 lua_simple_ipc lssocket corehttp lcorehttp mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic "-static")
 
+if(APPLE)
+  target_link_libraries(eli c11threads)
+endif()
+
 if(WIN32 OR MINGW)
-  target_link_libraries(eli bcrypt advapi32 ws2_32)
+  target_link_libraries(eli bcrypt advapi32 ws2_32 c11threads)
 endif()
 
 set_target_properties(eli PROPERTIES OUTPUT_NAME "eli")

@@ -111,3 +111,6 @@
 	path = deps/zlib-ng
 	url = https://github.com/zlib-ng/zlib-ng.git
 	ignore = dirty
+[submodule "deps/c11threads"]
+	path = deps/c11threads
+	url = https://github.com/cryi/c11threads.git

@@ -55,7 +55,11 @@
         "initializer_list": "c",
         "span": "c",
         "cerrno": "c",
-        "string": "cpp"
+        "string": "cpp",
+        "sleep.h": "c",
+        "numbers": "cpp",
+        "lerror.h": "c",
+        "stream_win.h": "c"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/cpp",
     "editor.formatOnSave": true,
