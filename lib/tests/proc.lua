@@ -16,6 +16,7 @@ if not _ok then
 end
 
 local pathSeparator = package.config:sub(1, 1)
+local isUnixLike = package.config:sub(1, 1) == "/"
 
 test["eli.proc available"] = function ()
 	test.assert(true)
@@ -78,7 +79,6 @@ if not eliProc.EPROC then
 	end
 end
 
-local isUnixLike = package.config:sub(1, 1) == "/"
 test["spawn"] = function ()
 	local testExecutable = isUnixLike and "sh" or "cmd"
 	local proc, _, _ = eliProc.spawn(testExecutable)

@@ -21,7 +21,6 @@ end
 test["file as stream - line"] = function ()
 	local refContent = io.open"assets/test.file":read"l"
 	local streamContent = exIo.open_fstream"assets/test.file":read"l"
-	print(exIo.open_fstream"assets/test.file":read"l")
 	test.assert(refContent == streamContent, "content does not match")
 
 	local refContent = io.open"assets/test.file":read"a"
