@@ -1,5 +1,6 @@
 local test = TEST or require"u-test"
 local ok, exIo = pcall(require, "eli.extensions.io")
+local fs = require"eli.fs"
 
 if not ok then
 	test["eli.extensions.io available"] = function ()
@@ -63,6 +64,23 @@ test["file as stream - bytes"] = function ()
 
 	test.assert(refContent == streamContent, "content does not match")
 end
+
+test["file as stream - write"] = function ()
+	fs.remove"tmp/test-streamed.file"
+	fs.remove"tmp/test-write.file"
+
+	local content = "12345"
+	local stream = exIo.open_fstream("tmp/test-streamed.file", "w")
+	stream:write(content)
+	stream:close()
+	fs.write_file("tmp/test-write.file", content)
+
+	local hashOfStreamContent = fs.hash_file"tmp/test-streamed.file"
+	local hashOfWriteContent = fs.hash_file"tmp/test-write.file"
+
+	test.assert(hashOfStreamContent == hashOfWriteContent, "content does not match")
+end
+
 
 if not TEST then
 	test.summary()
