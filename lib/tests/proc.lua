@@ -16,6 +16,7 @@ if not _ok then
 end
 
 local pathSeparator = package.config:sub(1, 1)
+local isUnixLike = package.config:sub(1, 1) == "/"
 
 test["eli.proc available"] = function ()
 	test.assert(true)
@@ -78,7 +79,6 @@ if not eliProc.EPROC then
 	end
 end
 
-local isUnixLike = package.config:sub(1, 1) == "/"
 test["spawn"] = function ()
 	local testExecutable = isUnixLike and "sh" or "cmd"
 	local proc, _, _ = eliProc.spawn(testExecutable)
@@ -245,6 +245,54 @@ test["spawn (combined output)"] = function ()
 	   eliProc.spawn("cmd", options)
 	local stdout = result.stdoutStream:read"a"
 	test.assert(result.exitcode == 0 and stdout:match"stdout" and stdout:match"stderr")
+end
+
+test["spawn (read timeout)"] = function ()
+	local options = { stdio = { output = "pipe" } }
+	local result = isUnixLike and
+	   eliProc.spawn("sh", { "assets/scripts/delayed.sh" }, options) or
+	   eliProc.spawn("cmd", { "/c", "assets\\scripts\\delayed.bat" }, options) --[[@as EliProcess]]
+	local output = result:get_stdout()
+	test.assert(output ~= nil)
+	local content = output:read("a", 1, "s")
+	test.assert(not content:match"12345")
+	content = output:read("a", 10, "s")
+	test.assert(content:match"12345")
+	test.assert(result:wait() == 0)
+end
+
+test["spawn (read timeout ms)"] = function ()
+	local options = { stdio = { output = "pipe" } }
+	local result = isUnixLike and
+	   eliProc.spawn("sh", { "assets/scripts/delayed.sh" }, options) or
+	   eliProc.spawn("cmd", { "/c", "assets\\scripts\\delayed.bat" }, options) --[[@as EliProcess]]
+	local output = result:get_stdout()
+	test.assert(output ~= nil)
+	local beforeRead = os.time()
+	local content = output:read("a", 10, "ms")
+	test.assert(os.time() - beforeRead <= 1)
+	test.assert(content == "")
+	content = output:read("a", 5, "s")
+	test.assert(content:match"12345")
+	test.assert(result:wait() == 0)
+	test.assert(output:read("a", 5, "ms") == nil)
+end
+
+test["spawn (read timeout divider)"] = function ()
+	local options = { stdio = { output = "pipe" } }
+	local result = isUnixLike and
+	   eliProc.spawn("sh", { "assets/scripts/delayed.sh" }, options) or
+	   eliProc.spawn("cmd", { "/c", "assets\\scripts\\delayed.bat" }, options) --[[@as EliProcess]]
+	local output = result:get_stdout()
+	test.assert(output ~= nil)
+	local beforeRead = os.time()
+	local content = output:read("a", 10, 1000)
+	test.assert(os.time() - beforeRead <= 1)
+	test.assert(content == "")
+	content = output:read("a", 5, "s")
+	test.assert(content:match"12345")
+	test.assert(result:wait() == 0)
+	test.assert(output:read("a", 5, "ms") == nil)
 end
 
 if not TEST then

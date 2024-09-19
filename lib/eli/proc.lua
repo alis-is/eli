@@ -39,7 +39,7 @@ local function _get_stdstream_cmd_part(stdname, file, options)
 	end
 	if file == "ignore" then return "", nil end
 	local _template = options[stdname .. "RedirectTemplate"] or
-		proc.settings[stdname .. "RedirectTemplate"]
+	   proc.settings[stdname .. "RedirectTemplate"]
 	if type(_template) == "function" then
 		return _template(file), file, _tmpMode
 	elseif type(_template) == "string" then
@@ -126,22 +126,22 @@ function proc.exec(cmd, options)
 	if type(options) ~= "table" then options = {} end
 
 	local _stdoutPart, _stdout, _tmpStdout =
-		_get_stdstream_cmd_part("stdout", options.stdout, options)
+	   _get_stdstream_cmd_part("stdout", options.stdout, options)
 	local _stderrPart, _stderr, _tmpStderr =
-		_get_stdstream_cmd_part("stderr", options.stderr, options)
+	   _get_stdstream_cmd_part("stderr", options.stderr, options)
 	local _stdinPart = _get_stdstream_cmd_part("stdin", options.stdin, options)
 
 	local _cmd =
-		_sx.join_strings(" ", _stdinPart, cmd, _stdoutPart, _stderrPart)
+	   _sx.join_strings(" ", _stdinPart, cmd, _stdoutPart, _stderrPart)
 	local _, _exitType, _code = os.execute(_cmd)
 
 	return {
 		exitcode = _code,
 		exittype = _exitType,
 		stdoutStream = _stdout and
-			(_tmpStdout and ExecTmpFile:new(_stdout) or io.open(_stdout)),
+		   (_tmpStdout and ExecTmpFile:new(_stdout) or io.open(_stdout)),
 		stderrStream = _stderr and
-			(_tmpStderr and ExecTmpFile:new(_stderr) or io.open(_stderr)),
+		   (_tmpStderr and ExecTmpFile:new(_stderr) or io.open(_stderr)),
 	}
 end
 
@@ -173,13 +173,19 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field stdout '"ignore"' | '"pipe"' | '"inherit"' | '"external' | '"file"'
 ---@field stderr '"ignore"' | '"pipe"' | '"inherit"' | '"external' | '"file"'
 
----@class EliWritableStream
----@field __type '"ELI_STREAM_W_METATABLE"'
----@field wirte fun(self: EliWritableStream, content: string)
+---@class EliStreamBase
+---@field close fun(self: EliReadableStream)
 
----@class EliReadableStream
+---@class EliWritableStream : EliStreamBase
+---@field __type '"ELI_STREAM_W_METATABLE"'
+---@field write fun(self: EliWritableStream, content: string)
+
+---@class EliReadableStream : EliStreamBase
 ---@field __type '"ELI_STREAM_R_METATABLE"'
----@field read fun(self: EliReadableStream, opt: integer | "a" | "l" | "L"): string
+---@field read fun(self: EliReadableStream, opt: integer | "a" | "l" | "L", timeout: integer?,  divider_or_units: "s" | "ms" | integer | nil): string
+
+---@class EliRWStream: EliReadableStream, EliWritableStream
+---@field __type '"ELI_STREAM_RW_METATABLE"'
 
 ---@class EliProcessGroup
 ---@field kill fun(self: EliProcessGroup, signal: integer?): integer
@@ -188,7 +194,7 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field __type '"ELI_PROCESS"'
 ---@field __tostring fun(self: EliProcess): string
 ---@field get_pid fun(self: EliProcess): integer
----@field wait fun(self: EliProcess, intervalSeconds: integer?, unitsDivider: integer?): integer
+---@field wait fun(self: EliProcess, intervalSeconds: integer?, unitsDivider: integer | '"s"' | '"ms"' | nil): integer
 ---@field kill fun(self: EliProcess, signal: integer?): integer
 ---@field get_exitcode fun(self: EliProcess): integer
 ---@field exited fun(self: EliProcess): boolean

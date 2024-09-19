@@ -21,6 +21,7 @@ require"ipc"
 
 require"extensions.string"
 require"extensions.table"
+require"extensions.io"
 
 require"internals.util"
 
