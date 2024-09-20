@@ -18,7 +18,8 @@ end
 
 function _util.get_ca_certs()
 	local tmp = os.tmpname()
-	net.download_file("https://curl.se/ca/cacert.pem", tmp, { followRedirects = true })
+	net.download_file("https://ccadb.my.salesforce-sites.com/mozilla/IncludedRootsPEMTxt?TrustBitsInclude=Websites", tmp,
+		{ followRedirects = true })
 	local certs = {}
 	local ca = fs.read_file(tmp)
 	fs.remove(tmp)
