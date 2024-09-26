@@ -1,6 +1,7 @@
 --[[ // TODO consider implications of merging proc with os and fs with io ]]
 local _elified = false
 local _overridenValues = {}
+local util = require"eli.util"
 
 local function _elify()
 	if (_elified) then

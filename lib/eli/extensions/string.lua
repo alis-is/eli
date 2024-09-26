@@ -23,7 +23,7 @@ function es.split(s, sep, trim)
 	local _result = {}
 	for str in string.gmatch(s, "([^" .. sep .. "]+)") do
 		if trim then
-			str = _trim(str)
+			str = es.trim(str)
 		end
 		table.insert(_result, str)
 	end
@@ -74,7 +74,7 @@ function es.join_strings(separator, ...)
 			table.insert(_tmp, v)
 		end
 	end
-	return _join(separator, table.unpack(_tmp))
+	return es.join(separator, table.unpack(_tmp))
 end
 
 ---#DES string.interpolate
