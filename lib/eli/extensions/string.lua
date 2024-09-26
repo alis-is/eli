@@ -1,8 +1,10 @@
+local es = {}
+
 ---#DES string.trim
 ---
 ---@param s string
 ---@return string
-local function _trim(s)
+function es.trim(s)
 	if type(s) ~= "string" then return s end
 	return s:match"^()%s*$" and "" or s:match"^%s*(.*%S)"
 end
@@ -13,7 +15,7 @@ end
 ---@param sep string?
 ---@param trim boolean?
 ---@return string[]
-local function _split(s, sep, trim)
+function es.split(s, sep, trim)
 	if type(s) ~= "string" then return s end
 	if sep == nil then
 		sep = "%s"
@@ -34,7 +36,7 @@ end
 ---@param separator string
 ---@param ... any
 ---@return string
-local function _join(separator, ...)
+function es.join(separator, ...)
 	local _result = ""
 	if type(separator) ~= "string" then
 		separator = ""
@@ -61,7 +63,7 @@ end
 ---@param separator string
 ---@param ...string
 ---@return string
-local function _join_strings(separator, ...)
+function es.join_strings(separator, ...)
 	local _tmp = {}
 	local _parts = table.pack(...)
 	if #_parts > 0 and type(_parts[1]) == "table" then
@@ -82,7 +84,7 @@ end
 ---@param format string
 ---@param data table?
 ---@return string
-local function _interpolate(format, data)
+function es.interpolate(format, data)
 	if data == nil then data = _G end
 	if type(data) ~= "table" then data = {} end
 	---@param w string
@@ -99,19 +101,12 @@ local function _interpolate(format, data)
 	return _result
 end
 
-local function _globalize()
-	string.split = _split
-	string.join = _join
-	string.join_strings = _join_strings
-	string.trim = _trim
-	string.interpolate = _interpolate
+function es.globalize()
+	string.split = es.split
+	string.join = es.join
+	string.join_strings = es.join_strings
+	string.trim = es.trim
+	string.interpolate = es.interpolate
 end
 
-return {
-	globalize = _globalize,
-	split = _split,
-	join = _join,
-	join_strings = _join_strings,
-	trim = _trim,
-	interpolate = _interpolate,
-}
+return es

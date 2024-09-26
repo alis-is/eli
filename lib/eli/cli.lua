@@ -1,4 +1,6 @@
-local _util = require("eli.util")
+local util = require"eli.util"
+
+local cli = {}
 
 ---@class CliArg
 ---#DES 'CliArg.type'
@@ -17,29 +19,27 @@ local _util = require("eli.util")
 ---Parses array of arguments
 ---@param args string[]|nil
 ---@return CliArg[]
-local function _parse_args(args)
-    if not _util.is_array(args) then
+function cli.parse_args(args)
+    if not util.is_array(args) then
         args = arg
     end
-    local _argList = {}
-    if args == nil then return _argList end
+    local arg_list = {}
+    if args == nil then return arg_list end
     for i = 1, #args, 1 do
-        local _arg = args[i]
-        if type(_arg) == "string" then
-            local _cliOption = _arg:match "^-[-]?([^=]*)"
-            if _cliOption then -- option
-                local _value = _arg:match("^[^=]*=(.*)") or true
-                table.insert(_argList, {type = "option", value = _value, id = _cliOption, arg = _arg})
+        local arg = args[i]
+        if type(arg) == "string" then
+            local cli_option = arg:match"^-[-]?([^=]*)"
+            if cli_option then -- option
+                local _value = arg:match"^[^=]*=(.*)" or true
+                table.insert(arg_list, { type = "option", value = _value, id = cli_option, arg = arg })
             else -- command or parameter
-                table.insert(_argList, {type = "parameter", value = _arg, id = _arg, arg = _arg})
+                table.insert(arg_list, { type = "parameter", value = arg, id = arg, arg = arg })
             end
-        elseif type(_arg) == 'table' then -- passthrough pre processed args
-            table.insert(_argList, _arg)
+        elseif type(arg) == "table" then -- passthrough pre processed args
+            table.insert(arg_list, arg)
         end
     end
-    return _argList
+    return arg_list
 end
 
-return {
-    parse_args = _parse_args
-}
+return cli

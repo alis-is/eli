@@ -1,18 +1,18 @@
-local _os = require "os"
-local _eenvLoaded, _eenv = pcall(require, "eli.env.extra")
+local os = require"os"
+local is_loaded, eenv = pcall(require, "eli.env.extra")
 
-local _util = require "eli.util"
+local util = require"eli.util"
 
-local _env = {
-    get_env = _eenvLoaded and _eenv.get_env or _os.getenv,
+local env = {
+    get_env = is_loaded and eenv.get_env or os.getenv,
     ---#DES env.EENV
     ---
     ---@type boolean
-    EENV = _eenvLoaded
+    EENV = is_loaded,
 }
 
-if not _eenvLoaded then
-    return _env
+if not is_loaded then
+    return env
 end
 
-return _util.merge_tables(_env, _eenv)
+return util.merge_tables(env, eenv)
