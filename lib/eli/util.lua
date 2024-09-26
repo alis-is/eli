@@ -347,6 +347,7 @@ end
 ---@param v any
 ---@param v2 any
 ---@param deep (boolean|number)?
+---@return boolean
 function util.equals(v, v2, deep)
 	if type(deep) == "number" then deep = deep - 1 end
 	local _go_deeper = deep == true or (type(deep) == "number" and deep >= 0)
