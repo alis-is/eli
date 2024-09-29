@@ -1,5 +1,7 @@
 local util = {}
 
+math.randomseed(os.time())
+
 function util.is_array(t)
 	if type(t) ~= "table" then
 		return false
@@ -296,7 +298,7 @@ function util.random_string(length, charset)
 	if not length or length <= 0 then
 		return ""
 	end
-	math.randomseed(os.time())
+
 	return util.random_string(length - 1) .. charset[math.random(1, #charset)]
 end
 
@@ -373,7 +375,7 @@ function util.extract_error_info(errorMessage)
 	if message and code then
 		return message, tonumber(code) -- Convert code to a number
 	else
-		return errorMessage, nil   -- If pattern doesn't match, return the whole message and nil for the code
+		return errorMessage, nil -- If pattern doesn't match, return the whole message and nil for the code
 	end
 end
 
