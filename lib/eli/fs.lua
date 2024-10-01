@@ -71,6 +71,8 @@ function fs.copy_file(src, dst, options)
 		"Invalid type of destination! (Has to be string or file*)")
 
 	options = _util.merge_tables({ binaryMode = true }, options, true)
+	local file_info = fs.file_info(src)
+	local permissions = (file_info or {}).permissions or "rw-r--r--"
 	---@type file*, file*
 	local srcf, dstf
 	if type(src) == "string" then
@@ -96,6 +98,9 @@ function fs.copy_file(src, dst, options)
 	end
 	if type(src) == "string" then srcf:close() end
 	if type(dst) == "string" then dstf:close() end
+	if type(dst) == "string" then
+		fs.chmod(dst, permissions)
+	end
 end
 
 ---@class FsCopyoptions
@@ -129,7 +134,9 @@ function fs.copy(src, dst, options)
 			if fs.exists(dstFile) and fs.file_type(dstFile) ~= "directory" then
 				error"Cannot copy directory to file!"
 			end
+			local file_info = fs.file_info(srcFile) or {}
 			fs.mkdirp(dstFile)
+			fs.chmod(dstFile, file_info.permissions)
 		elseif not fs.exists(dstFile) or options.overwrite then
 			fs.mkdirp(_eliPath.dir(dstFile))
 			fs.copy_file(_eliPath.combine(src, srcFile) --[[@as string]], dstFile, options)

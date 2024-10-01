@@ -23,7 +23,7 @@ test["copy file (path)"] = function ()
 	local _ok, _hash = eliFs.safe_hash_file("assets/test.file", { type = "sha256", hex = true })
 	test.assert(_ok, _hash)
 	local _ok, _hash2 =
-		eliFs.safe_hash_file("tmp/test.file", { type = "sha256", hex = true })
+	   eliFs.safe_hash_file("tmp/test.file", { type = "sha256", hex = true })
 	test.assert(_ok, _hash)
 	test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
@@ -65,6 +65,15 @@ test["copy file (mixed)"] = function ()
 	test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
 
+test["copy file (permissions)"] = function ()
+	local _ok, _error = eliFs.safe_copy_file("assets/test.bin",
+		"tmp/test.bin")
+	test.assert(_ok, _error)
+	local info = eliFs.file_info"assets/test.bin"
+	local info2 = eliFs.file_info"tmp/test.bin"
+	test.assert(info.permissions == info2.permissions, "permissions do not match")
+end
+
 test["copy (file)"] = function ()
 	local _ok, _error = eliFs.safe_copy("assets/test.file",
 		"tmp/test.file")
@@ -72,7 +81,7 @@ test["copy (file)"] = function ()
 	local _ok, _hash = eliFs.safe_hash_file("assets/test.file", { type = "sha256", hex = true })
 	test.assert(_ok, _hash)
 	local _ok, _hash2 =
-		eliFs.safe_hash_file("tmp/test.file", { type = "sha256", hex = true })
+	   eliFs.safe_hash_file("tmp/test.file", { type = "sha256", hex = true })
 	test.assert(_ok, _hash)
 	test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 end
@@ -94,7 +103,7 @@ test["copy (directory)"] = function ()
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
 		local _ok, _hash2 =
-			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
+		   eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 		::continue::
@@ -119,7 +128,7 @@ test["copy (directory - overwrite)"] = function ()
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
 		local _ok, _hash2 =
-			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
+		   eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 		::continue::
@@ -136,7 +145,7 @@ test["copy (directory - overwrite)"] = function ()
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
 		local _ok, _hash2 =
-			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
+		   eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 		::continue::
@@ -154,7 +163,7 @@ test["copy (directory - overwrite)"] = function ()
 		test.assert(_ok, _hash)
 		local destFilePath = eliPath.combine(DEST_DIR, filePath)
 		local _ok, _hash2 =
-			eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
+		   eliFs.safe_hash_file(destFilePath, { type = "sha256", hex = true })
 		test.assert(_ok, _hash)
 		test.assert(_hash == _hash2, "hashes do not match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
 		::continue::
@@ -401,9 +410,9 @@ end
 
 local function _external_lock(file)
 	local _cmd = (os.getenv"QEMU" or "") ..
-		" " .. arg[-1] .. " -e \"x, err = fs.lock_file('" .. file .. "','w'); " ..
-		"if etype(x) == 'ELI_FILE_LOCK' then os.exit(0); end; notAvailable = tostring(err):match('Resource temporarily unavailable') or tostring(err):match('locked a portion of the file'); " ..
-		"exitCode = notAvailable and 11 or 12; os.exit(exitCode)\""
+	   " " .. arg[-1] .. " -e \"x, err = fs.lock_file('" .. file .. "','w'); " ..
+	   "if etype(x) == 'ELI_FILE_LOCK' then os.exit(0); end; notAvailable = tostring(err):match('Resource temporarily unavailable') or tostring(err):match('locked a portion of the file'); " ..
+	   "exitCode = notAvailable and 11 or 12; os.exit(exitCode)\""
 	local _ok, _, _code = os.execute(_cmd)
 	return _ok, _code
 end
