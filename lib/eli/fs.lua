@@ -136,7 +136,7 @@ function fs.copy(src, dst, options)
 			end
 			local file_info = fs.file_info(srcFile) or {}
 			fs.mkdirp(dstFile)
-			fs.chmod(dstFile, file_info.permissions)
+			fs.chmod(dstFile, file_info.permissions or "rw-r--r--")
 		elseif not fs.exists(dstFile) or options.overwrite then
 			fs.mkdirp(_eliPath.dir(dstFile))
 			fs.copy_file(_eliPath.combine(src, srcFile) --[[@as string]], dstFile, options)
