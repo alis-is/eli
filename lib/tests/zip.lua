@@ -68,20 +68,22 @@ end
 
 test["compress (filter)"] = function ()
     _eliFs.remove"tmp/test.file.zip"
-    local _ok, _file = _eliZip.safe_compress("assets", "tmp/test.file.zip", {
+    local ok, file = _eliZip.safe_compress("assets", "tmp/test.file.zip", {
         filter = function (path, info)
             return path == "test.file"
         end,
         contentOnly = true,
     })
-    test.assert(_ok, _file)
-    local _ok, _error = _eliZip.safe_extract_file("tmp/test.file.zip", "test.file", "tmp/test.file.unzipped")
-    test.assert(_ok, _error)
-    local _ok, _hash = _eliFs.safe_hash_file("tmp/test.file.unzipped", { hex = true })
-    local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.file", { hex = true })
-    test.assert(_ok, _hash2)
-    test.assert(_eliHash.equals(_hash, _hash2, true),
-        "hashes dont match (" .. tostring(_hash) .. "<>" .. tostring(_hash2) .. ")")
+    test.assert(ok, file)
+    local ok, error = _eliZip.safe_extract_file("tmp/test.file.zip", "test.file", "tmp/test.file.unzipped")
+    test.assert(ok, error)
+    local ok, hash = _eliFs.safe_hash_file("tmp/test.file.unzipped", { hex = true })
+    local ok, hash2 = _eliFs.safe_hash_file("assets/test.file", { hex = true })
+    test.assert(ok, hash2)
+    test.assert(_eliHash.equals(hash, hash2, true),
+        "hashes dont match (" .. tostring(hash) .. "<>" .. tostring(hash2) .. ")")
+    local files = _eliZip.get_files"tmp/test.file.zip"
+    test.assert(#files == 1, "files count mismatch")
 end
 
 if not TEST then
