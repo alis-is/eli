@@ -110,7 +110,7 @@ function zip.extract(source, destination, options)
 
 		-- by default we assume that mkdir is nor supported and we cannot create directories
 		local _targetPath = _path.file(stat.name)
-		if type(_transform_path) == "function" then                           -- if supplied transform with transform functions
+		if type(_transform_path) == "function" then                         -- if supplied transform with transform functions
 			_targetPath = _transform_path(stat.name:sub(il), destination)
 		elseif type(_mkdirp) == "function" and type(destination) == "string" then --mkdir supported we can use path as is :)
 			_targetPath = _path.combine(destination, stat.name:sub(il))
@@ -136,7 +136,7 @@ function zip.extract(source, destination, options)
 			_close_file(_f)
 		end
 		local _externalAtrributes = zipArch:get_external_attributes(i)
-		if _externalChmod then                        -- we got supplied chmod
+		if _externalChmod then                      -- we got supplied chmod
 			_chmod(_targetPath, _externalAtrributes)
 		elseif type(_externalAtrributes) == "number" then -- we use built in chmod
 			local _permissions = math.floor(_externalAtrributes / 2 ^ 16)
@@ -163,18 +163,18 @@ function zip.extract_file(source, file, destination, options)
 	end
 
 	local _options =
-		_util.merge_tables(
-			type(options) == "table" and options or {},
-			{
-				transform_path = function (path)
-					return path == file and destination or path
-				end,
-				filter = function (path)
-					return path == file
-				end,
-			},
-			true
-		)
+	   _util.merge_tables(
+		   type(options) == "table" and options or {},
+		   {
+			   transform_path = function (path)
+				   return path == file and destination or path
+			   end,
+			   filter = function (path)
+				   return path == file
+			   end,
+		   },
+		   true
+	   )
 
 	return zip.extract(source, _path.dir(destination), _options)
 end
@@ -189,28 +189,28 @@ end
 function zip.extract_string(source, file, options)
 	local _result = ""
 	local _options =
-		_util.merge_tables(
-			type(options) == "table" and options or {},
-			{
-				open_file = function ()
-					return _result
-				end,
-				write = function (_, data)
-					_result = _result .. data
-				end,
-				close_file = function ()
-				end,
-				skipDestinationCheck = true, -- no destination dir
-				filter = function (path)
-					return path == file
-				end,
-				mkdirp = function ()
-				end, -- we do not want to create
-				chmod = function ()
-				end,
-			},
-			true
-		)
+	   _util.merge_tables(
+		   type(options) == "table" and options or {},
+		   {
+			   open_file = function ()
+				   return _result
+			   end,
+			   write = function (_, data)
+				   _result = _result .. data
+			   end,
+			   close_file = function ()
+			   end,
+			   skipDestinationCheck = true, -- no destination dir
+			   filter = function (path)
+				   return path == file
+			   end,
+			   mkdirp = function ()
+			   end, -- we do not want to create
+			   chmod = function ()
+			   end,
+		   },
+		   true
+	   )
 
 	zip.extract(source, nil, _options)
 	return _result
@@ -316,14 +316,11 @@ function zip.new_archive(path)
 end
 
 ---@class CompressOptions
----#DES 'CompressOptions.overwrite'
 ---@field overwrite nil|boolean
----#DES 'CompressOptions.preserveFullPath'
 ---@field preserveFullPath nil|boolean
----#DES 'CompressOptions.recurse'
 ---@field recurse nil|boolean
----#DES 'CompressOptions.contentOnly'
 ---@field contentOnly boolean? aplicable only when source is directory
+---@field filter (fun(name: string, fileInfo: table): boolean)?
 
 ---#DES 'zip.compress'
 ---
@@ -338,6 +335,9 @@ function zip.compress(source, target, options)
 
 	if fs.file_type(source) == nil then
 		error("Cannot compress. Invalid source " .. (source or ""))
+	end
+	local filter = type(options.filter) == "function" and options.filter or function ()
+		return true
 	end
 
 	if options.overwrite then
@@ -366,9 +366,15 @@ function zip.compress(source, target, options)
 		return
 	end
 
-	local _dirEntries = fs.read_dir(source, { recurse = options.recurse, asDirEntries = true })
+	local _dirEntries = fs.read_dir(source, { recurse = options.recurse, asDirEntries = true }) --[=[@as DirEntry[]]=]
 	for _, entry in ipairs(_dirEntries) do
-		zip.add_to_archive(_archive, entry:fullpath():sub(_skipLength), entry:type(), entry:fullpath())
+		local entry_path = entry:fullpath():sub(_skipLength)
+		if not filter(entry_path, entry) then
+			goto files_loop
+		end
+
+		zip.add_to_archive(_archive, entry_path, entry:type(), entry:fullpath())
+		::files_loop::
 	end
 	_archive:close()
 end
