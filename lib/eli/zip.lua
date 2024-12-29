@@ -397,7 +397,7 @@ function zip.compress(source, target, options)
 		return
 	end
 
-	local dir_entries = fs.read_dir(source, { recurse = options.recurse, asDirEntries = true }) --[=[@as DirEntry[]]=]
+	local dir_entries = fs.read_dir(source, { recurse = options.recurse, as_dir_entries = true }) --[=[@as DirEntry[]]=]
 	for _, entry in ipairs(dir_entries) do
 		local entry_path = entry:fullpath():sub(skip_length)
 		if not filter(entry_path, entry) then

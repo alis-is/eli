@@ -9,7 +9,7 @@ local templates = require"tools.templates"
 local _buildUtil = require"tools.util"
 
 log_info"overlaying deps"
-local _entries = fs.read_dir("misc/deps-overlay", { recurse = true, asDirEntries = true })
+local _entries = fs.read_dir("misc/deps-overlay", { recurse = true, as_dir_entries = true })
 for _, entry in ipairs(_entries) do
 	if entry:type() ~= "directory" then
 		local _dest = path.combine("deps", entry:fullpath():sub(#"misc/deps-overlay" + 2))
@@ -64,7 +64,7 @@ local patches = {
 				compress = config.compress,
 			})
 			local _linit = file:gsub("/%* eli additional libs %*/.-/%* end eli additional libs %*/\n", "") -- cleanup potential old init
-				:gsub("\nLUALIB_API void luaL_openlibs", _rendered)                                   -- inject libs
+			   :gsub("\nLUALIB_API void luaL_openlibs", _rendered)                                -- inject libs
 			local _start, _end = _linit:find"\nLUALIB_API void luaL_openlibs.*$"
 			return _linit:gsub("\n%s-}%s-$", "\n" .. lustache:render(
 				templates.LINIT_LIBS_LOAD,
@@ -145,7 +145,7 @@ local patches = {
 	[LUA_H] = {
 		validate = function (file)
 			return file:match"LUA_COPYRIGHT" and
-				file:match"#define LUA_COPYRIGHT[\t ]-LUA_RELEASE \"  Copyright %(C%) .- Lua.org, PUC%-Rio"
+			   file:match"#define LUA_COPYRIGHT[\t ]-LUA_RELEASE \"  Copyright %(C%) .- Lua.org, PUC%-Rio"
 		end,
 		patch = function (file)
 			local COPYRIGHT_LINE_PATTERN = '#define LUA_COPYRIGHT[\t ]-LUA_RELEASE "  Copyright %(C%).-".-\n'

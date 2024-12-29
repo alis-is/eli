@@ -60,46 +60,46 @@ end
 ---#DES 'fs.copy_file'
 ---
 ---Copies file from src to dst
----@param src string | file*
----@param dst string | file*
+---@param source string | file*
+---@param destination string | file*
 ---@param options AccessFileOptions?
-function fs.copy_file(src, dst, options)
-	assert(src ~= dst, "Identical source and destiontion path!")
-	assert(type(src) == "string" or (tostring(src):find"file" == 1),
+function fs.copy_file(source, destination, options)
+	assert(source ~= destination, "Identical source and destiontion path!")
+	assert(type(source) == "string" or (tostring(source):find"file" == 1),
 		"Invalid type of source! (Has to be string or file*)")
-	assert(type(dst) == "string" or (tostring(dst):find"file" == 1),
+	assert(type(destination) == "string" or (tostring(destination):find"file" == 1),
 		"Invalid type of destination! (Has to be string or file*)")
 
 	options = util.merge_tables({ binary_mode = true }, options, true)
-	local file_info = fs.file_info(src)
+	local file_info = fs.file_info(source)
 	local permissions = (file_info or {}).permissions or "rw-r--r--"
 	---@type file*, file*
-	local srcf, dstf
-	if type(src) == "string" then
-		srcf = assert(io.open(src, options.binary_mode and "rb" or "r"),
-			"no such a file or directory - " .. src)
+	local source_file, destination_file
+	if type(source) == "string" then
+		source_file = assert(io.open(source, options.binary_mode and "rb" or "r"),
+			"no such a file or directory - " .. source)
 	else
-		srcf = src
+		source_file = source
 	end
-	if type(dst) == "string" then
-		dstf = assert(io.open(dst, options.binary_mode and "wb" or "w"),
-			"failed to open file for write - " .. dst)
+	if type(destination) == "string" then
+		destination_file = assert(io.open(destination, options.binary_mode and "wb" or "w"),
+			"failed to open file for write - " .. destination)
 	else
-		dstf = dst
+		destination_file = destination
 	end
 
 	local size = 2 ^ 12 -- 4K
 	while true do
-		local block = srcf:read(size)
+		local block = source_file:read(size)
 		if not block then
 			break
 		end
-		dstf:write(block)
+		destination_file:write(block)
 	end
-	if type(src) == "string" then srcf:close() end
-	if type(dst) == "string" then dstf:close() end
-	if type(dst) == "string" then
-		fs.chmod(dst, permissions)
+	if type(source) == "string" then source_file:close() end
+	if type(destination) == "string" then destination_file:close() end
+	if type(destination) == "string" then
+		fs.chmod(destination, permissions)
 	end
 end
 
@@ -401,7 +401,7 @@ end
 ---@class FsReadDirOptions
 ---@field recurse boolean?
 ---@field return_full_paths boolean?
----@field asDirEntries boolean?
+---@field as_dir_entries boolean?
 
 ---@class DirEntry
 ---@field name fun(self: DirEntry): string
@@ -435,10 +435,10 @@ function fs.read_dir(path, options)
 		if options.return_full_paths then
 			length_of_path_to_remove = 0
 		end
-		return read_dir_recurse(path, options.asDirEntries, length_of_path_to_remove)
+		return read_dir_recurse(path, options.as_dir_entries, length_of_path_to_remove)
 	end
-	local result = fs_extra.read_dir(path, options.asDirEntries)
-	if not options.asDirEntries and options.return_full_paths then
+	local result = fs_extra.read_dir(path, options.as_dir_entries)
+	if not options.as_dir_entries and options.return_full_paths then
 		for i, v in ipairs(result) do
 			result[i] = combine(path, v)
 		end
@@ -448,7 +448,7 @@ end
 
 ---@class FsChownOptions
 ---@field recurse boolean?
----@field recurseIgnoreErrors boolean?
+---@field recurse_ignore_errors boolean?
 
 ---#DES 'fs.chown'
 ---
@@ -460,20 +460,20 @@ end
 ---@return boolean, string?, number?
 function fs.chown(path, uid, gid, options)
 	check_efs_available"chown"
-	options = util.merge_tables({ recurseIgnoreErrors = true }, options, true)
+	options = util.merge_tables({ recurse_ignore_errors = true }, options, true)
 	if not options.recurse or fs_extra.file_type(path) ~= "directory" then
 		return fs_extra.chown(path, uid, gid)
 	end
 
 	local ok, err, errno = fs_extra.chown(path, uid, gid)
-	if not ok and not options.recurseIgnoreErrors then
+	if not ok and not options.recurse_ignore_errors then
 		return ok, err, errno
 	end
 
 	local paths = fs.read_dir(path, { recurse = true, return_full_paths = true })
 	for _, path in ipairs(paths) do
 		ok, err, errno = fs_extra.chown(path, uid, gid)
-		if not ok and not options.recurseIgnoreErrors then
+		if not ok and not options.recurse_ignore_errors then
 			return ok, err, errno
 		end
 	end
@@ -482,7 +482,7 @@ end
 
 ---@class FsChmodOptions
 ---@field recurse boolean?
----@field recurseIgnoreErrors boolean?
+---@field recurse_ignore_errors boolean?
 
 ---#DES 'fs.chmod'
 ---
@@ -502,19 +502,19 @@ function fs.chmod(path, mode, options)
 		return fs_extra.chmod(path, mode)
 	end
 
-	if type(options.recurseIgnoreErrors) ~= "boolean" then
-		options.recurseIgnoreErrors = true
+	if type(options.recurse_ignore_errors) ~= "boolean" then
+		options.recurse_ignore_errors = true
 	end
 
 	local ok, err, errno = fs_extra.chmod(path, mode)
-	if not ok and not options.recurseIgnoreErrors then
+	if not ok and not options.recurse_ignore_errors then
 		return ok, err, errno
 	end
 
 	local paths = fs.read_dir(path, { recurse = true, return_full_paths = true })
 	for _, path in ipairs(paths) do
 		ok, err, errno = fs_extra.chmod(path, mode)
-		if not ok and not options.recurseIgnoreErrors then
+		if not ok and not options.recurse_ignore_errors then
 			return ok, err, errno
 		end
 	end
@@ -575,24 +575,24 @@ local ELI_DIR_LOCK_ID = "ELI_DIR_LOCK"
 ---
 ---Locks access to directory
 ---@param path string
----@param lockFileName string?
+---@param lock_file_name string?
 ---@return EliDirLock|nil, string?
-function fs.lock_directory(path, lockFileName)
+function fs.lock_directory(path, lock_file_name)
 	check_efs_available"lock_dir"
-	return fs_extra.lock_dir(path, lockFileName)
+	return fs_extra.lock_dir(path, lock_file_name)
 end
 
 ---#DES 'fs.unlock_directory'
 ---
 ---Unlocks access to directory
----@param fsLock EliDirLock
+---@param fs_lock EliDirLock
 ---@return boolean|nil, string?
-function fs.unlock_directory(fsLock)
-	if type(fsLock) == ELI_DIR_LOCK_ID or (type(fsLock) == "userdata" and fsLock.__type --[[@as string]] == ELI_DIR_LOCK_ID) then
-		return fsLock --[[@as EliDirLock]]:unlock()
+function fs.unlock_directory(fs_lock)
+	if type(fs_lock) == ELI_DIR_LOCK_ID or (type(fs_lock) == "userdata" and fs_lock.__type --[[@as string]] == ELI_DIR_LOCK_ID) then
+		return fs_lock --[[@as EliDirLock]]:unlock()
 	else
 		return false,
-		   "Invalid " .. ELI_DIR_LOCK_ID .. " type! '" .. ELI_DIR_LOCK_ID .. "' expected, got: " .. type(fsLock) .. "!"
+		   "Invalid " .. ELI_DIR_LOCK_ID .. " type! '" .. ELI_DIR_LOCK_ID .. "' expected, got: " .. type(fs_lock) .. "!"
 	end
 end
 
@@ -612,16 +612,16 @@ end
 ---#DES 'fs.file_type'
 ---
 ---returns type of file
----@param pathOrFile string|file*
+---@param path_or_file string|file*
 ---@return boolean|nil, string
-function fs.file_info(pathOrFile)
-	if type(pathOrFile) == "string" then
-		local last_character = pathOrFile:sub(#pathOrFile, #pathOrFile)
+function fs.file_info(path_or_file)
+	if type(path_or_file) == "string" then
+		local last_character = path_or_file:sub(#path_or_file, #path_or_file)
 		if table_extensions.includes({ "/", "\\" }, last_character) then
-			pathOrFile = pathOrFile:sub(1, #pathOrFile - 1)
+			path_or_file = path_or_file:sub(1, #path_or_file - 1)
 		end
 	end
-	return fs_extra.file_info(pathOrFile)
+	return fs_extra.file_info(path_or_file)
 end
 
 if is_fs_extra_loaded then
