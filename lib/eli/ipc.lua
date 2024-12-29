@@ -1,7 +1,7 @@
-local ipcCore = require"ipc.core"
+local ipc_core = require"ipc.core"
 local util = require"eli.util"
 local signal = require"os.signal"
-local exTable = require"eli.extensions.table"
+local table_extensions = require"eli.extensions.table"
 
 ---@class IPCSocketReadOptions
 ---@field timeout number? @timeout in milliseconds
@@ -57,9 +57,9 @@ local ipc = {}
 ---@param handlers IPCHandlers
 ---@param options IPCServerOptions?
 function ipc.listen(path, handlers, options)
-	local _, isMainThread = coroutine.running()
+	local _, is_main_thread = coroutine.running()
 
-	local server, err = ipcCore.listen(path, options)
+	local server, err = ipc_core.listen(path, options)
 	if not server then
 		error(err)
 	end
@@ -68,11 +68,12 @@ function ipc.listen(path, handlers, options)
 
 	coroutine.yield(server)
 
-	local is_stop_requested = exTable.get(options --[[@as table]], "is_stop_requested", function () return false end) --[[@as fun(): boolean]]
+	local is_stop_requested = table_extensions.get(options --[[@as table]], "is_stop_requested",
+		function () return false end) --[[@as fun(): boolean]]
 
 	while not is_stop_requested() do
 		local ok, err = server:process_events(handlers, options)
-		if not isMainThread then
+		if not is_main_thread then
 			coroutine.yield(ok, err)
 		elseif not ok then
 			if type(handlers.error) == "function" then
@@ -88,7 +89,7 @@ end
 ---@param path string @path to the socket on linux or name of the pipe on windows
 ---@return IPCSocket
 function ipc.connect(path)
-	local client, err = ipcCore.connect(path)
+	local client, err = ipc_core.connect(path)
 	if not client then
 		error(err)
 	end

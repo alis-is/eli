@@ -1,90 +1,67 @@
-local _hash = require"lmbed_hash"
-local _util = require"eli.util"
+local mbed_hash = require"lmbed_hash"
+local util = require"eli.util"
 
 ---@class HashGenerator
----#DES 'HashGenerator.ctx'
----@field ctx userdata
+---@field update fun(self: HashGenerator, data: string)
+---@field finish fun(self: HashGenerator, hex: boolean): string
 
----#DES 'hash.Sha256'
----@class Sha256: HashGenerator
----@deprecated
-local Sha256 = {}
-Sha256.__index = Sha256
-
----@deprecated
-function Sha256:new()
-	local sha256 = {}
-
-	setmetatable(sha256, self)
-	self.__index = self
-	sha256.ctx = _hash.sha256init()
-	return sha256
-end
-
----#DES 'hash.Sha256:update'
----
----@param self Sha512
----@param bytes string
----@deprecated
-function Sha256:update(bytes) self.ctx:update(bytes) end
-
----#DES 'hash.Sha256:finish'
----
----@param self Sha512
----@param hex boolean?
----@return string
----@deprecated
-function Sha256:finish(hex) return self.ctx:finish(hex) end
-
----#DES 'hash.Sha512'
----@deprecated
----@class Sha512: HashGenerator
-local Sha512 = {}
-Sha512.__index = Sha512
-
----@deprecated
-function Sha512:new()
-	local sha512 = {}
-
-	setmetatable(sha512, self)
-	self.__index = self
-	sha512.ctx = _hash.sha512init()
-	return sha512
-end
-
----#DES 'hash.Sha512:update'
----
----@param self Sha512
----@param bytes string: test
----@deprecated
-function Sha512:update(bytes) self.ctx:update(bytes) end
-
----#DES 'hash.Sha512:finish'
----
----@param self Sha512
----@param hex boolean?
----@return string
----@deprecated
-function Sha512:finish(hex) return self.ctx:finish(hex) end
-
----#DES 'hash.hex_equals'
----
----Compares 2 hashes represented as hex strings
----@param hash1 string
----@param hash2 string
----@return boolean
----@deprecated
-local function _hex_equals(hash1, hash2)
-	return _hash.equals(hash1, hash2, true)
-end
-
-return _util.generate_safe_functions{
-	Sha256 = Sha256,
-	Sha512 = Sha512,
-	sha256sum = _hash.sha256sum,
-	sha512sum = _hash.sha512sum,
-	sha256init = _hash.sha256init,
-	sha512init = _hash.sha512init,
-	equals = _hash.equals,
-	hex_equals = _hex_equals,
+local hash = {
+	---#DES 'hash.sha256_sum'
+	---
+	--- Calculates sha256 hash of the data
+	--- @param data string
+	--- @param hex boolean? (default false)	- if true, returns the hash in hex format
+	sha256_sum = mbed_hash.sha256sum,
+	---#DES 'hash.sha512_sum'
+	---
+	--- Calculates sha512 hash of the data
+	--- @param data string
+	--- @param hex boolean? (default false)	- if true, returns the hash in hex format
+	sha512_sum = mbed_hash.sha512sum,
+	---#DES 'hash.sha256_init'
+	---
+	--- Initializes sha256 hash
+	--- @return HashGenerator
+	sha256_init = mbed_hash.sha256init,
+	---#DES 'hash.sha512_init'
+	---
+	--- Initializes sha512 hash
+	--- @return HashGenerator
+	sha512_init = mbed_hash.sha512init,
+	---#DES 'hash.equals'
+	---
+	--- Compares two hashes
+	--- @param hash1 string
+	--- @param hash2 string
+	--- @param hex boolean? (default false)	- if true, compares the hashes in hex format
+	--- @return boolean
+	equals = mbed_hash.equals,
 }
+
+-- // TODO: remove deprecated functions in next version
+
+---@deprecated
+function hash.sha256sum(data, hex)
+	print"Deprecation warning: use hash.sha256_sum instead"
+	return mbed_hash.sha256sum(data, hex)
+end
+
+---@deprecated
+function hash.sha512sum(data, hex)
+	print"Deprecation warning: use hash.sha512_sum instead"
+	return mbed_hash.sha512sum(data, hex)
+end
+
+---@deprecated
+function hash.sha256init()
+	print"Deprecation warning: use hash.sha256_init instead"
+	return mbed_hash.sha256init()
+end
+
+---@deprecated
+function hash.sha512init()
+	print"Deprecation warning: use hash.sha512_init instead"
+	return mbed_hash.sha512init()
+end
+
+return util.generate_safe_functions(hash)
