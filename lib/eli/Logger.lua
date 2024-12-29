@@ -20,7 +20,7 @@ local RESET_COLOR = string.char(27) .. "[0m"
 ---@field format '"auto"'|'"standard"'|'"json"'
 ---@field colorful boolean?
 ---@field level LogLevel
----@field includeFields boolean?
+---@field include_fields boolean?
 ---@field noTime boolean?
 
 ---#DES 'Logger'
@@ -44,13 +44,19 @@ function Logger:new(options)
 		}
 	end
 
+	--// TODO: remove in next version
+	if options.includeFields ~= nil and options.include_fields == nil then
+		options.include_fields = options.includeFields
+		print"Deprecation warning: includeFields is deprecated, use include_fields instead"
+	end
+
 	options = util.merge_tables(options, {
 		format = is_tty and "standard" or "json",
 		colorful = is_tty,
 		level = "info",
-		includeFields = true,
+		include_fields = true,
 		noTime = false,
-	})
+	} --[[@as LoggerOptions]])
 
 	logger.options = options
 
@@ -87,7 +93,7 @@ local function get_log_color(level)
 	return RESET_COLOR
 end
 
-local levelValueMap = {
+local level_value_map = {
 	["error"] = 2,
 	["warn"] = 1,
 	["warning"] = 1,
@@ -102,7 +108,7 @@ local levelValueMap = {
 ---@return LogLevelInt
 local function level_value(level)
 	if type(level) ~= "string" then return 0 end
-	local lvl = levelValueMap[level]
+	local lvl = level_value_map[level]
 	if (type(lvl) == nil) then return 0 end
 	return lvl
 end
@@ -113,8 +119,8 @@ end
 ---@param colorful boolean
 ---@param color string
 ---@param noTime boolean
----@param includeFields boolean|string[]
-local function log_txt(data, colorful, color, noTime, includeFields)
+---@param include_fields boolean|string[]
+local function log_txt(data, colorful, color, noTime, include_fields)
 	local module = ""
 	if data.module ~= nil and data.module ~= "" then
 		module = "(" .. tostring(data.module) .. ") "
@@ -126,21 +132,21 @@ local function log_txt(data, colorful, color, noTime, includeFields)
 		data.msg = data.msg:sub(1, #data.msg - 1)
 	end
 
-	if includeFields then
-		if not exTable.is_array(includeFields) then
-			includeFields = exTable.filter(exTable.keys(data), function (_, v)
+	if include_fields then
+		if not exTable.is_array(include_fields) then
+			include_fields = exTable.filter(exTable.keys(data), function (_, v)
 				return v ~= "msg" and v ~= "module" and v ~= "level"
 			end)
 		end
 
-		local _fields = {}
-		local _any = false
-		for _, v in ipairs(includeFields --[[@as table]]) do
-			_any = true
-			_fields[v] = data[v]
+		local fields = {}
+		local has_fields = false
+		for _, v in ipairs(include_fields --[[@as table]]) do
+			has_fields = true
+			fields[v] = data[v]
 		end
-		local _addition = _any and ("\n" .. encode_to_hjson(_fields)) or ""
-		data.msg = data.msg .. _addition
+		local encoded_fields = has_fields and ("\n" .. encode_to_hjson(fields)) or ""
+		data.msg = data.msg .. encoded_fields
 	end
 
 	if colorful then
@@ -190,7 +196,7 @@ function Logger:log(msg, level, vars)
 		log_json(msg)
 	else
 		local color = get_log_color(msg.level)
-		log_txt(msg, self.options.colorful, color, self.options.noTime, self.options.includeFields)
+		log_txt(msg, self.options.colorful, color, self.options.noTime, self.options.include_fields)
 	end
 end
 

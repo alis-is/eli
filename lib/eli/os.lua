@@ -1,11 +1,11 @@
-local _eosLoaded, _eos = pcall(require, "eli.os.extra")
-local _util = require "eli.util"
+local is_os_extra_loaded, os_extra = pcall(require, "eli.os.extra")
+local util = require"eli.util"
 
-local _os = {
+local os = {
     ---#DES os.EOS
     ---
     ---@type boolean
-    EOS = _eosLoaded
+    EOS = is_os_extra_loaded,
 }
 
-return _eosLoaded and _util.merge_tables(_os, _eos) or _os
+return is_os_extra_loaded and util.merge_tables(os, os_extra) or os
