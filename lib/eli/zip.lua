@@ -29,7 +29,7 @@ local zip = {}
 ---@field transform_path transform_path_fn?
 ---@field open_file (fun(path: string, mode: string): file* | any)?
 ---@field write (fun(file: file* | any, data: string))?
----@field close_file (fun(f: file* | any))?
+---@field close_file (fun(file: file* | any))?
 ---@field filter (fun(name: string, fileInfo: table): boolean)?
 
 ---#DES 'zip.extract'
