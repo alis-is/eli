@@ -1,10 +1,10 @@
-local es = {}
+local string_extensions = {}
 
 ---#DES string.trim
 ---
 ---@param s string
 ---@return string
-function es.trim(s)
+function string_extensions.trim(s)
 	if type(s) ~= "string" then return s end
 	return s:match"^()%s*$" and "" or s:match"^%s*(.*%S)"
 end
@@ -12,22 +12,22 @@ end
 ---#DES string.split
 ---
 ---@param s string
----@param sep string?
+---@param separator string?
 ---@param trim boolean?
 ---@return string[]
-function es.split(s, sep, trim)
+function string_extensions.split(s, separator, trim)
 	if type(s) ~= "string" then return s end
-	if sep == nil then
-		sep = "%s"
+	if separator == nil then
+		separator = "%s"
 	end
-	local _result = {}
-	for str in string.gmatch(s, "([^" .. sep .. "]+)") do
+	local result = {}
+	for str in string.gmatch(s, "([^" .. separator .. "]+)") do
 		if trim then
-			str = es.trim(str)
+			str = string_extensions.trim(str)
 		end
-		table.insert(_result, str)
+		table.insert(result, str)
 	end
-	return _result
+	return result
 end
 
 ---#DES string.join
@@ -36,24 +36,24 @@ end
 ---@param separator string
 ---@param ... any
 ---@return string
-function es.join(separator, ...)
-	local _result = ""
+function string_extensions.join(separator, ...)
+	local result = ""
 	if type(separator) ~= "string" then
 		separator = ""
 	end
-	local _parts = table.pack(...)
-	if #_parts > 0 and type(_parts[1]) == "table" then
-		_parts = _parts[1]
+	local parts = table.pack(...)
+	if #parts > 0 and type(parts[1]) == "table" then
+		parts = parts[1]
 	end
 
-	for _, v in ipairs(_parts) do
-		if #_result == 0 then
-			_result = tostring(v)
+	for _, v in ipairs(parts) do
+		if #result == 0 then
+			result = tostring(v)
 		else
-			_result = _result .. separator .. tostring(v)
+			result = result .. separator .. tostring(v)
 		end
 	end
-	return _result
+	return result
 end
 
 ---#DES string.join_strings
@@ -63,18 +63,19 @@ end
 ---@param separator string
 ---@param ...string
 ---@return string
-function es.join_strings(separator, ...)
-	local _tmp = {}
-	local _parts = table.pack(...)
-	if #_parts > 0 and type(_parts[1]) == "table" then
-		_parts = _parts[1]
+function string_extensions.join_strings(separator, ...)
+	local strings = {}
+	local parts = table.pack(...)
+	if #parts > 0 and type(parts[1]) == "table" then
+		-- if passed as table use it as parts
+		parts = parts[1]
 	end
-	for _, v in ipairs(_parts) do
+	for _, v in ipairs(parts) do
 		if type(v) == "string" then
-			table.insert(_tmp, v)
+			table.insert(strings, v)
 		end
 	end
-	return es.join(separator, table.unpack(_tmp))
+	return string_extensions.join(separator, table.unpack(strings))
 end
 
 ---#DES string.interpolate
@@ -84,29 +85,34 @@ end
 ---@param format string
 ---@param data table?
 ---@return string
-function es.interpolate(format, data)
+---@return number
+function string_extensions.interpolate(format, data)
 	if data == nil then data = _G end
 	if type(data) ~= "table" then data = {} end
+
+	local count_of_replaces = 0
+
 	---@param w string
 	---@return string
-	local function _interpolater(w)
-		if w:sub(1, 1) == "\\" then
+	local function interpolater(w)
+		if w:sub(1, 1) == "\\" then -- remove escape characters
 			return w:sub(2)
 		end
-		local _v = data[w:sub(3, -2)]
-		if _v == nil then _v = "" end
-		return tostring(_v) or w
+		local value = data[w:sub(3, -2)]
+		if value == nil then value = "" end
+		count_of_replaces = count_of_replaces + 1
+		return tostring(value) or w
 	end
-	local _result = format:gsub("(\\?$%b{})", _interpolater)
-	return _result
+	local result = format:gsub("(\\?$%b{})", interpolater)
+	return result, count_of_replaces
 end
 
-function es.globalize()
-	string.split = es.split
-	string.join = es.join
-	string.join_strings = es.join_strings
-	string.trim = es.trim
-	string.interpolate = es.interpolate
+function string_extensions.globalize()
+	string.split = string_extensions.split
+	string.join = string_extensions.join
+	string.join_strings = string_extensions.join_strings
+	string.trim = string_extensions.trim
+	string.interpolate = string_extensions.interpolate
 end
 
-return es
+return string_extensions

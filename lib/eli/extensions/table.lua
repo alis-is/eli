@@ -1,6 +1,6 @@
 local util = require"eli.util"
 
-local te = {} -- table extensions
+local table_extensions = {} -- table extensions
 
 ---#DES 'table.keys'
 ---
@@ -8,12 +8,12 @@ local te = {} -- table extensions
 ---@generic T
 ---@param t table<T, any>
 ---@return T[]
-function te.keys(t)
-	local _keyList = {}
+function table_extensions.keys(t)
+	local key_list = {}
 	for k, _ in pairs(t) do
-		table.insert(_keyList, k)
+		table.insert(key_list, k)
 	end
-	return _keyList
+	return key_list
 end
 
 ---#DES 'table.values'
@@ -22,12 +22,12 @@ end
 ---@generic T
 ---@param t table<any, T>
 ---@return T[]
-function te.values(t)
-	local _vals = {}
+function table_extensions.values(t)
+	local values = {}
 	for _, v in pairs(t) do
-		table.insert(_vals, v)
+		table.insert(values, v)
 	end
-	return _vals
+	return values
 end
 
 ---@class KeyValuePair
@@ -40,21 +40,21 @@ end
 ---@generic K, V
 ---@param t table<K, V>
 ---@return KeyValuePair --{key: K, value: V}[]
-function te.to_array(t)
+function table_extensions.to_array(t)
 	if util.is_array(t) then
 		return t
 	end
-	local arr = {}
-	local _keys = {}
+	local keys = {}
 	for k in pairs(t) do
-		table.insert(_keys, k)
+		table.insert(keys, k)
 	end
-	table.sort(_keys)
+	table.sort(keys)
 
-	for _, k in ipairs(_keys) do
-		table.insert(arr, { key = k, value = t[k] })
+	local result = {}
+	for _, k in ipairs(keys) do
+		table.insert(result, { key = k, value = t[k] })
 	end
-	return arr
+	return result
 end
 
 local function base_get(obj, path)
@@ -64,12 +64,12 @@ local function base_get(obj, path)
 	if type(path) == "string" or type(path) == "number" then
 		return obj[path]
 	elseif util.is_array(path) then
-		local _part = table.remove(path, 1)
-		local _index = util.is_array(obj) and tonumber(_part) or _part
+		local part = table.remove(path, 1)
+		local index = util.is_array(obj) and tonumber(part) or part
 		if #path == 0 then
-			return obj[_index]
+			return obj[index]
 		end
-		return base_get(obj[_part], path)
+		return base_get(obj[part], path)
 	else
 		return nil
 	end
@@ -82,12 +82,12 @@ end
 ---@param path string|string[]
 ---@param default any
 ---@return any
-function te.get(obj, path, default)
-	local _result = base_get(obj, path)
-	if _result == nil then
+function table_extensions.get(obj, path, default)
+	local result = base_get(obj, path)
+	if result == nil then
 		return default
 	end
-	return _result
+	return result
 end
 
 ---#DES 'table.set'
@@ -98,19 +98,19 @@ end
 ---@param path string|string[]
 ---@param value any
 ---@return T
-function te.set(obj, path, value)
+function table_extensions.set(obj, path, value)
 	if type(obj) ~= "table" then
 		return obj
 	end
 	if type(path) == "string" or type(path) == "number" then
 		obj[path] = value
 	elseif util.is_array(path) then
-		local _part = table.remove(path, 1)
-		local _index = util.is_array(obj) and tonumber(_part) or _part
+		local part = table.remove(path, 1)
+		local index = util.is_array(obj) and tonumber(part) or part
 		if #path == 0 then
-			obj[_index] = value
+			obj[index] = value
 		else
-			te.set(obj[_part], path, value)
+			table_extensions.set(obj[part], path, value)
 		end
 	end
 	return obj
@@ -122,18 +122,18 @@ end
 ---@generic T
 ---@overload fun(t: table<string, T>, filterFn: fun(k:string|number, v: T): boolean): table<string, T>
 ---@param t table<string, T>|T[]
----@param filterFn fun(k:string|number, v: T): boolean
+---@param filter_fn fun(k:string|number, v: T): boolean
 ---@return table<string, T>|T[]
-function te.filter(t, filterFn)
-	if type(filterFn) ~= "function" then
+function table_extensions.filter(t, filter_fn)
+	if type(filter_fn) ~= "function" then
 		return t
 	end
-	local isArray = util.is_array(t)
+	local is_array = util.is_array(t)
 
 	local res = {}
 	for k, v in pairs(t) do
-		if filterFn(k, v) then
-			if isArray and k ~= "n" then
+		if filter_fn(k, v) then
+			if is_array and k ~= "n" then
 				table.insert(res, v)
 			else
 				res[k] = v
@@ -149,17 +149,17 @@ end
 --- can be used to map dictionary like tables BUT value is passed as first argument and key as second
 ---@generic T
 ---@param arr T[]|table<string|number, T>
----@param mapFn fun(element: T, k: string| number): any
+---@param map_fn fun(element: T, k: string| number): any
 ---@return T[]|table<string|number, T>
-function te.map(arr, mapFn)
-	if type(mapFn) ~= "function" then
+function table_extensions.map(arr, map_fn)
+	if type(map_fn) ~= "function" then
 		return arr
 	end
-	local _result = {}
+	local result = {}
 	for k, v in pairs(arr) do
-		_result[k] = mapFn(v, k)
+		result[k] = map_fn(v, k)
 	end
-	return _result
+	return result
 end
 
 ---#DES 'table.reduce'
@@ -168,18 +168,18 @@ end
 --- can be used to reduce dictionary like tables BUT value is passed as first argument and key as second
 ---@generic T, U
 ---@param arr T[]|table<string|number, T>
----@param reduceFn fun(acc: U, element: T, k: string| number): U
----@param initial U
+---@param reduce_fn fun(acc: U, element: T, k: string| number): U
+---@param initial_value U
 ---@return T
-function te.reduce(arr, reduceFn, initial)
-	if type(reduceFn) ~= "function" then
-		return initial
+function table_extensions.reduce(arr, reduce_fn, initial_value)
+	if type(reduce_fn) ~= "function" then
+		return initial_value
 	end
-	local _acc = initial
+	local accumulated_value = initial_value
 	for k, v in pairs(arr) do
-		_acc = reduceFn(_acc, v, k)
+		accumulated_value = reduce_fn(accumulated_value, v, k)
 	end
-	return _acc
+	return accumulated_value
 end
 
 ---#DES 'table.includes'
@@ -187,14 +187,14 @@ end
 --- checks whether table includes value
 --- if provided arrOrTable is not a table returns false
 --- for nil val always returns false (lua returns nil for values not in table)
----@param arrOrTable table
+---@param array_or_table table
 ---@param val any
----@param useDeepComparison boolean? compares content of tables
+---@param use_deep_comparison boolean? compares content of tables
 ---@return boolean
-function te.includes(arrOrTable, val, useDeepComparison)
-	if type(arrOrTable) ~= "table" or val == nil then return false end
-	for _, v in pairs(arrOrTable) do
-		if util.equals(v, val, useDeepComparison) then return true end
+function table_extensions.includes(array_or_table, val, use_deep_comparison)
+	if type(array_or_table) ~= "table" or val == nil then return false end
+	for _, v in pairs(array_or_table) do
+		if util.equals(v, val, use_deep_comparison) then return true end
 	end
 	return false
 end
@@ -204,12 +204,12 @@ end
 --- checks whether table includes value
 --- if provided arrOrTable is not a table returns false
 --- for nil k always returns false (lua returns nil for values not in table)
----@param arrOrTable table
+---@param array_or_table table
 ---@param key any
 ---@return boolean
-function te.has_key(arrOrTable, key)
-	if type(arrOrTable) ~= "table" or key == nil then return false end
-	for k, _ in pairs(arrOrTable) do
+function table_extensions.has_key(array_or_table, key)
+	if type(array_or_table) ~= "table" or key == nil then return false end
+	for k, _ in pairs(array_or_table) do
 		if k == key then return true end
 	end
 	return false
@@ -220,14 +220,14 @@ end
 --- checks whether table is array
 ---@param t any
 ---@return boolean
-function te.is_array(t)
+function table_extensions.is_array(t)
 	return util.is_array(t)
 end
 
-function te.globalize()
-	for k, v in pairs(te) do
+function table_extensions.globalize()
+	for k, v in pairs(table_extensions) do
 		table[k] = v
 	end
 end
 
-return te
+return table_extensions
