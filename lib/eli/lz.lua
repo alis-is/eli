@@ -1,17 +1,13 @@
-local _zlib = require"zlib"
-local _util = require"eli.util"
+local zlib = require"zlib"
+local util = require"eli.util"
 
 local lz = {}
 
 ---@class LzExtractOptions
----#DES 'LzExtractOptions.chunkSize'
----@field chunkSize nil|integer
----#DES 'LzExtractOptions.open_file'
----@field open_file nil|fun(path: string, mode: string): file*
----#DES 'LzExtractOptions.write'
----@field write nil|fun(path: string, data: string)
----#DES 'LzExtractOptions.close_file'
----@field close_file nil|fun(f: file*)
+---@field chunk_size integer?
+---@field open_file (fun(path: string, mode: string): file* | any)?
+---@field write (fun(file: file* | any, data: string))?
+---@field close_file (fun(file: file* | any))?
 
 ---#DES 'lz.extract'
 ---
@@ -25,37 +21,43 @@ function lz.extract(source, destination, options)
 
 	if type(options) ~= "table" then options = {} end
 	local _open_file = type(options.open_file) == "function" and
-		options.open_file or
-		function (path, mode)
-			return io.open(path, mode)
-		end
-	local _write = type(options.write) == "function" and options.write or
-		function (file, data) return file:write(data) end
-	local _close_file = type(options.close_file) == "function" and
-		options.close_file or
-		function (file) return file:close() end
+	   options.open_file or
+	   function (path, mode)
+		   return io.open(path, mode)
+	   end
+	local write = type(options.write) == "function" and options.write or
+	   function (file, data) return file:write(data) end
+	local close_file = type(options.close_file) == "function" and
+	   options.close_file or
+	   function (file) return file:close() end
 
-	local _df = _open_file(destination, "wb")
-	assert(_df,
+	local destination_file = _open_file(destination, "wb")
+	assert(destination_file,
 		"lz: Failed to open destination file " .. tostring(source) .. "!")
 
-	local _chunkSize =
-		type(options.chunkSize) == "number" and options.chunkSize or 2 ^ 13 -- 8K
+	-- // TODO: remove in the next version
+	if options.chunkSize ~= nil and options.chunk_size == nil then
+		options.chunk_size = options.chunkSizep
+		print"Deprecation warning: use chunk_size instead of chunkSize"
+	end
 
-	local _inflate = _zlib.inflate()
-	local _shift = 0
+	local chunk_size =
+	   type(options.chunk_size) == "number" and options.chunk_size or 2 ^ 13 -- 8K
+
+	local inflate = zlib.inflate()
+	local shift = 0
 	while true do
-		local _data = _sf:read(_chunkSize)
-		if not _data then break end
-		local _inflated, eof, bytes_in, _ = _inflate(_data)
-		if type(_inflated) == "string" then _write(_df, _inflated) end
-		if eof then -- we got end of gzip stream we return to bytes_in pos in case there are multiple stream embedded
-			_sf:seek("set", _shift + bytes_in)
-			_shift = _shift + bytes_in
-			_inflate = _zlib.inflate()
+		local data = _sf:read(chunk_size)
+		if not data then break end
+		local inflated, is_eof, bytes_in, _ = inflate(data)
+		if type(inflated) == "string" then write(destination_file, inflated) end
+		if is_eof then -- we got end of gzip stream we return to bytes_in pos in case there are multiple stream embedded
+			_sf:seek("set", shift + bytes_in)
+			shift = shift + bytes_in
+			inflate = zlib.inflate()
 		end
 	end
-	_close_file(_df)
+	close_file(destination_file)
 end
 
 ---#DES 'lz.extract_from_string'
@@ -70,9 +72,9 @@ function lz.extract_from_string(data)
 	local shift = 1
 	local result = ""
 	while (shift < #data) do
-		local inflate = _zlib.inflate()
-		local inflated, eof, bytes_in, _ = inflate(data:sub(shift))
-		assert(eof, "lz: Compressed stream is not complete!")
+		local inflate = zlib.inflate()
+		local inflated, is_eof, bytes_in, _ = inflate(data:sub(shift))
+		assert(is_eof, "lz: Compressed stream is not complete!")
 		shift = shift + bytes_in
 		result = result .. inflated -- merge streams for cases when input is multi stream
 	end
@@ -83,24 +85,24 @@ end
 ---
 --- extracts string from z compressed archive from path source
 ---@param source string
----@param options LzExtractOptions?
+---@param extract_options LzExtractOptions?
 ---@return string
-function lz.extract_string(source, options)
-	local _result = ""
-	local _options = _util.merge_tables(type(options) == "table" and options or
+function lz.extract_string(source, extract_options)
+	local result = ""
+	local options = util.merge_tables(type(extract_options) == "table" and extract_options or
 		{}, {
-			open_file = function () return _result end,
-			write = function (_, data) _result = _result .. data end,
+			open_file = function () return result end,
+			write = function (_, data) result = result .. data end,
 			close_file = function () end,
 		}, true)
 
-	lz.extract(source, nil, _options)
-	return _result
+	lz.extract(source, nil, options)
+	return result
 end
 
 ---@class LzCompressOptions
 ---@field level number? 0 - 9
----@field windowSize integer? 9 - 15
+---@field window_size integer? 9 - 15
 
 ---#DES lz.extract_string
 ---
@@ -115,17 +117,22 @@ function lz.compress_string(data, options)
 	if type(options) ~= "table" then
 		options = {}
 	end
-	local _level = type(options.level) == "number" and options.level or 6
-	if _level > 9 then _level = 9 end
-	if _level < 0 then _level = 0 end
-	local _windowSize = options.windowSize
-	if type(_windowSize) == "number" then
-		if _windowSize < 9 then _windowSize = 9 end
-		if _windowSize > 15 then _windowSize = 15 end
+	local level = type(options.level) == "number" and options.level or 6
+	if level > 9 then level = 9 end
+	if level < 0 then level = 0 end
+
+	if options.windowSize ~= nil and options.window_size == nil then
+		options.window_size = options.windowSize
+		print"Deprecation warning: use window_size instead of windowSize"
 	end
-	local _deflate = _zlib.deflate(_level, _windowSize)
-	local _result = _deflate(data, "finish")
-	return _result
+
+	local window_size = options.window_size
+	if type(window_size) == "number" then
+		if window_size < 9 then window_size = 9 end
+		if window_size > 15 then window_size = 15 end
+	end
+	local deflate = zlib.deflate(level, window_size)
+	return deflate(data, "finish")
 end
 
-return _util.generate_safe_functions(lz)
+return util.generate_safe_functions(lz)
