@@ -54,7 +54,7 @@ local function parse_extended_header(entry, globalExtendedHeader)
 	return false, globalExtendedHeader, globalExtendedHeader
 end
 
-local tar = {}
+local tar = util.clone(ltar)
 
 ---#DES 'tar.extract'
 ---
@@ -155,13 +155,13 @@ function tar.extract(source, destination, options)
 			target_path = path.combine(destination, entry_path:sub(ignore_length))
 		end
 
-		if entry:type() == tar.DIR then
+		if entry:type() == ltar.DIR then
 			-- directory
 			mkdirp(target_path)
-		elseif entry:type() == tar.FILE or entry:type() == tar.AFILE then
+		elseif entry:type() == ltar.FILE or entry:type() == ltar.AFILE then
 			mkdirp(path.dir(target_path))
 
-			--if entry:type() == tar.FILE
+			--if entry:type() == ltar.FILE
 			local f, err = open_file(target_path, "wb")
 			assert(f, "Failed to open file: " .. target_path .. " because of: " .. (err or ""))
 
@@ -183,7 +183,7 @@ function tar.extract(source, destination, options)
 					pcall(chmod, target_path, tonumber(mode))
 				end
 			end
-		elseif entry:type() == tar.SYMLINK or entry:type() == tar.HARDLINK then
+		elseif entry:type() == ltar.SYMLINK or entry:type() == ltar.HARDLINK then
 			local link_target = type(extended_header.linkpath) == "string" and extended_header.linkpath or
 			   entry:linkpath()
 			if type(mkdirp) == "function" and type(destination) == "string" then --mkdir supported we can use path as is :)
@@ -191,7 +191,7 @@ function tar.extract(source, destination, options)
 					link_target = path.combine(destination, link_target)
 				end
 			end
-			link(link_target, target_path, entry:type() == tar.SYMLINK)
+			link(link_target, target_path, entry:type() == ltar.SYMLINK)
 			local mode = type(extended_header.mode) == "string" and tonumber(extended_header.mode, 8) or entry:mode()
 			if external_chmod then               -- we got supplied chmod
 				chmod(target_path, mode)

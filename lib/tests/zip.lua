@@ -72,7 +72,7 @@ test["compress (filter)"] = function ()
         filter = function (path, info)
             return path == "test.file"
         end,
-        contentOnly = true,
+        content_only = true,
     })
     test.assert(ok, file)
     local ok, error = _eliZip.safe_extract_file("tmp/test.file.zip", "test.file", "tmp/test.file.unzipped")
