@@ -22,7 +22,7 @@ test["sha256sum"] = function ()
     local expected = "c2a4f4903509957d138e216a6d2c0d7867235c61088c02ca5cf38f2332407b00"
     local result = hash.sha256_sum(data, true)
 
-    test.assert(hash.hex_equals(expected, result), "hashes do not match")
+    test.assert(hash.equals(expected, result, true), "hashes do not match")
 end
 
 test["sha512sum"] = function ()
@@ -31,7 +31,7 @@ test["sha512sum"] = function ()
     "ae9cd6d303a5836d8a6d82b468a8f968ab557243d8b16601394d29e81e6766c609fe810ee9c3988ae15b98b9cbf3a602f6905e78466b968f3a6b8201edc94cb5"
     local result = hash.sha512_sum(data, true)
 
-    test.assert(hash.hex_equals(expected, result), "hashes do not match")
+    test.assert(hash.equals(expected, result, true), "hashes do not match")
 end
 
 test["Sha256"] = function ()
@@ -40,7 +40,7 @@ test["Sha256"] = function ()
     local expected = "c2a4f4903509957d138e216a6d2c0d7867235c61088c02ca5cf38f2332407b00"
     sha256:update(data)
     local result = sha256:finish(true)
-    test.assert(hash.hex_equals(expected, result), "hashes do not match")
+    test.assert(hash.equals(expected, result, true), "hashes do not match")
 end
 
 test["Sha512"] = function ()
@@ -50,7 +50,7 @@ test["Sha512"] = function ()
     "ae9cd6d303a5836d8a6d82b468a8f968ab557243d8b16601394d29e81e6766c609fe810ee9c3988ae15b98b9cbf3a602f6905e78466b968f3a6b8201edc94cb5"
     sha512:update(data)
     local result = sha512:finish(true)
-    test.assert(hash.hex_equals(expected, result), "hashes do not match")
+    test.assert(hash.equals(expected, result, true), "hashes do not match")
 end
 
 test["equals"] = function ()
@@ -64,7 +64,7 @@ test["equals"] = function ()
     test.assert(not hash.equals(result, result3), "hashes match and should not")
 end
 
-test["hex_equals"] = function ()
+test["equals (hex = true)"] = function ()
     local hash1 =
     "ae9cd6d303a5836d8a6d82b468a8f968ab557243d8b16601394d29e81e6766c609fe810ee9c3988ae15b98b9cbf3a602f6905e78466b968f3a6b8201edc94cb5"
     local hash2 =
