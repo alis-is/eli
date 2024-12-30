@@ -429,6 +429,18 @@ function fs.read_dir(path, options)
 		print"Recursive option is deprecated, use recurse instead!"
 	end
 
+	--- // TODO: remove asDirEntries in next release
+	if options.asDirEntries ~= nil and options.as_dir_entries == nil then
+		options.as_dir_entries = options.asDirEntries
+		print"AsDirEntries option is deprecated, use as_dir_entries instead!"
+	end
+
+	-- // TODO: remove returnFullPaths in the next release
+	if options.returnFullPaths ~= nil and options.return_full_paths == nil then
+		options.return_full_paths = options.returnFullPaths
+		print"ReturnFullPaths option is deprecated, use return_full_paths instead!"
+	end
+
 	if options.recurse then
 		local pattern = package.config:sub(1, 1) == "\\" and ".*\\$" or ".*/$"
 		local length_of_path_to_remove = path:match(pattern) and #path or #path + 1

@@ -9,7 +9,8 @@ local templates = require"tools.templates"
 local _buildUtil = require"tools.util"
 
 log_info"overlaying deps"
-local _entries = fs.read_dir("misc/deps-overlay", { recurse = true, as_dir_entries = true })
+-- // TODO: remove asDirEntries in the next version
+local _entries = fs.read_dir("misc/deps-overlay", { recurse = true, as_dir_entries = true, asDirEntries = true })
 for _, entry in ipairs(_entries) do
 	if entry:type() ~= "directory" then
 		local _dest = path.combine("deps", entry:fullpath():sub(#"misc/deps-overlay" + 2))

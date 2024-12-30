@@ -32,7 +32,8 @@ local function getFiles(location, recurse, filter, ignore, resultSeparator)
 		end
 	end
 
-	for _, file in ipairs(fs.read_dir(location, { return_full_paths = false, recurse = recurse })) do
+	-- // TODO: remove returnFullPaths in the next release
+	for _, file in ipairs(fs.read_dir(location, { return_full_paths = false, returnFullPaths = false, recurse = recurse })) do
 		if not should_ignore(file) then
 			if fs.file_type(path.combine(location, file)) == "file" and (not filter or file:match(filter)) then
 				local _modulePath = file:gsub("/", resultSeparator)
