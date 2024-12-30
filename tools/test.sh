@@ -3,9 +3,6 @@
 PLATFORM=$(uname -m)
 ROOT=$(pwd)
 
-set -euxo
-
-echo "Starting script"
 echo "Platform: $PLATFORM"
 echo "Root: $ROOT"
 

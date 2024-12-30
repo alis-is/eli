@@ -67,9 +67,9 @@ jobs:
       - name: build-n-cache
         uses: "./.github/template/build-n-cache"
         with:
-          toolchain: zig:x86_64-macos-none
-          artifact-id: eli-macos-x86_64
-          debug-artifact-id: eli-macos-x86_64-debug
+          toolchain: zig:aarch64-macos-none
+          artifact-id: eli-macos-aarch64
+          debug-artifact-id: eli-macos-aarch64-debug
 
   test-linux:
     runs-on: ubuntu-latest
@@ -115,15 +115,18 @@ jobs:
           .\tools\test.ps1 x86_64
 
   test-macos:
-    runs-on: macos-latest
-    needs: build-macos
+    strategy:
+      matrix:
+        os: [macos-latest]
+        arch: [aarch64]
+    runs-on: ${{ matrix.os }}
+    needs: [build-macos] # we do not test aarch64 because there are no available aarch64 runners
     steps:
       - uses: actions/checkout@v4
       - uses: "./.github/template/prepare-test"
       - name: test
         run: |
-          set -euxo pipefail
-          ./tools/test.sh x86_64
+          ./tools/test.sh ${{ matrix.arch }}
 
   test-ami:
     runs-on: ubuntu-latest
