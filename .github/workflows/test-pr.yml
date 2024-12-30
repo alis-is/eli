@@ -118,7 +118,7 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest]
-        arch: [aarch64]
+        arch: [arm64]
     runs-on: ${{ matrix.os }}
     needs: [build-macos] # we do not test aarch64 because there are no available aarch64 runners
     steps:

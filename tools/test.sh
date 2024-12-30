@@ -3,6 +3,11 @@
 PLATFORM=$(uname -m)
 ROOT=$(pwd)
 
+# if platfrom arm64 rename to aarch64
+if [ "$PLATFORM" = "arm64" ]; then
+    PLATFORM="aarch64"
+fi
+
 echo "Platform: $PLATFORM"
 echo "Root: $ROOT"
 
@@ -33,7 +38,6 @@ test_platform() {
     fi
 }
 
-chmod +x ./release/eli-linux-*
 if [ -n "$1" ]; then
     test_platform "$1"
 else
