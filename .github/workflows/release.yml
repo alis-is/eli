@@ -185,6 +185,7 @@ jobs:
       - uses: "./.github/template/prepare-test"
       - name: test
         run: |
+          set -x # print commands
           ./tools/test.sh x86_64
 
   test-ami:

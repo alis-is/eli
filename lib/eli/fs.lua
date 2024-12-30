@@ -249,6 +249,11 @@ function fs.remove(path, options)
 		return true
 	end
 
+	if options.contentOnly ~= nil and options.content_only == nil then
+		options.content_only = options.contentOnly
+		print"ContentOnly option is deprecated, use content_only instead!"
+	end
+
 	local recurse = options.recurse
 	local contentOnly = options.content_only
 	options.content_only = false         -- for recursive calls
@@ -337,7 +342,6 @@ end
 ---@return string
 function fs.hash_file(path_or_file, options)
 	options = util.merge_tables({ type = "sha256", binary_mode = true }, options, true)
-	util.print_table(options)
 	local source_file
 	if type(path_or_file) == "string" then
 		source_file = assert(io.open(path_or_file, options.binary_mode and "rb" or "r"),

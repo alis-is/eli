@@ -17,7 +17,7 @@ test["eli.hash available"] = function ()
     test.assert(true)
 end
 
-test["sha256sum"] = function ()
+test["sha256_sum"] = function ()
     local data = "test text\n"
     local expected = "c2a4f4903509957d138e216a6d2c0d7867235c61088c02ca5cf38f2332407b00"
     local result = hash.sha256_sum(data, true)
@@ -25,7 +25,7 @@ test["sha256sum"] = function ()
     test.assert(hash.equals(expected, result, true), "hashes do not match")
 end
 
-test["sha512sum"] = function ()
+test["sha512_sum"] = function ()
     local data = "test text\n"
     local expected =
     "ae9cd6d303a5836d8a6d82b468a8f968ab557243d8b16601394d29e81e6766c609fe810ee9c3988ae15b98b9cbf3a602f6905e78466b968f3a6b8201edc94cb5"

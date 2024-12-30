@@ -45,7 +45,7 @@ end
 test["extract_string"] = function ()
     local _ok, _file = _eliZip.safe_extract_string("assets/test.zip", "test.file")
     test.assert(_ok, _file)
-    local _ok, _hash = _eliHash.safe_sha256sum(_file, true)
+    local _ok, _hash = _eliHash.safe_sha256_sum(_file, true)
     test.assert(_ok, _hash)
     local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.file", { hex = true })
     test.assert(_ok, _hash2)

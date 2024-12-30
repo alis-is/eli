@@ -52,7 +52,7 @@ end
 test["extract_string"] = function ()
     local _ok, _file = eli_tar.safe_extract_string("assets/test.tar", "f3.txt")
     test.assert(_ok, _file)
-    local _ok, _hash = eli_hash.safe_sha256sum(_file, true)
+    local _ok, _hash = eli_hash.safe_sha256_sum(_file, true)
     test.assert(_ok, _hash)
     test.assert(_hash == "7e5449fc89e75e0b8c6cbb3568720d074fa435f88dd9bf5e8b82c012a6c86c2a", "hashes dont match")
 end

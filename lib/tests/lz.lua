@@ -36,7 +36,7 @@ end
 test["extract_string"] = function ()
     local ok, file = eli_lz.safe_extract_string"assets/test.tar.gz"
     test.assert(ok, file)
-    local ok, hash = eli_hash.safe_sha256sum(file, true)
+    local ok, hash = eli_hash.safe_sha256_sum(file, true)
     test.assert(ok, hash)
     local ok, hash2 = eli_fs.safe_hash_file("assets/test.tar", { hex = true })
     test.assert(ok, hash2)
@@ -47,7 +47,7 @@ test["extract_from_string"] = function ()
     local gz_bytes = eli_fs.read_file"assets/test.tar.gz"
     local ok, file = eli_lz.safe_extract_from_string(gz_bytes)
     test.assert(ok, file)
-    local ok, hash = eli_hash.safe_sha256sum(file, true)
+    local ok, hash = eli_hash.safe_sha256_sum(file, true)
     test.assert(ok, hash)
     local ok, hash2 = eli_fs.safe_hash_file("assets/test.tar", { hex = true })
     test.assert(ok, hash2)
