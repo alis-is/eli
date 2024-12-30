@@ -206,15 +206,15 @@ if not is_proc_extra_loaded then return util.generate_safe_functions(proc) end
 
 ---#DES 'proc.generate_spawn_result'
 ---
----@param proc EliProcess
+---@param process EliProcess
 ---@return SpawnResult
-function proc.generate_spawn_result(proc)
-	if ((type(proc) == "userdata" or type(proc) == "table") and proc.__type ~= "ELI_PROCESS") or
-	etype(proc) == "ELI_PROCESS" then
+function proc.generate_spawn_result(process)
+	if ((type(process) == "userdata" or type(process) == "table") and process.__type ~= "ELI_PROCESS") or
+	etype(process) == "ELI_PROCESS" then
 		return {
-			exit_code = proc:get_exit_code(),
-			stdout_stream = proc:get_stdout(),
-			stderr_stream = proc:get_stderr(),
+			exit_code = process:get_exit_code(),
+			stdout_stream = process:get_stdout(),
+			stderr_stream = process:get_stderr(),
 		} --[[@as SpawnResult]]
 	end
 	error
@@ -234,6 +234,12 @@ function proc.spawn(path, args_or_options, options)
 		args_or_options = nil
 	end
 	if type(options) ~= "table" then options = {} end
+
+	-- // TODO: remove in the next version
+	if options.createProcessGroup ~= nil and options.create_process_group then
+		options.create_process_group = options.createProcessGroup
+		print"createProcessGroup is deprecated, use create_process_group instead"
+	end
 
 	local spawnParams = util.merge_tables({
 		command = path,
