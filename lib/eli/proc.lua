@@ -136,19 +136,19 @@ function proc.exec(cmd, options)
 	local _, exit_type, exit_code = os.execute(cmd)
 
 	return {
-		exitcode = exit_code,
-		exittype = exit_type,
+		exit_code = exit_code,
+		exit_type = exit_type,
 		stdout_stream = stdout_tmp_file_path and
 		   (is_stdout_tmp and ExecTmpFile:new(stdout_tmp_file_path) or io.open(stdout_tmp_file_path)),
 		stderr_stream = stderr_tmp_file_path and
 		   (is_stderr_tmp and ExecTmpFile:new(stderr_tmp_file_path) or io.open(stderr_tmp_file_path)),
-	}
+	} --[[@as ExecResult]]
 end
 
 if not is_proc_extra_loaded then return util.generate_safe_functions(proc) end
 
 ---@class SpawnResult
----@field exitcode integer
+---@field exit_code integer
 ---@field stdout_stream ExecTmpFile?
 ---@field stderr_stream ExecTmpFile?
 
@@ -196,7 +196,7 @@ if not is_proc_extra_loaded then return util.generate_safe_functions(proc) end
 ---@field get_pid fun(self: EliProcess): integer
 ---@field wait fun(self: EliProcess, intervalSeconds: integer?, unitsDivider: integer | '"s"' | '"ms"' | nil): integer
 ---@field kill fun(self: EliProcess, signal: integer?): integer
----@field get_exitcode fun(self: EliProcess): integer
+---@field get_exit_code fun(self: EliProcess): integer
 ---@field exited fun(self: EliProcess): boolean
 ---@field get_stdout fun(self: EliProcess): EliReadableStream | nil
 ---@field get_stderr fun(self: EliProcess): EliReadableStream | file* | nil
@@ -212,10 +212,10 @@ function proc.generate_spawn_result(proc)
 	if ((type(proc) == "userdata" or type(proc) == "table") and proc.__type ~= "ELI_PROCESS") or
 	etype(proc) == "ELI_PROCESS" then
 		return {
-			exitcode = proc:get_exitcode(),
-			stdoutStream = proc:get_stdout(),
-			stderrStream = proc:get_stderr(),
-		}
+			exit_code = proc:get_exit_code(),
+			stdout_stream = proc:get_stdout(),
+			stderr_stream = proc:get_stderr(),
+		} --[[@as SpawnResult]]
 	end
 	error
 	"Generate process result is possible only from ELI_PROCESS data structure!"
