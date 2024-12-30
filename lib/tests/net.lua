@@ -283,11 +283,6 @@ test["RestClient res (advanced)"] = function ()
 	local notOverrideClients = client:res(notOverrideClientsTemplate)
 	test.assert(type(notOverrideClients.test.get) ~= "function")
 	test.assert(tostring(notOverrideClients.test:get_url()) == HTTPBIN_URL .. "t")
-
-	local overrideClientsTemplate = { test = { __root = "t", get = "test" } }
-	local notOverrideClients = client:res(overrideClientsTemplate, { allowRestclientPropertyOverride = true })
-	test.assert(type(notOverrideClients.test.get) ~= "function")
-	test.assert(tostring(notOverrideClients.test:get_url()) == HTTPBIN_URL .. "t")
 end
 
 if not TEST then

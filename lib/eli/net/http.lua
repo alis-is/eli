@@ -43,7 +43,7 @@ end
 ---@field password string?
 
 ---@class BaseRequestOptions
----@field retryLimit integer?
+---@field retry_limit integer?
 ---@field follow_redirects boolean?
 ---@field verify_peer boolean?
 ---@field timeout integer? @deprecated use connect_timeout
@@ -118,7 +118,7 @@ local function unwrap_safe_result(...)
 	return table.unpack(result)
 end
 
-local function encodeURIComponent(url)
+local function encode_uri_component(url)
 	if url == nil then return end
 	url = url:gsub("\n", "\r\n")
 	url = url:gsub("([^%w _%%%-%.~])", function (c)
@@ -148,13 +148,13 @@ local function generate_progress_function(step)
 	end
 end
 
-local function parse_content_type(headerValue)
+local function parse_content_type(header_value)
 	-- Initially match for both MIME type and charset
-	local type, subtype, charset = string.match(headerValue, "(%w+)/(%w+);%s*charset=(%w+)")
+	local type, subtype, charset = string.match(header_value, "(%w+)/(%w+);%s*charset=(%w+)")
 
 	-- If charset is missing, match only for MIME type
 	if not charset then
-		type, subtype = string.match(headerValue, "(%w+)/(%w+)")
+		type, subtype = string.match(header_value, "(%w+)/(%w+)")
 	end
 
 	return type, subtype, charset
@@ -387,7 +387,7 @@ local function request(client, path, method, options, data)
 	request_options.ca_certificates = options.ca_certificates
 	request_options.client_certificate = options.client_certificate
 	request_options.headers = headers
-	request_options.bufferSize = math.max(
+	request_options.buffer_size = math.max(
 		math.min(options.buffer_capacity or DEFAULT_BUFFER_CAPACITY, MAXIMUM_BUFFER_CAPACITY),
 		MINIMUM_HEADERS_BUFFER_CAPACITY)
 
@@ -506,11 +506,11 @@ end
 ---#DES 'net.http.RestClient:new'
 ---
 ---@param self RestClient
----@param urlOrId string
----@param parentOrOptions (RestClient|RestClientOptions)?
+---@param url_or_id string
+---@param parent_or_options (RestClient|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return RestClient
-function net.RestClient:new(urlOrId, parentOrOptions, options)
+function net.RestClient:new(url_or_id, parent_or_options, options)
 	local rest_client = {
 		host = nil,
 		__resources = {},
@@ -522,17 +522,17 @@ function net.RestClient:new(urlOrId, parentOrOptions, options)
 
 	if options == nil then options = {} end
 
-	if tostring(parentOrOptions):match"ELI_REST_CLIENT" then
-		local parent = parentOrOptions --[[@as RestClient]]
+	if tostring(parent_or_options):match"ELI_REST_CLIENT" then
+		local parent = parent_or_options --[[@as RestClient]]
 		rest_client.__is_child = true
 		rest_client.__parent = parent
-		rest_client.__id = urlOrId
+		rest_client.__id = url_or_id
 		rest_client.__options = util.merge_tables(options, util.clone(
 			parent.__options))
 		rest_client.__client = parent.__client
 	else
-		options = parentOrOptions --[[@as RestClientOptions]]
-		rest_client.__url = net_url.parse(urlOrId)
+		options = parent_or_options --[[@as RestClientOptions]]
+		rest_client.__url = net_url.parse(url_or_id)
 		local scheme, host, port, _, _ = net_url.extract_components_for_request(rest_client.__url)
 		rest_client.__client = corehttp.new_client(scheme, host, port, options)
 		rest_client.__options = util.merge_tables(options, {
@@ -544,7 +544,7 @@ function net.RestClient:new(urlOrId, parentOrOptions, options)
 			headers = util.clone(DEFAULT_HEADERS, true),
 			codecs = {
 				["application/x-www-form-urlencoded"] = {
-					encode = encodeURIComponent,
+					encode = encode_uri_component,
 				},
 				["text/plain"] = { encode = tostring },
 				["application/json"] = {
@@ -633,7 +633,7 @@ function net.RestClient:res(resources, options)
 	---@param name string|number
 	---@param path string|number
 	---@return RestClient
-	local function makeResource(name, path)
+	local function make_resource(name, path)
 		if type(self.__resources) ~= "table" then self.__resources = {} end
 		if self.__resources[path] then return self.__resources[path] end
 
@@ -658,14 +658,14 @@ function net.RestClient:res(resources, options)
 	end
 
 	if type(resources) == "string" or type(resources) == "number" then
-		return makeResource(resources, resources)
+		return make_resource(resources, resources)
 	end
 
 	if util.is_array(resources) then
 		local valid_for_resource = table_extensions.filter(resources, function (_, v)
 			return type(v) == "string" or type(resources) == "number"
 		end)
-		return table_extensions.map(valid_for_resource, function (v, i) return makeResource(i, v) end)
+		return table_extensions.map(valid_for_resource, function (v, i) return make_resource(i, v) end)
 	end
 
 	if type(resources) == "table" then
@@ -673,13 +673,13 @@ function net.RestClient:res(resources, options)
 		for k, v in pairs(resources) do
 			local resources
 			if type(v) == "table" then
-				local parent = makeResource(k, v.__root or k)
+				local parent = make_resource(k, v.__root or k)
 				local options = util.clone(options, true)
 				options.shortcut = true
 				parent:res(table_extensions.filter(v, function (k) return k ~= "__root" end), options)
 				resources = parent
 			elseif type(v) == "number" or type(v) == "string" then
-				resources = makeResource(k, v)
+				resources = make_resource(k, v)
 			end
 			result[k] = resources
 		end
@@ -699,15 +699,15 @@ end
 
 ---Resolves request url and options
 ---@param client RestClient
----@param pathOrOptions (RestClientOptions | string)?
+---@param path_or_options (RestClientOptions | string)?
 ---@param options RestClientOptions?
 ---@return Url, RestClientOptions
-local function get_request_url(client, pathOrOptions, options)
+local function get_request_url(client, path_or_options, options)
 	local path = ""
-	if type(pathOrOptions) == "table" then
-		options = pathOrOptions
-	elseif type(pathOrOptions) == "string" then
-		path = pathOrOptions
+	if type(path_or_options) == "table" then
+		options = path_or_options
+	elseif type(path_or_options) == "string" then
+		path = path_or_options
 	end
 
 	if type(options) ~= "table" then options = {} end
@@ -721,8 +721,8 @@ local function get_request_url(client, pathOrOptions, options)
 		if util.is_array(options.params) and #options.params > 1 then
 			-- split params into key-value pairs, they are stored as k=v
 			for _, v in ipairs(options.params) do
-				local partialQuery = net_url.parse_query(v)
-				query = util.merge_tables(query, partialQuery, true)
+				local partial_query = net_url.parse_query(v)
+				query = util.merge_tables(query, partial_query, true)
 			end
 		else
 			query = util.merge_tables(query, options.params, true)
@@ -736,11 +736,11 @@ end
 ---#DES 'net.http.RestClient:get'
 ---
 ---@param self RestClient
----@param pathOrOptions (string|RestClientOptions)?
+---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return BaseResponse
-function net.RestClient:get(pathOrOptions, options)
-	local url, options = get_request_url(self, pathOrOptions,
+function net.RestClient:get(path_or_options, options)
+	local url, options = get_request_url(self, path_or_options,
 		options)
 	local _, _, _, path, _ = net_url.extract_components_for_request(url)
 
@@ -750,22 +750,22 @@ end
 ---#DES 'net.http.RestClient:safe_get'
 ---
 ---@param self RestClient
----@param pathOrOptions (string|RestClientOptions)?
+---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return boolean, BaseResponse
-function net.RestClient:safe_get(pathOrOptions, options)
-	return unwrap_safe_result(pcall(self.get, self, pathOrOptions, options))
+function net.RestClient:safe_get(path_or_options, options)
+	return unwrap_safe_result(pcall(self.get, self, path_or_options, options))
 end
 
 ---#DES 'net.http.RestClient:post'
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
----@param pathOrOptions (string|RestClientOptions)?
+---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return BaseResponse
-function net.RestClient:post(data, pathOrOptions, options)
-	local url, options = get_request_url(self, pathOrOptions,
+function net.RestClient:post(data, path_or_options, options)
+	local url, options = get_request_url(self, path_or_options,
 		options)
 	local _, _, _, path, _ = net_url.extract_components_for_request(url)
 	return request(self.__client, path, "POST", util.merge_tables(options, self.__options), data)
@@ -775,22 +775,22 @@ end
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
----@param pathOrOptions (string|RestClientOptions)?
+---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return boolean, BaseResponse
-function net.RestClient:safe_post(data, pathOrOptions, options)
-	return unwrap_safe_result(pcall(self.post, self, data, pathOrOptions, options))
+function net.RestClient:safe_post(data, path_or_options, options)
+	return unwrap_safe_result(pcall(self.post, self, data, path_or_options, options))
 end
 
 ---#DES 'net.http.RestClient:put'
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
----@param pathOrOptions (string|RestClientOptions)?
+---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return BaseResponse
-function net.RestClient:put(data, pathOrOptions, options)
-	local url, options = get_request_url(self, pathOrOptions,
+function net.RestClient:put(data, path_or_options, options)
+	local url, options = get_request_url(self, path_or_options,
 		options)
 	local _, _, _, path, _ = net_url.extract_components_for_request(url)
 	return request(self.__client, path, "PUT", util.merge_tables(options, self.__options), data)
@@ -800,22 +800,22 @@ end
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
----@param pathOrOptions (string|RestClientOptions)?
+---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return boolean, BaseResponse
-function net.RestClient:safe_put(data, pathOrOptions, options)
-	return unwrap_safe_result(pcall(self.put, self, data, pathOrOptions, options))
+function net.RestClient:safe_put(data, path_or_options, options)
+	return unwrap_safe_result(pcall(self.put, self, data, path_or_options, options))
 end
 
 ---#DES 'net.http.RestClient:patch'
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
----@param pathOrOptions (string|RestClientOptions)?
+---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return BaseResponse
-function net.RestClient:patch(data, pathOrOptions, options)
-	local url, options = get_request_url(self, pathOrOptions,
+function net.RestClient:patch(data, path_or_options, options)
+	local url, options = get_request_url(self, path_or_options,
 		options)
 	local _, _, _, path, _ = net_url.extract_components_for_request(url)
 	return request(self.__client, path, "PATCH", util.merge_tables(options, self.__options), data)
@@ -825,21 +825,21 @@ end
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
----@param pathOrOptions (string|RestClientOptions)?
+---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return boolean, BaseResponse
-function net.RestClient:safe_patch(data, pathOrOptions, options)
-	return unwrap_safe_result(pcall(self.patch, self, data, pathOrOptions, options))
+function net.RestClient:safe_patch(data, path_or_options, options)
+	return unwrap_safe_result(pcall(self.patch, self, data, path_or_options, options))
 end
 
 ---#DES 'net.http.RestClient:delete'
 ---
 ---@param self RestClient
----@param pathOrOptions (string|RestClientOptions)?
+---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return BaseResponse
-function net.RestClient:delete(pathOrOptions, options)
-	local url, options = get_request_url(self, pathOrOptions,
+function net.RestClient:delete(path_or_options, options)
+	local url, options = get_request_url(self, path_or_options,
 		options)
 	local _, _, _, path, _ = net_url.extract_components_for_request(url)
 
@@ -849,11 +849,11 @@ end
 ---#DES 'net.http.RestClient:safe_delete'
 ---
 ---@param self RestClient
----@param pathOrOptions (string|RestClientOptions)?
+---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
 ---@return boolean, BaseResponse
-function net.RestClient:safe_delete(pathOrOptions, options)
-	return unwrap_safe_result(pcall(self.delete, self, pathOrOptions, options))
+function net.RestClient:safe_delete(path_or_options, options)
+	return unwrap_safe_result(pcall(self.delete, self, path_or_options, options))
 end
 
 ---Performs download operation. Data received are passed to write_function
@@ -876,13 +876,13 @@ end
 ---@param options BaseRequestOptions?
 ---@return integer
 local function get_retry_limit(options)
-	local retryLimit = tonumber(os.getenv"ELI_NET_RETRY_LIMIT") or 0
+	local retry_limit = tonumber(os.getenv"ELI_NET_RETRY_LIMIT") or 0
 	if type(options) == "table" then
-		if type(options.retryLimit) == "number" and options.retryLimit > 0 then
-			retryLimit = options.retryLimit
+		if type(options.retry_limit) == "number" and options.retry_limit > 0 then
+			retry_limit = options.retry_limit
 		end
 	end
-	return retryLimit --[[@as integer]]
+	return retry_limit --[[@as integer]]
 end
 
 ---#DES net.http.download_file
@@ -893,17 +893,17 @@ end
 ---@param options BaseRequestOptions?
 function net.download_file(url, destination, options)
 	local tries = 0
-	local retryLimit = get_retry_limit(options)
+	local retry_limit = get_retry_limit(options)
 
-	while tries <= retryLimit do
-		local didOpenFile, df <close> = pcall(io.open, destination, "wb")
-		if not didOpenFile or df == nil then error(df) end
+	while tries <= retry_limit do
+		local did_open_file, df <close> = pcall(io.open, destination, "wb")
+		if not did_open_file or df == nil then error(df) end
 		local write = function (data) df:write(data) end
 
 		local ok, response = pcall(download, url, write, options)
 		if ok then
 			return response.code
-		elseif (tries >= retryLimit) then
+		elseif (tries >= retry_limit) then
 			os.remove(destination)
 			error(response)
 		end
@@ -920,16 +920,16 @@ end
 ---@return string?, number?
 function net.download_string(url, options)
 	local tries = 0
-	local retryLimit = get_retry_limit(options)
+	local retry_limit = get_retry_limit(options)
 
-	while tries <= retryLimit do
+	while tries <= retry_limit do
 		local result = ""
 		local write = function (data) result = result .. data end
 
 		local ok, response = pcall(download, url, write, options)
 		if ok then
 			return result, response.code
-		elseif (tries >= retryLimit) then
+		elseif (tries >= retry_limit) then
 			error(response)
 		end
 		tries = tries + 1
