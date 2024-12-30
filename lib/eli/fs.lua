@@ -1,9 +1,10 @@
 local io = require"io"
 local eli_path = require"eli.path"
+local util = require"eli.util"
+local hash = require"eli.hash"
 local dir = eli_path.dir
 local combine = eli_path.combine
 local table_extensions = require"eli.extensions.table"
-local util = require"eli.util"
 local is_fs_extra_loaded, fs_extra = pcall(require, "eli.fs.extra")
 
 local function check_efs_available(operation)
@@ -335,7 +336,6 @@ end
 ---@param options? FsHashFileOptions
 ---@return string
 function fs.hash_file(path_or_file, options)
-	local hash = require"lmbed_hash"
 	options = util.merge_tables({ type = "sha256", binary_mode = true }, options, true)
 	local srcf
 	if type(path_or_file) == "string" then
