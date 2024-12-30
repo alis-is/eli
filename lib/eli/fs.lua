@@ -337,20 +337,21 @@ end
 ---@return string
 function fs.hash_file(path_or_file, options)
 	options = util.merge_tables({ type = "sha256", binary_mode = true }, options, true)
-	local srcf
+	util.print_table(options)
+	local source_file
 	if type(path_or_file) == "string" then
-		srcf = assert(io.open(path_or_file, options.binary_mode and "rb" or "r"),
+		source_file = assert(io.open(path_or_file, options.binary_mode and "rb" or "r"),
 			"No such a file or directory - " .. path_or_file)
 	else
 		assert(tostring(path_or_file):find"file" == 1, "Not a file* - (" .. tostring(path_or_file) .. ")")
-		srcf = path_or_file
+		source_file = path_or_file
 	end
 	local size = 2 ^ 12 -- 4K
 
 	if options.type == "sha256" then
-		local ctx = hash.sha512_init()
+		local ctx = hash.sha256_init()
 		while true do
-			local block = srcf:read(size)
+			local block = source_file:read(size)
 			if not block then
 				break
 			end
@@ -360,7 +361,7 @@ function fs.hash_file(path_or_file, options)
 	else
 		local ctx = hash.sha512_init()
 		while true do
-			local block = srcf:read(size)
+			local block = source_file:read(size)
 			if not block then
 				break
 			end

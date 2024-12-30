@@ -85,9 +85,9 @@ test["spawn"] = function ()
 	local wr = proc:get_stdin()
 	wr:write"echo 173\n"
 	wr:write"exit\n"
-	local exitcode = proc:wait()
+	local exit_code = proc:wait()
 	local result = proc:get_stdout():read"a"
-	test.assert(exitcode == 0 and result:match"173")
+	test.assert(exit_code == 0 and result:match"173")
 end
 
 test["spawn (cleanup)"] = function ()
@@ -119,7 +119,7 @@ test["spawn (wait)"] = function ()
 	local result = isUnixLike and
 	   eli_proc.spawn("sh", { "-c", "printf '173'" }, options) or
 	   eli_proc.spawn("cmd", { "/c", "echo 173" }, options)
-	test.assert(result.exitcode == 0 and result.stdout_stream:read"a":match"173")
+	test.assert(result.exit_code == 0 and result.stdout_stream:read"a":match"173")
 end
 
 test["spawn (custom env)"] = function ()
@@ -127,7 +127,7 @@ test["spawn (custom env)"] = function ()
 	local result = isUnixLike and
 	   eli_proc.spawn("sh", { "-c", "printf \"$TEST\"" }, options) or
 	   eli_proc.spawn("cmd", { "/c", "echo", '"%TEST%"' }, options)
-	test.assert(0 == result.exitcode and result.stdout_stream:read"a":match"test env variable")
+	test.assert(0 == result.exit_code and result.stdout_stream:read"a":match"test env variable")
 end
 
 test["spawn (custom stdout)"] = function ()
@@ -137,7 +137,7 @@ test["spawn (custom stdout)"] = function ()
 	   eli_proc.spawn("sh", { "-c", "printf '173'" }, options) or
 	   eli_proc.spawn("cmd", { "/c", "echo 173" }, options)
 	local _stdout = string.trim(eli_fs.read_file"tmp/test.stdout")
-	test.assert(result.exitcode == 0 and _stdout == "173")
+	test.assert(result.exit_code == 0 and _stdout == "173")
 end
 
 test["spawn (custom stderr)"] = function ()
@@ -174,7 +174,7 @@ test["spawn (stdio=ignore)"] = function ()
 	local result = isUnixLike and
 	   eli_proc.spawn("sh", { "-c", "printf '173'" }, options) or
 	   eli_proc.spawn("cmd", { "/c", "echo 173" }, options)
-	test.assert(result.exitcode == 0 and result.stdout_stream == nil and result.stderr_stream == nil)
+	test.assert(result.exit_code == 0 and result.stdout_stream == nil and result.stderr_stream == nil)
 end
 
 test["spawn (stdio=ignore stdout and stderr only)"] = function ()
@@ -193,7 +193,7 @@ test["spawn (file as stdin)"] = function ()
 	   eli_proc.spawn("sh", options) or
 	   eli_proc.spawn("cmd", options)
 	local stdout = result.stdout_stream:read"a"
-	test.assert(result.exitcode == 0 and stdout:match"13354")
+	test.assert(result.exit_code == 0 and stdout:match"13354")
 end
 
 test["spawn (stdin/stdout/stderr as path)"] = function ()
@@ -209,7 +209,7 @@ test["spawn (stdin/stdout/stderr as path)"] = function ()
 	   eli_proc.spawn("sh", options) or
 	   eli_proc.spawn("cmd", options)
 	local _stdout = result.stdout_stream:read"a"
-	test.assert(result.exitcode == 0 and _stdout:match"13354")
+	test.assert(result.exit_code == 0 and _stdout:match"13354")
 end
 
 test["spawn (process group)"] = function ()
@@ -234,7 +234,7 @@ test["spawn (separated output)"] = function ()
 	   eli_proc.spawn("cmd", options)
 	local stdout = result.stdout_stream:read"a"
 	local stderr = result.stderr_stream:read"a"
-	test.assert(result.exitcode == 0 and stdout:match"stdout" and stderr:match"stderr")
+	test.assert(result.exit_code == 0 and stdout:match"stdout" and stderr:match"stderr")
 end
 
 test["spawn (combined output)"] = function ()
@@ -244,7 +244,7 @@ test["spawn (combined output)"] = function ()
 	   eli_proc.spawn("sh", options) or
 	   eli_proc.spawn("cmd", options)
 	local stdout = result.stdout_stream:read"a"
-	test.assert(result.exitcode == 0 and stdout:match"stdout" and stdout:match"stderr")
+	test.assert(result.exit_code == 0 and stdout:match"stdout" and stdout:match"stderr")
 end
 
 test["spawn (read timeout)"] = function ()

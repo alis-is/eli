@@ -239,20 +239,20 @@ function proc.spawn(path, args_or_options, options)
 		command = path,
 		args = args_or_options,
 	}, options)
-	local proc, err = proc_extra.spawn(spawnParams)
-	if not proc then error(err) end
+	local process, err = proc_extra.spawn(spawnParams)
+	if not process then error(err) end
 
 	if type(options.wait) == "boolean" and options.wait then
-		proc:wait()
-		return proc.generate_spawn_result(proc)
+		process:wait()
+		return proc.generate_spawn_result(process)
 	end
 
 	if type(options.wait) == "number" and options.wait > 0 then
-		local exit_code = proc:wait(options.wait)
-		if exit_code >= 0 then return proc.generate_spawn_result(proc) end
+		local exit_code = process:wait(options.wait)
+		if exit_code >= 0 then return proc.generate_spawn_result(process) end
 	end
 
-	return proc
+	return process
 end
 
 ---@class GetByPidOptions
