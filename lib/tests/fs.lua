@@ -322,14 +322,14 @@ test["remove (recurse)"] = function ()
 	test.assert(_ok and not _exists, _exists)
 end
 
-test["remove (contentOnly)"] = function ()
+test["remove (content_only)"] = function ()
 	local _ok, _error = eliFs.safe_mkdir"tmp/test-dir"
 	test.assert(_ok, _error)
 	local _ok, _error = eliFs.safe_copy_file("assets/test.file",
 		"tmp/test-dir/test.file")
 	test.assert(_ok, _error)
 	local _ok, _error = eliFs.safe_remove("tmp/test-dir",
-		{ contentOnly = true, recurse = true })
+		{ content_only = true, recurse = true })
 	test.assert(_ok, _error)
 	local _ok, _exists = eliFs.safe_exists"tmp/test-dir"
 	test.assert(_ok and _exists, _exists)

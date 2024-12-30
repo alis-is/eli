@@ -1,21 +1,28 @@
 #!/bin/sh
 
+# for debugging
+# set -euxo
+
 PLATFORM=$(uname -m)
 ROOT=$(pwd)
 
+echo "Platform: $PLATFORM"
+echo "Root: $ROOT"
+
 test_build() {
-    cd lib/tests && \
-    chmod +x "$ROOT/release/eli-$2-$1" && \
-    "$ROOT/release/eli-$2-$1" all.lua && \
-    cd "$ROOT" || exit 1
+
+    cd lib/tests &&
+        chmod +x "$ROOT/release/eli-$2-$1" &&
+        "$ROOT/release/eli-$2-$1" all.lua &&
+        cd "$ROOT" || exit 1
 }
 
 test_qemu_build() {
-    cd lib/tests && \
-    export QEMU="$3" && \
-    chmod +x "$ROOT/release/eli-$2-$1" && \
-    "$3" "$ROOT/release/eli-$2-$1" all.lua && \
-    cd "$ROOT" || exit 1
+    cd lib/tests &&
+        export QEMU="$3" &&
+        chmod +x "$ROOT/release/eli-$2-$1" &&
+        "$3" "$ROOT/release/eli-$2-$1" all.lua &&
+        cd "$ROOT" || exit 1
 }
 
 test_platform() {
@@ -23,14 +30,23 @@ test_platform() {
     if [ "$(uname)" = "Darwin" ]; then
         export OS="macos"
     fi
-    if [ "$PLATFORM" = "$1" ]; then
-        test_build "$1" "$OS"
+
+    TEST_PLATFORM=$1
+    # if platfrom arm64 rename to aarch64
+    if [ "$PLATFORM" = "arm64" ]; then
+        PLATFORM="aarch64"
+    fi
+    if [ "$TEST_PLATFORM" = "arm64" ]; then
+        TEST_PLATFORM="aarch64"
+    fi
+
+    if [ "$PLATFORM" = "$TEST_PLATFORM" ]; then
+        test_build "$TEST_PLATFORM" "$OS"
     elif which qemu-x86_64; then
-        test_qemu_build "$1" "$OS" "qemu-${2:-$1}"
+        test_qemu_build "$TEST_PLATFORM" "$OS" "qemu-${2:-$TEST_PLATFORM}"
     fi
 }
 
-chmod +x ./release/eli-linux-*
 if [ -n "$1" ]; then
     test_platform "$1"
 else

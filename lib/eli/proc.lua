@@ -1,49 +1,49 @@
-local _util = require"eli.util"
-local eprocLoaded, eproc = pcall(require, "eli.proc.extra")
-local _sx = require"eli.extensions.string"
-local _sep = package.config:sub(1, 1)
+local util = require"eli.util"
+local is_proc_extra_loaded, proc_extra = pcall(require, "eli.proc.extra")
+local string_extensions = require"eli.extensions.string"
+local separator = package.config:sub(1, 1)
 
 local proc = {
 	---#DES os.EPROC
 	---
 	---@type boolean
-	EPROC = eprocLoaded,
+	EPROC = is_proc_extra_loaded,
 }
 
 ---@class GetStdStreamPartOptions
----@field stdoutRedirectTemplate nil | string
----@field stderrRedirectTemplate nil | string
----@field stdinRedirectTemplate nil | string
+---@field stdout_redirect_template string?
+---@field stderr_redirect_template string?
+---@field stdin_redirect_template string?
 
 proc.settings = {
-	stdoutRedirectTemplate = '> "<file>"',
-	stderrRedirectTemplate = '2> "<file>"',
-	stdinRedirectTemplate = _sep == "\\" and 'type "<file>" |' or 'cat "<file>" |',
+	stdout_redirect_template = '> "<file>"',
+	stderr_redirect_template = '2> "<file>"',
+	stdin_redirect_template = separator == "\\" and 'type "<file>" |' or 'cat "<file>" |',
 }
 
 ---Compiles std option into exec template
 ---@param stdname string
----@param file nil | string
+---@param file string?
 ---@param options GetStdStreamPartOptions
 ---@return string, string?, boolean?
-local function _get_stdstream_cmd_part(stdname, file, options)
-	local _tmpMode = false
+local function get_stdstream_cmd_part(stdname, file, options)
+	local is_tmp_file_mode = false
 	if file == nil then return "", nil end
 	if file == "pipe" then
 		file = os.tmpname()
-		_tmpMode = true
+		is_tmp_file_mode = true
 	end
 	if type(file) ~= "string" then
 		error("Invalid " .. stdname .. " filename (got: " .. tostring(file) ..
 			", expects: string)!")
 	end
 	if file == "ignore" then return "", nil end
-	local _template = options[stdname .. "RedirectTemplate"] or
-	   proc.settings[stdname .. "RedirectTemplate"]
-	if type(_template) == "function" then
-		return _template(file), file, _tmpMode
-	elseif type(_template) == "string" then
-		return _template:gsub("<file>", file), file, _tmpMode
+	local template = options[stdname .. "_redirect_template"] or
+	   proc.settings[stdname .. "_redirect_template"]
+	if type(template) == "function" then
+		return template(file), file, is_tmp_file_mode
+	elseif type(template) == "string" then
+		return template:gsub("<file>", file), file, is_tmp_file_mode
 	else
 		return "", nil
 	end
@@ -61,15 +61,15 @@ ExecTmpFile.__index = ExecTmpFile
 ---
 ---@param path string
 function ExecTmpFile:new(path)
-	local _tmpFile = {}
-	_tmpFile.path = path
-	_tmpFile.__file = io.open(path, "rb")
-	_tmpFile.__closed = false
+	local tmp_file = {}
+	tmp_file.path = path
+	tmp_file.__file = io.open(path, "rb")
+	tmp_file.__closed = false
 
-	setmetatable(_tmpFile, self)
+	setmetatable(tmp_file, self)
 	self.__index = self
 	self.__type = "ELI_EXEC_TMP_FILE"
-	return _tmpFile
+	return tmp_file
 end
 
 ---@return string
@@ -106,15 +106,15 @@ function ExecTmpFile:__close()
 end
 
 ---@class ExecOptions : GetStdStreamPartOptions
----@field stdout nil | string
----@field stderr nil | string
----@field stdin nil | string
+---@field stdout string?
+---@field stderr string?
+---@field stdin string?
 
 ---@class ExecResult
----@field exitcode integer
----@field exitType "exit"|"signal"
----@field stdoutStream nil | ExecTmpFile
----@field stderrStream nil | ExecTmpFile
+---@field exit_code integer
+---@field exit_type "exit"|"signal"
+---@field stdout_stream ExecTmpFile?
+---@field stderr_stream ExecTmpFile?
 
 ---#DES proc.exec
 ---
@@ -125,32 +125,32 @@ end
 function proc.exec(cmd, options)
 	if type(options) ~= "table" then options = {} end
 
-	local _stdoutPart, _stdout, _tmpStdout =
-	   _get_stdstream_cmd_part("stdout", options.stdout, options)
-	local _stderrPart, _stderr, _tmpStderr =
-	   _get_stdstream_cmd_part("stderr", options.stderr, options)
-	local _stdinPart = _get_stdstream_cmd_part("stdin", options.stdin, options)
+	local stdout_cmd_part, stdout_tmp_file_path, is_stdout_tmp =
+	   get_stdstream_cmd_part("stdout", options.stdout, options)
+	local stderr_cmd_part, stderr_tmp_file_path, is_stderr_tmp =
+	   get_stdstream_cmd_part("stderr", options.stderr, options)
+	local stdin_cmd_part = get_stdstream_cmd_part("stdin", options.stdin, options)
 
-	local _cmd =
-	   _sx.join_strings(" ", _stdinPart, cmd, _stdoutPart, _stderrPart)
-	local _, _exitType, _code = os.execute(_cmd)
+	local cmd =
+	   string_extensions.join_strings(" ", stdin_cmd_part, cmd, stdout_cmd_part, stderr_cmd_part)
+	local _, exit_type, exit_code = os.execute(cmd)
 
 	return {
-		exitcode = _code,
-		exittype = _exitType,
-		stdoutStream = _stdout and
-		   (_tmpStdout and ExecTmpFile:new(_stdout) or io.open(_stdout)),
-		stderrStream = _stderr and
-		   (_tmpStderr and ExecTmpFile:new(_stderr) or io.open(_stderr)),
-	}
+		exit_code = exit_code,
+		exit_type = exit_type,
+		stdout_stream = stdout_tmp_file_path and
+		   (is_stdout_tmp and ExecTmpFile:new(stdout_tmp_file_path) or io.open(stdout_tmp_file_path)),
+		stderr_stream = stderr_tmp_file_path and
+		   (is_stderr_tmp and ExecTmpFile:new(stderr_tmp_file_path) or io.open(stderr_tmp_file_path)),
+	} --[[@as ExecResult]]
 end
 
-if not eprocLoaded then return _util.generate_safe_functions(proc) end
+if not is_proc_extra_loaded then return util.generate_safe_functions(proc) end
 
 ---@class SpawnResult
----@field exitcode integer
----@field stdoutStream nil | ExecTmpFile
----@field stderrStream nil | ExecTmpFile
+---@field exit_code integer
+---@field stdout_stream ExecTmpFile?
+---@field stderr_stream ExecTmpFile?
 
 ---@alias StdType '"ignore"' | '"pipe"' | '"inherit"' | string | file*
 
@@ -163,8 +163,8 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field env table<string, string>?
 ---@field wait boolean?
 ---@field stdio SpawnStdio | StdType | nil
----@field createProcessGroup boolean? create new process group (preffered over processGroup)
----@field processGroup EliProcessGroup? process group to run process in
+---@field create_process_group boolean? create new process group (preffered over process_group)
+---@field process_group EliProcessGroup? process group to run process in
 ---@field username string? user to run process as (may require root)
 ---@field password string? password for user to run process as (only on windows, not implemented yet)
 
@@ -196,7 +196,7 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 ---@field get_pid fun(self: EliProcess): integer
 ---@field wait fun(self: EliProcess, intervalSeconds: integer?, unitsDivider: integer | '"s"' | '"ms"' | nil): integer
 ---@field kill fun(self: EliProcess, signal: integer?): integer
----@field get_exitcode fun(self: EliProcess): integer
+---@field get_exit_code fun(self: EliProcess): integer
 ---@field exited fun(self: EliProcess): boolean
 ---@field get_stdout fun(self: EliProcess): EliReadableStream | nil
 ---@field get_stderr fun(self: EliProcess): EliReadableStream | file* | nil
@@ -206,16 +206,16 @@ if not eprocLoaded then return _util.generate_safe_functions(proc) end
 
 ---#DES 'proc.generate_spawn_result'
 ---
----@param _proc EliProcess
+---@param process EliProcess
 ---@return SpawnResult
-function proc.generate_spawn_result(_proc)
-	if ((type(_proc) == "userdata" or type(_proc) == "table") and _proc.__type ~= "ELI_PROCESS") or
-	etype(_proc) == "ELI_PROCESS" then
+function proc.generate_spawn_result(process)
+	if ((type(process) == "userdata" or type(process) == "table") and process.__type ~= "ELI_PROCESS") or
+	etype(process) == "ELI_PROCESS" then
 		return {
-			exitcode = _proc:get_exitcode(),
-			stdoutStream = _proc:get_stdout(),
-			stderrStream = _proc:get_stderr(),
-		}
+			exit_code = process:get_exit_code(),
+			stdout_stream = process:get_stdout(),
+			stderr_stream = process:get_stderr(),
+		} --[[@as SpawnResult]]
 	end
 	error
 	"Generate process result is possible only from ELI_PROCESS data structure!"
@@ -225,38 +225,44 @@ end
 ---
 ---Spawn process from executable in path (wont wait unless wait set to true)
 ---@param path string
----@param argsOrOptions string[]|SpawnOptions?
+---@param args_or_options string[]|SpawnOptions?
 ---@param options SpawnOptions?
 ---@return EliProcess | SpawnResult
-function proc.spawn(path, argsOrOptions, options)
-	if type(argsOrOptions) == "table" and not _util.is_array(argsOrOptions) and type(options) ~= "table" then
-		options = argsOrOptions
-		argsOrOptions = nil
+function proc.spawn(path, args_or_options, options)
+	if type(args_or_options) == "table" and not util.is_array(args_or_options) and type(options) ~= "table" then
+		options = args_or_options
+		args_or_options = nil
 	end
 	if type(options) ~= "table" then options = {} end
 
-	local spawnParams = _util.merge_tables({
+	-- // TODO: remove in the next version
+	if options.createProcessGroup ~= nil and options.create_process_group then
+		options.create_process_group = options.createProcessGroup
+		print"createProcessGroup is deprecated, use create_process_group instead"
+	end
+
+	local spawnParams = util.merge_tables({
 		command = path,
-		args = argsOrOptions,
+		args = args_or_options,
 	}, options)
-	local _proc, err = eproc.spawn(spawnParams)
-	if not _proc then error(err) end
+	local process, err = proc_extra.spawn(spawnParams)
+	if not process then error(err) end
 
 	if type(options.wait) == "boolean" and options.wait then
-		_proc:wait()
-		return proc.generate_spawn_result(_proc)
+		process:wait()
+		return proc.generate_spawn_result(process)
 	end
 
 	if type(options.wait) == "number" and options.wait > 0 then
-		local _exitCode = _proc:wait(options.wait)
-		if _exitCode >= 0 then return proc.generate_spawn_result(_proc) end
+		local exit_code = process:wait(options.wait)
+		if exit_code >= 0 then return proc.generate_spawn_result(process) end
 	end
 
-	return _proc
+	return process
 end
 
 ---@class GetByPidOptions
----@field isSeparateProcessGroup boolean?
+---@field is_separate_process_group boolean?
 
 ---#DES 'proc.get_by_pid'
 ---
@@ -265,7 +271,7 @@ end
 ---@param options GetByPidOptions?
 ---@return EliProcess
 function proc.get_by_pid(pid, options)
-	return eproc.get_by_pid(pid, options)
+	return proc_extra.get_by_pid(pid, options)
 end
 
-return _util.generate_safe_functions(proc)
+return util.generate_safe_functions(proc)

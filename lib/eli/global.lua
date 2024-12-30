@@ -1,5 +1,5 @@
-local exString = require"eli.extensions.string"
-local exTable = require"eli.extensions.table"
+local string_extensions = require"eli.extensions.string"
+local table_extensions = require"eli.extensions.table"
 
 local global = {}
 
@@ -10,12 +10,12 @@ local global = {}
 ---@param format string
 ---@param ... any
 function global.printf(format, ...)
-	local _args = table.pack(...)
-	for i, v in ipairs(_args) do
-		if type(v) == "table" and not exTable.is_array(_args[1]) then
+	local args = table.pack(...)
+	for i, v in ipairs(args) do
+		if type(v) == "table" and not table_extensions.is_array(args[1]) then
 			-- interpolate
-			local _interpolationTable = table.remove(_args, i)
-			format = exString.interpolate(format, _interpolationTable)
+			local interpolation_table = table.remove(args, i)
+			format = string_extensions.interpolate(format, interpolation_table)
 		end
 	end
 	return io.write(string.format(format, ...))

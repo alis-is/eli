@@ -248,11 +248,12 @@ test["(url) parse"] = function ()
 		["http://example.com/a/../a/b"] = "http://example.com/a/../a/b",
 		["http://example.com/a/./b"] = "http://example.com/a/./b",
 		["http://example.com/A/./B"] = "http://example.com/A/./B", -- don't convert path case
-		["/test"] = "/test",                                   -- keep absolute paths
-		["foo/bar"] = "foo/bar",                               -- keep relative paths
+		["/test"] = "/test",                                 -- keep absolute paths
+		["foo/bar"] = "foo/bar",                             -- keep relative paths
 		-- encoding tests
 		["https://google.com/Link with a space in it/"] = "https://google.com/Link%20with%20a%20space%20in%20it/",
-		["https://google.com/Link%20with%20a%20space%20in%20it/"] = "https://google.com/Link%20with%20a%20space%20in%20it/",
+		["https://google.com/Link%20with%20a%20space%20in%20it/"] =
+		"https://google.com/Link%20with%20a%20space%20in%20it/",
 		["https://google.com/a%2fb%2fc/"] = "https://google.com/a%2Fb%2Fc/",
 		["//lua.org/path?query=1:2"] = "//lua.org/path?query=1:2",
 		["http://www.foo.com/some +path/?args=foo%2Bbar"] = "http://www.foo.com/some%20%2Bpath/?args=foo%2Bbar",
@@ -282,8 +283,8 @@ test["(url) query mutation"] = function ()
 	local optionsBackup = util.clone(url.options, true)
 
 	for k, v in pairs(samples) do
-		url.options.legalInPath["+"] = true;
-		url.options.queryPlusIsSpace = false;
+		url.options.legal_in_path["+"] = true;
+		url.options.query_plus_is_space = false;
 		local u = url.parse(k)
 		test.assert(tostring(u) == v, "Test plus sign '" .. k .. "' => '" .. v .. " => " .. tostring(u))
 	end
@@ -580,7 +581,7 @@ end
 test["(queries) Same name parameters create a table"] = function ()
 	local optionsBackup = util.clone(url.options, true)
 	url.options.separator = "&"
-	url.options.cumulativeParameters = true
+	url.options.cumulative_parameters = true
 	local s = "param=val1&param=val2"
 	local q = url.parse_query(s)
 
@@ -593,7 +594,7 @@ end
 
 test["(queries) Mix brackets and cumulative parameters"] = function ()
 	local optionsBackup = util.clone(url.options, true)
-	url.options.cumulativeParameters = true
+	url.options.cumulative_parameters = true
 	local s = "param=val1&param=val2&param[test]=val3"
 	local q = url.parse_query(s)
 

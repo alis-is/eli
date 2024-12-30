@@ -76,11 +76,11 @@ test["process group"]             = function ()
 		bin = os.getenv"QEMU" or ""
 		args = { arg[-1], path.combine("assets", "signal-catch.lua") }
 	end
-	local p = eliProc.spawn(bin, args, { stdio = "inherit", createProcessGroup = true })
+	local p = eliProc.spawn(bin, args, { stdio = "inherit", create_process_group = true })
 
 	local g = p:get_group()
 	assert(g, "process group not created")
-	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", processGroup = g })
+	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", process_group = g })
 	os.sleep(1)
 	g:kill(signal.SIGINT)
 
@@ -116,10 +116,10 @@ test["kill group"]                = function ()
 		bin = os.getenv"QEMU" or ""
 		args = { arg[-1], path.combine("assets", "signal-catch.lua") }
 	end
-	local p = eliProc.spawn(bin, args, { stdio = "inherit", createProcessGroup = true })
+	local p = eliProc.spawn(bin, args, { stdio = "inherit", create_process_group = true })
 	local g = p:get_group()
 	assert(g, "process group not created")
-	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", processGroup = g })
+	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", process_group = g })
 	os.sleep(1)
 	g:kill(signal.SIGKILL)
 
@@ -135,10 +135,10 @@ test["process by pid"]            = function ()
 		bin = os.getenv"QEMU" or ""
 		args = { arg[-1], path.combine("assets", "signal-catch.lua") }
 	end
-	local p = eliProc.spawn(bin, args, { stdio = "inherit", createProcessGroup = true })
+	local p = eliProc.spawn(bin, args, { stdio = "inherit", create_process_group = true })
 
 	local pid = p:get_pid()
-	local pref = eliProc.get_by_pid(pid, { isSeparateProcessGroup = true })
+	local pref = eliProc.get_by_pid(pid, { is_separate_process_group = true })
 
 	local g = pref:get_group()
 	assert(g, "process group not created")

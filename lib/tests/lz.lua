@@ -1,66 +1,66 @@
-local _test = TEST or require "u-test"
-local _ok, _eliLz = pcall(require, "eli.lz")
-local _ok2, _eliFs = pcall(require, "eli.fs")
-local _ok2, _eliHash = pcall(require, "eli.hash")
+local test = TEST or require"u-test"
+local ok, eli_lz = pcall(require, "eli.lz")
+local _, eli_fs = pcall(require, "eli.fs")
+local _, eli_hash = pcall(require, "eli.hash")
 
-if not _ok then
-    _test["eli.lz available"] = function()
-        _test.assert(false, "eli.lz not available")
+if not ok then
+    test["eli.lz available"] = function ()
+        test.assert(false, "eli.lz not available")
     end
     if not TEST then
-        _test.summary()
+        test.summary()
         os.exit()
     else
         return
     end
 end
 
-_test["eli.lz available"] = function()
-    _test.assert(true)
+test["eli.lz available"] = function ()
+    test.assert(true)
 end
 
 --[[
     76542f8ea5c585ef47a2cc1dd067be90ee398c41e069d772d27ea4596290dfd8  test.tar
 ]]
-_test["extract"] = function()
-    _eliFs.remove("tmp/test.tar")
-    local _ok, _error = _eliLz.safe_extract("assets/test.tar.gz", "tmp/test.tar")
-    _test.assert(_ok, _error)
-    local _ok, _hash = _eliFs.safe_hash_file("tmp/test.tar", {hex = true})
-    _test.assert(_ok, _hash)
-    local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.tar", {hex = true})
-    _test.assert(_ok, _hash2)
-    _test.assert(_hash == _hash2, "hashes dont match")
+test["extract"] = function ()
+    eli_fs.remove"tmp/test.tar"
+    local ok, err = eli_lz.safe_extract("assets/test.tar.gz", "tmp/test.tar")
+    test.assert(ok, err)
+    local ok, hash = eli_fs.safe_hash_file("tmp/test.tar", { hex = true })
+    test.assert(ok, hash)
+    local ok, hash2 = eli_fs.safe_hash_file("assets/test.tar", { hex = true })
+    test.assert(ok, hash2)
+    test.assert(hash == hash2, "hashes dont match")
 end
 
-_test["extract_string"] = function()
-    local _ok, _file = _eliLz.safe_extract_string("assets/test.tar.gz")
-    _test.assert(_ok, _file)
-    local _ok, _hash = _eliHash.safe_sha256sum(_file, true)
-    _test.assert(_ok, _hash)
-    local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.tar", {hex = true})
-    _test.assert(_ok, _hash2)
-    _test.assert(_hash == _hash2, "hashes dont match")
+test["extract_string"] = function ()
+    local ok, file = eli_lz.safe_extract_string"assets/test.tar.gz"
+    test.assert(ok, file)
+    local ok, hash = eli_hash.safe_sha256_sum(file, true)
+    test.assert(ok, hash)
+    local ok, hash2 = eli_fs.safe_hash_file("assets/test.tar", { hex = true })
+    test.assert(ok, hash2)
+    test.assert(hash == hash2, "hashes dont match")
 end
 
-_test["extract_from_string"] = function()
-    local _gz = _eliFs.read_file("assets/test.tar.gz")
-    local _ok, _file = _eliLz.safe_extract_from_string(_gz)
-    _test.assert(_ok, _file)
-    local _ok, _hash = _eliHash.safe_sha256sum(_file, true)
-    _test.assert(_ok, _hash)
-    local _ok, _hash2 = _eliFs.safe_hash_file("assets/test.tar", {hex = true})
-    _test.assert(_ok, _hash2)
-    _test.assert(_hash == _hash2, "hashes dont match")
+test["extract_from_string"] = function ()
+    local gz_bytes = eli_fs.read_file"assets/test.tar.gz"
+    local ok, file = eli_lz.safe_extract_from_string(gz_bytes)
+    test.assert(ok, file)
+    local ok, hash = eli_hash.safe_sha256_sum(file, true)
+    test.assert(ok, hash)
+    local ok, hash2 = eli_fs.safe_hash_file("assets/test.tar", { hex = true })
+    test.assert(ok, hash2)
+    test.assert(hash == hash2, "hashes dont match")
 end
 
-_test["compress_string"] = function()
-    local _ok, _data = _eliLz.safe_compress_string("test string")
-    _test.assert(_ok, _data)
-    local _ok, _data2 = _eliLz.safe_extract_from_string(_data)
-    _test.assert(_ok, _data2 == "test string")
+test["compress_string"] = function ()
+    local ok, data = eli_lz.safe_compress_string"test string"
+    test.assert(ok, data)
+    local ok, data2 = eli_lz.safe_extract_from_string(data)
+    test.assert(ok, data2 == "test string")
 end
 
 if not TEST then
-    _test.summary()
+    test.summary()
 end

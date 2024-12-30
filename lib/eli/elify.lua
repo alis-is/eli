@@ -1,80 +1,85 @@
 --[[ // TODO consider implications of merging proc with os and fs with io ]]
-local _elified = false
-local _overridenValues = {}
+local is_elified = false
+local overridden_values = {}
 local util = require"eli.util"
 
-local function _elify()
-	if (_elified) then
+local function elify()
+	if (is_elified) then
 		return
 	end
-	local _special = { os = true }
-	local _exclude = { "eli%..*%.extra", "eli%.extensions%..*", "eli%.elify", "eli%.global" }
-	for k, v in pairs(package.preload) do
+	local special = { os = true }
+	local exclude = { "eli%..*%.extra", "eli%.extensions%..*", "eli%.elify", "eli%.global" }
+	for k, _ in pairs(package.preload) do
 		if not k:match"eli%..*" then
 			goto continue
 		end
-		for _, _ex in ipairs(_exclude) do
-			if k:match(_ex) then
+		for _, exclusion_pattern in ipairs(exclude) do
+			if k:match(exclusion_pattern) then
 				goto continue
 			end
 		end
-		local _efk = k:match"eli%.(.*)"
-		if not _efk or _special[_efk] then
+		local eli_module_id = k:match"eli%.(.*)"
+		if not eli_module_id or special[eli_module_id] then
 			goto continue
 		end
-		_, _G[_efk] = pcall(require, k)
+		_, _G[eli_module_id] = pcall(require, k)
 		::continue::
 	end
-	_overridenValues.os = os
+	overridden_values.os = os
 	os = util.merge_tables(os, require"eli.os")
 
 	-- extensions
-	for k, v in pairs(package.preload) do
+	for k, _ in pairs(package.preload) do
 		if not k:match"eli%.extensions%..*" then
 			goto continue
 		end
-		local _efk = k:match"eli%.extensions%.(.*)"
-		if not _efk then
+		local eli_extension_id = k:match"eli%.extensions%.(.*)"
+		if not eli_extension_id then
 			goto continue
 		end
-		local _extension = require(k)
-		if type(_extension.globalize) == "function" then
-			_extension.globalize()
+		local extension = require(k)
+		if type(extension.globalize) == "function" then
+			extension.globalize()
 		end
 		::continue::
 	end
 
-	etype = function (v)
-		local _t = type(v)
-		if _t == "table" or _t == "userdata" then
-			local _type = v.__type
-			if type(_type) ~= "string" and type(_type) ~= "function" then
-				local _meta = getmetatable(v) or {}
-				_type = _meta.__type
+	---#DES 'etype'
+	---
+	--- extended type check - checks the type of a value and returns a string representation of it.
+	--- @param value any
+	--- @return string
+	etype = function (value)
+		local value_type = type(value)
+		if value_type == "table" or value_type == "userdata" then
+			local __type = value.__type
+			if type(__type) ~= "string" and type(__type) ~= "function" then
+				local _meta = getmetatable(value) or {}
+				__type = _meta.__type
 			end
-			local _ttype = type(_type)
-			if _ttype == "string" then
-				return _type
-			elseif _ttype == "function" then
-				return _type()
+			local type_of_type = type(__type)
+			if type_of_type == "string" then
+				return __type
+			elseif type_of_type == "function" then
+				return __type()
 			end
 		end
-		return _t
+		return value_type
 	end
 
 	-- inject globals
 	for k, v in pairs(require"eli.global") do
 		_G[k] = v
 	end
-	_elified = true
+	is_elified = true
 end
 
 return {
-	elify = _elify,
+	elify = elify,
 	get_overriden_values = function ()
-		return _overridenValues
+		return overridden_values
 	end,
 	is_elified = function ()
-		return _elified == true
+		return is_elified == true
 	end,
 }

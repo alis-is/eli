@@ -20,25 +20,25 @@ function ver.parse(ver)
 	if type(ver) ~= "string" then
 		return nil
 	end
-	local _metadata = ver:match".+%+(.+)"
-	if (_metadata ~= nil) then
-		ver = ver:sub(1, #ver - #_metadata - 1)
+	local metadata = ver:match".+%+(.+)"
+	if (metadata ~= nil) then
+		ver = ver:sub(1, #ver - #metadata - 1)
 	end
-	local _prerelease = ver:match".+-([^%+]+)"
-	if (_prerelease ~= nil) then
-		ver = ver:sub(1, #ver - #_prerelease - 1)
+	local prerelease = ver:match".+-([^%+]+)"
+	if (prerelease ~= nil) then
+		ver = ver:sub(1, #ver - #prerelease - 1)
 	end
 
-	local _major = tonumber(ver:match"[^%.]+")
-	local _minor = tonumber(ver:match"[^%.]+.([^%.]+)")
-	local _patch = tonumber(ver:match"[^%.]+.[^%.]+.([^-]+)")
+	local major = tonumber(ver:match"[^%.]+")
+	local minor = tonumber(ver:match"[^%.]+.([^%.]+)")
+	local patch = tonumber(ver:match"[^%.]+.[^%.]+.([^-]+)")
 
 	return {
-		major = _major,
-		minor = _minor,
-		patch = _patch,
-		prerelease = _prerelease,
-		metadata = _metadata,
+		major = major,
+		minor = minor,
+		patch = patch,
+		prerelease = prerelease,
+		metadata = metadata,
 	}
 end
 
@@ -55,49 +55,49 @@ local function compare_prerelase(p1, p2)
 		return -1
 	end
 
-	local _p1parts = {}
+	local p1_parts = {}
 	for p in string.gmatch(p1, "[^%.]+") do
-		table.insert(_p1parts, p)
+		table.insert(p1_parts, p)
 	end
 
-	local _p2parts = {}
+	local p2_parts = {}
 	for p in string.gmatch(p2, "[^%.]+") do
-		table.insert(_p2parts, p)
+		table.insert(p2_parts, p)
 	end
 
-	local _range = #_p1parts > #_p2parts and #_p2parts or #_p1parts
+	local range = #p1_parts > #p2_parts and #p2_parts or #p1_parts
 
-	for i = 1, _range do
-		local _subp1 = _p1parts[i]
-		local _subp2 = _p2parts[i]
+	for i = 1, range do
+		local sub_p1 = p1_parts[i]
+		local sub_p2 = p2_parts[i]
 
-		local _p1Number = tonumber(_subp1)
-		local _p2Number = tonumber(_subp2)
+		local p1_number = tonumber(sub_p1)
+		local p2_number = tonumber(sub_p2)
 
-		if _p1Number and _p2Number then
-			if _p1Number ~= _p2Number then
-				return _p1Number > _p2Number and 1 or -1
+		if p1_number and p2_number then
+			if p1_number ~= p2_number then
+				return p1_number > p2_number and 1 or -1
 			end
-		elseif _p1Number and not _p2Number then
+		elseif p1_number and not p2_number then
 			return -1
-		elseif not _p1Number and _p2Number then
+		elseif not p1_number and p2_number then
 			return 1
 		else -- string comparison
-			local _srange = #_subp1 > #_subp2 and #_subp2 or #_subp1
-			for j = 1, _srange do
-				if _subp1:sub(j, j) ~= _subp2:sub(j, j) then
-					return _subp1:sub(j, j) > _subp2:sub(j, j) and 1 or -1
+			local s_range = #sub_p1 > #sub_p2 and #sub_p2 or #sub_p1
+			for j = 1, s_range do
+				if sub_p1:sub(j, j) ~= sub_p2:sub(j, j) then
+					return sub_p1:sub(j, j) > sub_p2:sub(j, j) and 1 or -1
 				end
 			end
-			if #_subp1 ~= #_subp2 then
-				return _srange == #_subp1 and -1 or 1
+			if #sub_p1 ~= #sub_p2 then
+				return s_range == #sub_p1 and -1 or 1
 			end
 		end
 	end
-	if #_p1parts == #_p2parts then
+	if #p1_parts == #p2_parts then
 		return 0
 	end
-	return _range == #_p1parts and -1 or 1
+	return range == #p1_parts and -1 or 1
 end
 
 ---#DES 'ver.compare'
@@ -116,30 +116,30 @@ function ver.compare(v1, v2)
 		end
 	end
 
-	local _v1
+	local ver1
 	if type(v1) == "string" then
-		_v1 = ver.parse(v1)
+		ver1 = ver.parse(v1)
 	end
-	local _v2
+	local ver2
 	if type(v2) == "string" then
-		_v2 = ver.parse(v2)
+		ver2 = ver.parse(v2)
 	end
-	assert(type(_v1) == "table", "Invalid v1 version!")
-	assert(type(_v2) == "table", "Invalid v2 version!")
+	assert(type(ver1) == "table", "Invalid v1 version!")
+	assert(type(ver2) == "table", "Invalid v2 version!")
 
-	if _v1.major ~= _v2.major then
-		return _v1.major > _v2.major and 1 or -1
-	end
-
-	if _v1.minor ~= _v2.minor then
-		return _v1.minor > _v2.minor and 1 or -1
+	if ver1.major ~= ver2.major then
+		return ver1.major > ver2.major and 1 or -1
 	end
 
-	if _v1.patch ~= _v2.patch then
-		return _v1.patch > _v2.patch and 1 or -1
+	if ver1.minor ~= ver2.minor then
+		return ver1.minor > ver2.minor and 1 or -1
 	end
 
-	return compare_prerelase(_v1.prerelease, _v2.prerelease)
+	if ver1.patch ~= ver2.patch then
+		return ver1.patch > ver2.patch and 1 or -1
+	end
+
+	return compare_prerelase(ver1.prerelease, ver2.prerelease)
 end
 
 return generate_safe_functions(ver)

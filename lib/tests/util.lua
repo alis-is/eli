@@ -47,7 +47,7 @@ end
 _test["merge_arrays - combine"] = function ()
 	local _t1 = { 1, "2", true }
 	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_arrays(_t1, _t2, { arrayMergeStrategy = "combine" })
+	local _result = _eliUtil.merge_arrays(_t1, _t2, { merge_strategy = "combine" })
 	for k, v in pairs(_t1) do
 		_test.assert(_result[k] == v)
 	end
@@ -59,7 +59,7 @@ end
 _test["merge_arrays - prefer-1"] = function ()
 	local _t1 = { 1, "2", true }
 	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_arrays(_t1, _t2, { arrayMergeStrategy = "prefer-t1" })
+	local _result = _eliUtil.merge_arrays(_t1, _t2, { merge_strategy = "prefer-t1" })
 	for k, v in pairs(_t1) do
 		_test.assert(_result[k] == v)
 	end
@@ -71,7 +71,7 @@ end
 _test["merge_arrays - prefer-2"] = function ()
 	local _t1 = { 1, "2", true }
 	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_arrays(_t1, _t2, { arrayMergeStrategy = "prefer-t2" })
+	local _result = _eliUtil.merge_arrays(_t1, _t2, { merge_strategy = "prefer-t2" })
 	for k, v in pairs(_t2) do
 		_test.assert(_result[k] == v)
 	end
@@ -80,7 +80,7 @@ end
 _test["merge_arrays - overlay"] = function ()
 	local _t1 = { 1, "2", true }
 	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_arrays(_t1, _t2, { arrayMergeStrategy = "overlay" })
+	local _result = _eliUtil.merge_arrays(_t1, _t2, { merge_strategy = "overlay" })
 	for k, v in pairs(_t2) do
 		_test.assert(_result[k] == v)
 	end
@@ -162,7 +162,7 @@ end
 _test["merge_tables (array) - combine"] = function ()
 	local _t1 = { 1, "2", true }
 	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_tables(_t1, _t2, { arrayMergeStrategy = "combine" })
+	local _result = _eliUtil.merge_tables(_t1, _t2, { array_merge_strategy = "combine" })
 	for k, v in pairs(_t1) do
 		_test.assert(_result[k] == v)
 	end
@@ -174,7 +174,7 @@ end
 _test["merge_tables (array) - prefer-1"] = function ()
 	local _t1 = { 1, "2", true }
 	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_tables(_t1, _t2, { arrayMergeStrategy = "prefer-t1" })
+	local _result = _eliUtil.merge_tables(_t1, _t2, { array_merge_strategy = "prefer-t1" })
 	for k, v in pairs(_t1) do
 		_test.assert(_result[k] == v)
 	end
@@ -186,7 +186,7 @@ end
 _test["merge_tables (array) - prefer-2"] = function ()
 	local _t1 = { 1, "2", true }
 	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_tables(_t1, _t2, { arrayMergeStrategy = "prefer-t2" })
+	local _result = _eliUtil.merge_tables(_t1, _t2, { array_merge_strategy = "prefer-t2" })
 	for k, v in pairs(_t2) do
 		_test.assert(_result[k] == v)
 	end
@@ -195,7 +195,7 @@ end
 _test["merge_tables (array) - overlay"] = function ()
 	local _t1 = { 1, "2", true }
 	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_tables(_t1, _t2, { arrayMergeStrategy = "overlay" })
+	local _result = _eliUtil.merge_tables(_t1, _t2, { array_merge_strategy = "overlay" })
 	for k, v in pairs(_t2) do
 		_test.assert(_result[k] == v)
 	end

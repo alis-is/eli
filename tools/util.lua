@@ -18,8 +18,9 @@ end
 
 function _util.get_ca_certs()
 	local tmp = os.tmpname()
+	-- // TODO: remove 'followRedirects' in the next version
 	net.download_file("https://ccadb.my.salesforce-sites.com/mozilla/IncludedRootsPEMTxt?TrustBitsInclude=Websites", tmp,
-		{ followRedirects = true })
+		{ follow_redirects = true, followRedirects = true })
 	local certs = {}
 	local ca = fs.read_file(tmp)
 	fs.remove(tmp)

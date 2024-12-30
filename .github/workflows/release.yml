@@ -107,7 +107,6 @@ jobs:
         toolchain: zig:aarch64-windows-gnu
         artifact-id: eli-windows-aarch64.exe
         debug-artifact-id: eli-windows-aarch64-debug.exe
-
   build-macos-x86_64:
     runs-on: ubuntu-latest
     steps:
@@ -178,14 +177,18 @@ jobs:
           .\tools\test.ps1 x86_64
 
   test-macos:
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        os: [macos-latest]
+        arch: [x86_64, arm64]
+    runs-on: ${{ matrix.os }}
     needs: [build-macos-x86_64, build-macos-aarch64] # we do not test aarch64 because there are no available aarch64 runners
     steps:
       - uses: actions/checkout@v4
       - uses: "./.github/template/prepare-test"
       - name: test
         run: |
-          ./tools/test.sh x86_64
+          ./tools/test.sh ${{ matrix.arch }}
 
   test-ami:
     runs-on: ubuntu-latest

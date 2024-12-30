@@ -19,8 +19,10 @@ function util.is_array(t)
 	return true
 end
 
+---@alias ArrayMergeStrategy "default" | "hybrid" | "combine" | "prefer-t1" | "prefer-t2" | "overlay"
+
 ---@class MergeArraysOptions
----@field arrayMergeStrategy "default" | "hybrid" | "combine" | "prefer-t1" | "prefer-t2" | "overlay" | nil
+---@field merge_strategy ArrayMergeStrategy | nil
 ---@field overwrite boolean? relevant only for hybrid/default strategy - overwrites nested fields of elements in t1 based on values in t2
 
 ---@type table<string, fun(t1: any[], t2: any[], options: MergeTablesOptions?): any[]>
@@ -52,11 +54,11 @@ local mergeArrayStrategies = {
 		return result
 	end,
 	combine = function (t1, t2)
-		local _result = { table.unpack(t1) }
+		local result = { table.unpack(t1) }
 		for _, v in ipairs(t2) do
-			table.insert(_result, v)
+			table.insert(result, v)
 		end
-		return _result
+		return result
 	end,
 	["prefer-t1"] = function (t1, t2)
 		if t1 then return t1 end
@@ -67,11 +69,11 @@ local mergeArrayStrategies = {
 		return t1
 	end,
 	overlay = function (t1, t2)
-		local _result = util.clone(t1)
+		local result = util.clone(t1)
 		for k, v in pairs(t2) do
-			_result[k] = v
+			result[k] = v
 		end
-		return _result
+		return result
 	end,
 }
 
@@ -80,13 +82,19 @@ local mergeArrayStrategies = {
 ---@param options MergeArraysOptions
 ---@return any[]
 local function merge_arrays(t1, t2, options)
-	local mergeStrategy = options.arrayMergeStrategy
-	local mergeFn = mergeArrayStrategies[mergeStrategy]
-	if type(mergeFn) ~= "function" then
-		mergeFn = mergeArrayStrategies.hybrid
+	local merge_strategy = options.merge_strategy
+	-- // TODO: remove
+	if options.arrayMergeStrategy ~= nil and options.merge_strategy == nil then
+		merge_strategy = options.arrayMergeStrategy
+		print"arrayMergeStrategy is deprecated, use merge_strategy instead"
 	end
 
-	return mergeFn(t1, t2, options --[[@as MergeTablesOptions]])
+	local merge_fn = mergeArrayStrategies[merge_strategy]
+	if type(merge_fn) ~= "function" then
+		merge_fn = mergeArrayStrategies.hybrid
+	end
+
+	return merge_fn(t1, t2, options --[[@as MergeTablesOptions]])
 end
 
 ---#DES 'util.merge_arrays'
@@ -101,12 +109,14 @@ function util.merge_arrays(t1, t2, options)
 	if not util.is_array(t2) then
 		return nil, "t2 is not an array"
 	end
-	options = util.merge_tables(options, { arrayMergeStrategy = "default", overwrite = false })
+	options = util.merge_tables(options, { merge_strategy = "default", overwrite = false } --[[@as MergeArraysOptions]])
 
 	return merge_arrays(t1, t2, options)
 end
 
----@class MergeTablesOptions: MergeArraysOptions
+---@class MergeTablesOptions
+---@field array_merge_strategy ArrayMergeStrategy | nil
+---@field overwrite boolean?
 
 ---#DES 'util.merge_tables'
 ---@generic TTable1: table
@@ -136,25 +146,28 @@ function util.merge_tables(t1, t2, options)
 		options.overwrite = false
 	end
 
-	local _result = {}
+	local result = {}
 	if util.is_array(t1) and util.is_array(t2) then
-		_result = merge_arrays(t1, t2, options)
+		result = merge_arrays(t1, t2, {
+			merge_strategy = options.array_merge_strategy,
+			overwrite = options.overwrite,
+		})
 	else
 		for k, v in pairs(t1) do
-			_result[k] = v
+			result[k] = v
 		end
 		for k, v2 in pairs(t2) do
-			local v1 = _result[k]
+			local v1 = result[k]
 			if type(v1) == "table" and type(v2) == "table" then
-				_result[k] = util.merge_tables(v1, v2, options)
+				result[k] = util.merge_tables(v1, v2, options)
 			elseif type(v1) == "nil" then
-				_result[k] = v2
+				result[k] = v2
 			elseif options.overwrite then
-				_result[k] = v2
+				result[k] = v2
 			end
 		end
 	end
-	return _result
+	return result
 end
 
 ---#DES 'util.escape_magic_characters'
@@ -197,7 +210,7 @@ end
 
 ---@param t table
 ---@param prefix string?
-local function _internal_print_table_deep(t, prefix)
+local function internal_print_table_deep(t, prefix)
 	if type(t) ~= "table" then
 		return
 	end
@@ -205,7 +218,7 @@ local function _internal_print_table_deep(t, prefix)
 	for k, v in pairs(t) do
 		if type(v) == "table" then
 			print(prefix .. k .. ":")
-			_internal_print_table_deep(v, prefix .. "\t")
+			internal_print_table_deep(v, prefix .. "\t")
 		else
 			print(prefix, k, v)
 		end
@@ -222,7 +235,7 @@ function util.print_table(t, deep)
 	for k, v in pairs(t) do
 		if deep and type(v) == "table" then
 			print(k .. ":")
-			_internal_print_table_deep(v)
+			internal_print_table_deep(v)
 		else
 			print(k, v)
 		end
@@ -239,7 +252,7 @@ GLOBAL_LOGGER = GLOBAL_LOGGER or nil
 ---@return fun(msg: string | LogMessage, vars: table?) ...
 function util.global_log_factory(module, ...)
 	---@type fun(msg: string, vars: table?)[]
-	local _result = {}
+	local result = {}
 	if (type(GLOBAL_LOGGER) ~= "table" and etype(GLOBAL_LOGGER) ~= "ELI_LOGGER") or
 	getmetatable(GLOBAL_LOGGER).__type ~= "ELI_LOGGER" then
 		GLOBAL_LOGGER = (require"eli.Logger"):new()
@@ -247,7 +260,7 @@ function util.global_log_factory(module, ...)
 
 	for _, lvl in ipairs{ ... } do
 		table.insert(
-			_result,
+			result,
 			function (msg, vars)
 				if type(msg) ~= "table" then
 					msg = { msg = msg }
@@ -257,7 +270,7 @@ function util.global_log_factory(module, ...)
 			end
 		)
 	end
-	return table.unpack(_result)
+	return table.unpack(result)
 end
 
 --- //TODO: Remove
@@ -308,24 +321,24 @@ end
 ---@param deep (boolean|number)?
 ---@param cloneMetatable boolean?
 ---@return T
-local function _internal_clone(v, cache, deep, cloneMetatable)
+local function internal_clone(v, cache, deep, cloneMetatable)
 	if type(deep) == "number" then deep = deep - 1 end
-	local _go_deeper = deep == true or (type(deep) == "number" and deep >= 0)
+	local should_go_deeper = deep == true or (type(deep) == "number" and deep >= 0)
 
 	cache = cache or {}
 	if type(v) == "table" then
 		if cache[v] then
 			return cache[v]
 		else
-			local _clone_fn = _go_deeper and _internal_clone or function (v) return v end
+			local clone_fn = should_go_deeper and internal_clone or function (v) return v end
 			local copy = {}
 			cache[v] = copy
-			for k, _v in next, v, nil do
-				copy[_clone_fn(k, cache, deep)] = _clone_fn(_v, cache, deep)
+			for k, v in next, v, nil do
+				copy[clone_fn(k, cache, deep)] = clone_fn(v, cache, deep)
 			end
 			local meta = getmetatable(v)
 			if meta and cloneMetatable then
-				meta = _clone_fn(meta, cache, deep)
+				meta = clone_fn(meta, cache, deep)
 			end
 			setmetatable(copy, meta)
 			return copy
@@ -342,7 +355,7 @@ end
 ---@param cloneMetatable boolean?
 ---@return T
 function util.clone(v, deep, cloneMetatable)
-	return _internal_clone(v, {}, deep, cloneMetatable)
+	return internal_clone(v, {}, deep, cloneMetatable)
 end
 
 ---#DES 'util.equals'
@@ -352,12 +365,12 @@ end
 ---@return boolean
 function util.equals(v, v2, deep)
 	if type(deep) == "number" then deep = deep - 1 end
-	local _go_deeper = deep == true or (type(deep) == "number" and deep >= 0)
+	local should_go_deeper = deep == true or (type(deep) == "number" and deep >= 0)
 
-	if type(v) == "table" and type(v2) == "table" and _go_deeper then
-		for k, _v in pairs(v) do
-			local _result = util.equals(v2[k], _v, deep)
-			if not _result then return false end
+	if type(v) == "table" and type(v2) == "table" and should_go_deeper then
+		for k, v in pairs(v) do
+			local result = util.equals(v2[k], v, deep)
+			if not result then return false end
 		end
 		return true
 	else -- number, string, boolean, etc
@@ -365,17 +378,17 @@ function util.equals(v, v2, deep)
 	end
 end
 
-function util.extract_error_info(errorMessage)
-	if type(errorMessage) ~= "string" then
-		return errorMessage, nil
+function util.extract_error_info(error_message)
+	if type(error_message) ~= "string" then
+		return error_message, nil
 	end
 	-- Pattern to match the message and error code
 	local pattern = "(.-)%s*%[(%d+)%]$"
-	local message, code = errorMessage:match(pattern)
+	local message, code = error_message:match(pattern)
 	if message and code then
 		return message, tonumber(code) -- Convert code to a number
 	else
-		return errorMessage, nil -- If pattern doesn't match, return the whole message and nil for the code
+		return error_message, nil -- If pattern doesn't match, return the whole message and nil for the code
 	end
 end
 

@@ -39,9 +39,9 @@ test["download (progress)"] = function ()
 	io.write = new_print
 	local _, _ = eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
 		{
-			followRedirects = true,
-			showDefaultProgress = 5,
-			bufferCapacity = 1024 * 100,
+			follow_redirects = true,
+			show_default_progress = 5,
+			buffer_capacity = 1024 * 100,
 		})
 	io.write = _print -- restore
 	test.assert(_printed:match"(%d+)%%", "no progress detected")
@@ -49,9 +49,9 @@ test["download (progress)"] = function ()
 	io.write = new_print
 	local _, _ = eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
 		{
-			followRedirects = true,
-			showDefaultProgress = true,
-			bufferCapacity = 1024 * 100,
+			follow_redirects = true,
+			show_default_progress = true,
+			buffer_capacity = 1024 * 100,
 		})
 	io.write = _print -- restore
 	test.assert(_printed:match"(%d+)%%", "no progress detected")
@@ -63,13 +63,14 @@ test["download_large_file"] = function ()
 
 	local ok, error = eliNet.safe_download_file(
 		"https://github.com/tez-capital/tezpay/releases/download/0.8.5-alpha/tezpay-linux-arm64",
-		"tmp/tezpay", { followRedirects = true })
+		"tmp/tezpay", { follow_redirects = true })
 	test.assert(ok, error)
 
 	local ok, hash = eliFs.safe_hash_file("tmp/tezpay", { type = "sha256", hex = true })
 	test.assert(ok, hash)
 	test.assert(hash == "07728dbf002a5857d4ecb4b30995fac46d09ea2768680852678fbc222d2cf26e",
-		"hashes do not match (" .. tostring(hash) .. "<>07728dbf002a5857d4ecb4b30995fac46d09ea2768680852678fbc222d2cf26e)")
+		"hashes do not match (" ..
+		tostring(hash) .. "<>07728dbf002a5857d4ecb4b30995fac46d09ea2768680852678fbc222d2cf26e)")
 end
 
 test["download_file"] = function ()
@@ -91,7 +92,7 @@ end
 
 test["RestClient get"] = function ()
 	local client = RestClient:new"https://raw.githubusercontent.com/"
-	local ok, response = client:safe_get("alis-is/eli/main/LICENSE", { followRedirects = true })
+	local ok, response = client:safe_get("alis-is/eli/main/LICENSE", { follow_redirects = true })
 	test.assert(ok, "request failed - " .. tostring(response))
 	test.assert(response.raw:match"Copyright %(c%) %d%d%d%d alis%.is", "copyright not found")
 
@@ -247,7 +248,7 @@ test["RestClient conf"] = function ()
 end
 
 test["RestClient get_url and res"] = function ()
-	local client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain", timeout = TIMEOUT })
+	local client = RestClient:new(HTTPBIN_URL, { content_type = "text/plain", timeout = TIMEOUT })
 	test.assert(tostring(client:get_url()) == HTTPBIN_URL)
 	client = client:res"test"
 	test.assert(tostring(client:get_url()) == HTTPBIN_URL .. "test")
@@ -256,7 +257,7 @@ test["RestClient get_url and res"] = function ()
 end
 
 test["RestClient res (advanced)"] = function ()
-	local client = RestClient:new(HTTPBIN_URL, { contentType = "text/plain", timeout = TIMEOUT })
+	local client = RestClient:new(HTTPBIN_URL, { content_type = "text/plain", timeout = TIMEOUT })
 	test.assert(tostring(client:get_url()) == HTTPBIN_URL)
 	local arrayClients = client:res{ "test", "test2/test3" }
 	test.assert(tostring(arrayClients[1]:get_url()) == HTTPBIN_URL .. "test")
@@ -280,11 +281,6 @@ test["RestClient res (advanced)"] = function ()
 
 	local notOverrideClientsTemplate = { test = { __root = "t", get = "test" } }
 	local notOverrideClients = client:res(notOverrideClientsTemplate)
-	test.assert(type(notOverrideClients.test.get) ~= "function")
-	test.assert(tostring(notOverrideClients.test:get_url()) == HTTPBIN_URL .. "t")
-
-	local overrideClientsTemplate = { test = { __root = "t", get = "test" } }
-	local notOverrideClients = client:res(overrideClientsTemplate, { allowRestclientPropertyOverride = true })
 	test.assert(type(notOverrideClients.test.get) ~= "function")
 	test.assert(tostring(notOverrideClients.test:get_url()) == HTTPBIN_URL .. "t")
 end
