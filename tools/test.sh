@@ -1,6 +1,7 @@
 #!/bin/sh
 
-set -euxo
+# for debugging
+# set -euxo
 
 PLATFORM=$(uname -m)
 ROOT=$(pwd)
