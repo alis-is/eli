@@ -19,8 +19,8 @@ local util = require"eli.util"
 ---@operator div(string):Url
 ---@field normalize fun():Url
 
-local legalInPath = ":_-.!~*'()@&=$,;"
-local legalInQuery = ":_-.,!~*';()@$"
+local legal_in_path = ":_-.!~*'()@&=$,;"
+local legal_in_query = ":_-.,!~*';()@$"
 
 ---@param str string
 local function split_to_map(str)
@@ -33,10 +33,10 @@ end
 
 url.options = {
 	separator = "&",
-	cumulativeParameters = false,
-	legalInPath = split_to_map(legalInPath),
-	legalInQuery = split_to_map(legalInQuery),
-	queryPlusIsSpace = true,
+	cumulative_parameters = false,
+	legal_in_path = split_to_map(legal_in_path),
+	legal_in_query = split_to_map(legal_in_query),
+	query_plus_is_space = true,
 }
 
 url.services = {
@@ -61,7 +61,7 @@ end
 
 -- for query values, + can mean space if configured as such
 local function decodeValue(str)
-	if url.options.queryPlusIsSpace then
+	if url.options.query_plus_is_space then
 		str = str:gsub("+", " ")
 	end
 	return url.decode(str)
@@ -87,7 +87,7 @@ function url.build_query(tab, sep, key)
 		local value = tab[name]
 		name = url.encode(tostring(name), { ["-"] = true, ["_"] = true, ["."] = true })
 		if key then
-			if url.options.cumulativeParameters and string.find(name, "^%d+$") then
+			if url.options.cumulative_parameters and string.find(name, "^%d+$") then
 				name = tostring(key)
 			else
 				name = string.format("%s[%s]", tostring(key), tostring(name))
@@ -96,7 +96,7 @@ function url.build_query(tab, sep, key)
 		if type(value) == "table" then
 			table.insert(query, url.build_query(value, sep, name))
 		else
-			local value = url.encode(tostring(value), url.options.legalInQuery)
+			local value = url.encode(tostring(value), url.options.legal_in_query)
 			if value ~= "" then
 				table.insert(query, string.format("%s=%s", name, value))
 			else
@@ -169,7 +169,7 @@ function url.parse_query(str, sep)
 			values[key] = {}
 		elseif #keys == 0 and type(values[key]) == "table" then
 			values[key] = decodeValue(val)
-		elseif url.options.cumulativeParameters
+		elseif url.options.cumulative_parameters
 		and    type(values[key]) == "string" then
 			values[key] = { values[key] }
 			table.insert(values[key], decodeValue(val))
@@ -212,10 +212,12 @@ end
 ---@param urlObj table
 ---@param path string
 ---@return Url
-function url.add_segment(urlObj, path, legalInPath)
+function url.add_segment(urlObj, path, legal_in_path)
 	if type(path) == "string" then
 		urlObj.path = urlObj.path ..
-			"/" .. url.encode(path:gsub("^/+", ""), type(legalInPath) == "table" and legalInPath or url.options.legalInPath)
+		   "/" ..
+		   url.encode(path:gsub("^/+", ""), type(legal_in_path) == "table" and legal_in_path or url.options
+			   .legal_in_path)
 	end
 	return urlObj
 end
@@ -304,16 +306,16 @@ end
 ---@return string, string, string
 local function extract_authority_components(authorityStr)
 	local host, port, credentials
-	local authorityStr = tostring(authorityStr or "")
-	authorityStr = authorityStr:gsub(":(%d+)$", function (v)
+	local authority_str = tostring(authorityStr or "")
+	authority_str = authority_str:gsub(":(%d+)$", function (v)
 		port = tonumber(v)
 		return ""
 	end)
-	authorityStr = authorityStr:gsub("^([^@]*)@", function (v)
+	authority_str = authority_str:gsub("^([^@]*)@", function (v)
 		credentials = v
 		return ""
 	end)
-	host = authorityStr
+	host = authority_str
 	return host, port, credentials
 end
 
@@ -453,7 +455,7 @@ function url.parse(urlStr)
 	end
 	if path ~= nil then
 		result.path = path:gsub("([^/]+)", function (s)
-			return url.encode(url.decode(s), url.options.legalInPath)
+			return url.encode(url.decode(s), url.options.legal_in_path)
 		end)
 	end
 
@@ -470,14 +472,8 @@ function url.remove_dot_segments(path)
 	if string.len(path) == 0 then
 		return ""
 	end
-	local startslash = false
-	local endslash = false
-	if string.sub(path, 1, 1) == "/" then
-		startslash = true
-	end
-	if (string.len(path) > 1 or startslash == false) and string.sub(path, -1) == "/" then
-		endslash = true
-	end
+	local starts_with_slash = string.sub(path, 1, 1) == "/"
+	local ends_with_slash = (string.len(path) > 1 or starts_with_slash == false) and string.sub(path, -1) == "/"
 
 	for c in path:gmatch"[^/]+" do
 		table.insert(fields, c)
@@ -502,10 +498,10 @@ function url.remove_dot_segments(path)
 	else
 		ret = ""
 	end
-	if startslash then
+	if starts_with_slash then
 		ret = "/" .. ret
 	end
-	if endslash then
+	if ends_with_slash then
 		ret = ret .. "/"
 	end
 	return ret
@@ -603,7 +599,7 @@ function url.extract_components_for_request(urlObjOrStr)
 		local scheme, authority, path, query, fragment = extract_url_components(urlObjOrStr)
 		local host, port, credentials = extract_authority_components(authority)
 		return scheme, host, port, (path or "") .. (query and "?" .. query or "") .. (fragment and "#" .. fragment or ""),
-			credentials
+		   credentials
 	end
 	local urlObj = urlObjOrStr
 	local scheme = urlObj.scheme
