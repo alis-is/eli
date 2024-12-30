@@ -32,6 +32,9 @@ test_platform() {
 
     TEST_PLATFORM=$1
     # if platfrom arm64 rename to aarch64
+    if [ "$PLATFORM" = "arm64" ]; then
+        PLATFORM="aarch64"
+    fi
     if [ "$TEST_PLATFORM" = "arm64" ]; then
         TEST_PLATFORM="aarch64"
     fi
