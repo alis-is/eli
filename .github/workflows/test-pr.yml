@@ -122,6 +122,7 @@ jobs:
       - uses: "./.github/template/prepare-test"
       - name: test
         run: |
+          set -euxo pipefail
           ./tools/test.sh x86_64
 
   test-ami:
