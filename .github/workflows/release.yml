@@ -217,7 +217,7 @@ jobs:
           path: ascend
       - name: test ascend
         run: |
-          cp release/eli-linux-x86_64 /usr/local/bin/eli
+          cp release/eli-linux-x86_64 /usr/bin/eli
           cd ascend/tests
           eli all.lua
 
