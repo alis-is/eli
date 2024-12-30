@@ -57,7 +57,7 @@ function zip.extract(source, destination, options)
 	-- // TODO: remove
 	if options.flattenRootDir ~= nil and options.flatten_root_dir == nil then
 		options.flatten_root_dir = options.flattenRootDir
-		print"Deprecation warning: flattenRootDir is deprecated, use skip_destination_check instead"
+		print"Deprecation warning: flattenRootDir is deprecated, use flatten_root_dir instead"
 	end
 	if options.open_flags ~= nil and options.open_flags == nil then
 		options.open_flags = options.open_flags

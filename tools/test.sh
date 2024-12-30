@@ -3,19 +3,25 @@
 PLATFORM=$(uname -m)
 ROOT=$(pwd)
 
+set -euxo
+
+echo "Starting script"
+echo "Platform: $PLATFORM"
+echo "Root: $ROOT"
+
 test_build() {
-    cd lib/tests && \
-    chmod +x "$ROOT/release/eli-$2-$1" && \
-    "$ROOT/release/eli-$2-$1" all.lua && \
-    cd "$ROOT" || exit 1
+    cd lib/tests &&
+        chmod +x "$ROOT/release/eli-$2-$1" &&
+        "$ROOT/release/eli-$2-$1" all.lua &&
+        cd "$ROOT" || exit 1
 }
 
 test_qemu_build() {
-    cd lib/tests && \
-    export QEMU="$3" && \
-    chmod +x "$ROOT/release/eli-$2-$1" && \
-    "$3" "$ROOT/release/eli-$2-$1" all.lua && \
-    cd "$ROOT" || exit 1
+    cd lib/tests &&
+        export QEMU="$3" &&
+        chmod +x "$ROOT/release/eli-$2-$1" &&
+        "$3" "$ROOT/release/eli-$2-$1" all.lua &&
+        cd "$ROOT" || exit 1
 }
 
 test_platform() {
