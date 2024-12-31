@@ -54,6 +54,8 @@ end
 ---@field __file file*
 ---@field __closed boolean
 ---@field path string
+---@field read fun(self: ExecTmpFile, mode: integer | "a" | "l" | "L"): string
+---@field close fun(self: ExecTmpFile)
 local ExecTmpFile = {}
 ExecTmpFile.__index = ExecTmpFile
 
