@@ -40,7 +40,11 @@ local patches = {
 	[INIT_SOURCE] = {
 		patch = function (file)
 			local _versions = string.interpolate("ELI_LIB_VERSION = '${version}'\nELI_VERSION = '${version}'\n", config)
-			file = file:gsub("[ \t]-ELI_LIB_VERSION = .-\n[ \t]-ELI_VERSION = .-\n", "")
+			local file, count = file:gsub("[ \t]-ELI_LIB_VERSION = .-\n[ \t]-ELI_VERSION = .-\n", "")
+			if count == 0 then
+				print(file)
+				error"failed to inject new version"
+			end
 			return _versions .. file
 		end,
 	},

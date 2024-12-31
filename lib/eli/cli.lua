@@ -3,15 +3,9 @@ local util = require"eli.util"
 local cli = {}
 
 ---@class CliArg
----#DES 'CliArg.type'
 ---@field type "option"|"parameter"
----#DES 'CliArg.value'
 ---@field value string|boolean
----#DES 'CliArg.id'
 ---@field id string
----#DES 'CliArg.arg'
----
----the cli argument this CliArg was created from
 ---@field arg string
 
 ---#DES cli.parse_args

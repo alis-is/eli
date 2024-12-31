@@ -24,8 +24,8 @@ local fs = {
 }
 
 ---@class AccessFileOptions
----@field binary_mode boolean
----@field append boolean
+---@field binary_mode boolean?
+---@field append boolean?
 
 ---#DES 'fs.read_file'
 ---
