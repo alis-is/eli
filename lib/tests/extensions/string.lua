@@ -1,65 +1,67 @@
-local _test = TEST or require "u-test"
-local _ok, _exString = pcall(require, "eli.extensions.string")
+local test = TEST or require"u-test"
+local ok, string_extensions = pcall(require, "eli.extensions.string")
 
-if not _ok then
-    _test["eli.extensions.string available"] = function()
-        _test.assert(false, "eli.extensions.string not available")
+if not ok then
+    test["eli.extensions.string available"] = function ()
+        test.assert(false, "eli.extensions.string not available")
     end
     if not TEST then
-        _test.summary()
+        test.summary()
         os.exit()
     else
         return
     end
 end
 
-_test["eli.extensions.string available"] = function()
-    _test.assert(true)
+test["eli.extensions.string available"] = function ()
+    test.assert(true)
 end
 
-_test["trim"] = function()
-    local _result = _exString.trim("   \ttest \t\n ")
-    _test.assert(_result == "test")
+test["trim"] = function ()
+    local result = string_extensions.trim"   \ttest \t\n "
+    test.assert(result == "test")
 end
 
-_test["join"] = function()
-    local _result = _exString.join(", ", "test", "join", "string")
-    _test.assert(_result == "test, join, string")
-    local _ok, _result = pcall(_exString.join, ", ", "test", { "join" }, "string")
-    _test.assert(_ok and _result:match("test, table:"))
-    local _result = _exString.join(", ", { "test", "join", "string" })
-    _test.assert(_result == "test, join, string")
+test["join"] = function ()
+    local result = string_extensions.join(", ", "test", "join", "string")
+    test.assert(result == "test, join, string")
+    local ok, result = pcall(string_extensions.join, ", ", "test", { "join" }, "string")
+    test.assert(ok and result:match"test, table:")
+    local result = string_extensions.join(", ", { "test", "join", "string" })
+    test.assert(result == "test, join, string")
 end
 
-_test["join_strings"] = function()
-    local _result = _exString.join_strings(", ", "test", "join", { test = "string" }, "string")
-    _test.assert(_result == "test, join, string")
-    local _ok, _result = pcall(_exString.join_strings, ", ", "test", { "join" }, "string")
-    _test.assert(_ok and _result == "test, string")
-    local _result = _exString.join_strings(", ", { "test", "join", { test = "string" }, "string" })
-    _test.assert(_result == "test, join, string")
+test["join_strings"] = function ()
+    local result = string_extensions.join_strings(", ", "test", "join", { test = "string" }, "string")
+    test.assert(result == "test, join, string")
+    local ok, result = pcall(string_extensions.join_strings, ", ", "test", { "join" }, "string")
+    test.assert(ok and result == "test, string")
+    local result = string_extensions.join_strings(", ", { "test", "join", { test = "string" }, "string" })
+    test.assert(result == "test, join, string")
 end
 
-_test["split"] = function()
-    local _result = _exString.split("test, join, string", ",", true)
-    _test.assert(_result[1] == "test" and _result[2] == "join" and _result[3] == "string")
+test["split"] = function ()
+    local result = string_extensions.split("test, join, string", ",", true)
+    test.assert(result[1] == "test" and result[2] == "join" and result[3] == "string")
 end
 
-_test["interpolate"] = function()
-    local _result = _exString.interpolate("Hello from ${name}! This is formatted: ${n} ${n2}\nAnd this is escaped \\${escaped} and this a table value ${t}"
-        , { name = "printf", n = 1, n2 = 2, escaped = "anyValiue", t = {} })
-    _test.assert(_result:match("Hello from printf! This is formatted: 1 2\nAnd this is escaped ${escaped} and this a table value table: "))
+test["interpolate"] = function ()
+    local result = string_extensions.interpolate(
+    "Hello from ${name}! This is formatted: ${n} ${n2}\nAnd this is escaped \\${escaped} and this a table value ${t}"
+    , { name = "printf", n = 1, n2 = 2, escaped = "anyValiue", t = {} })
+    test.assert(result:match
+    "Hello from printf! This is formatted: 1 2\nAnd this is escaped ${escaped} and this a table value table: ")
 end
 
-_test["globalize"] = function()
-    _exString.globalize()
-    for k, v in pairs(_exString) do
+test["globalize"] = function ()
+    string_extensions.globalize()
+    for k, v in pairs(string_extensions) do
         if k ~= "globalize" then
-            _test.assert(string[k] == v)
+            test.assert(string[k] == v)
         end
     end
 end
 
 if not TEST then
-    _test.summary()
+    test.summary()
 end

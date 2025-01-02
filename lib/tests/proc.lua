@@ -44,9 +44,9 @@ test["exec (stderr)"] = function ()
 	if pathSeparator == "\\" then
 		cli = "cmd /c"
 	end
-	local _result = eli_proc.exec(cli .. " \"echo error 173 >&2\"", { stderr = "pipe" })
-	test.assert(_result.exit_code == 0 and _result.stdout_stream == nil and
-		string.trim(_result.stderr_stream:read"a") == "error 173")
+	local result = eli_proc.exec(cli .. " \"echo error 173 >&2\"", { stderr = "pipe" })
+	test.assert(result.exit_code == 0 and result.stdout_stream == nil and
+		string.trim(result.stderr_stream:read"a") == "error 173")
 end
 
 test["exec (stderr - path)"] = function ()
@@ -136,8 +136,8 @@ test["spawn (custom stdout)"] = function ()
 	local result = isUnixLike and
 	   eli_proc.spawn("sh", { "-c", "printf '173'" }, options) or
 	   eli_proc.spawn("cmd", { "/c", "echo 173" }, options)
-	local _stdout = string.trim(eli_fs.read_file"tmp/test.stdout")
-	test.assert(result.exit_code == 0 and _stdout == "173")
+	local stdout = string.trim(eli_fs.read_file"tmp/test.stdout")
+	test.assert(result.exit_code == 0 and stdout == "173")
 end
 
 test["spawn (custom stderr)"] = function ()
@@ -208,8 +208,8 @@ test["spawn (stdin/stdout/stderr as path)"] = function ()
 	local result = isUnixLike and
 	   eli_proc.spawn("sh", options) or
 	   eli_proc.spawn("cmd", options)
-	local _stdout = result.stdout_stream:read"a"
-	test.assert(result.exit_code == 0 and _stdout:match"13354")
+	local stdout = result.stdout_stream:read"a"
+	test.assert(result.exit_code == 0 and stdout:match"13354")
 end
 
 test["spawn (process group)"] = function ()

@@ -1,287 +1,286 @@
-local _test = TEST or require"u-test"
-local _ok, _eliUtil = pcall(require, "eli.util")
+local test = TEST or require"u-test"
+local ok, eli_util = pcall(require, "eli.util")
 
-if not _ok then
-	_test["eli.util available"] = function ()
-		_test.assert(false, "eli.util not available")
+if not ok then
+	test["eli.util available"] = function ()
+		test.assert(false, "eli.util not available")
 	end
 	if not TEST then
-		_test.summary()
+		test.summary()
 		os.exit()
 	else
 		return
 	end
 end
 
-_test["eli.util available"] = function ()
-	_test.assert(true)
+test["eli.util available"] = function ()
+	test.assert(true)
 end
 
-_test["is_array (array)"] = function ()
-	local _source = { "a", "c", "b" }
-	_test.assert(_eliUtil.is_array(_source))
+test["is_array (array)"] = function ()
+	local source = { "a", "c", "b" }
+	test.assert(eli_util.is_array(source))
 end
 
-_test["is_array (array packed)"] = function ()
-	local _source = table.pack("a", "c", "b")
-	_test.assert(_eliUtil.is_array(_source))
+test["is_array (array packed)"] = function ()
+	local source = table.pack("a", "c", "b")
+	test.assert(eli_util.is_array(source))
 end
 
-_test["is_array (not array)"] = function ()
-	local _source = { a = "a", c = "c", b = "b" }
-	_test.assert(not _eliUtil.is_array(_source))
+test["is_array (not array)"] = function ()
+	local source = { a = "a", c = "c", b = "b" }
+	test.assert(not eli_util.is_array(source))
 end
 
-_test["merge_arrays"] = function ()
-	local _t1 = { 1, "2", true }
-	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_arrays(_t1, _t2)
-	for k, v in pairs(_t1) do
-		_test.assert(_result[k] == v)
+test["merge_arrays"] = function ()
+	local t1 = { 1, "2", true }
+	local t2 = { 3, "4", false }
+	local result = eli_util.merge_arrays(t1, t2)
+	for k, v in pairs(t1) do
+		test.assert(result[k] == v)
 	end
-	for k, v in pairs(_t2) do
-		_test.assert(_result[k + #_t1] == v)
-	end
-end
-
-_test["merge_arrays - combine"] = function ()
-	local _t1 = { 1, "2", true }
-	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_arrays(_t1, _t2, { merge_strategy = "combine" })
-	for k, v in pairs(_t1) do
-		_test.assert(_result[k] == v)
-	end
-	for k, v in pairs(_t2) do
-		_test.assert(_result[k + #_t1] == v)
+	for k, v in pairs(t2) do
+		test.assert(result[k + #t1] == v)
 	end
 end
 
-_test["merge_arrays - prefer-1"] = function ()
-	local _t1 = { 1, "2", true }
-	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_arrays(_t1, _t2, { merge_strategy = "prefer-t1" })
-	for k, v in pairs(_t1) do
-		_test.assert(_result[k] == v)
+test["merge_arrays - combine"] = function ()
+	local t1 = { 1, "2", true }
+	local t2 = { 3, "4", false }
+	local result = eli_util.merge_arrays(t1, t2, { merge_strategy = "combine" })
+	for k, v in pairs(t1) do
+		test.assert(result[k] == v)
 	end
-	for k, v in pairs(_t2) do
-		_test.assert(_result[k + #_t1] == nil)
-	end
-end
-
-_test["merge_arrays - prefer-2"] = function ()
-	local _t1 = { 1, "2", true }
-	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_arrays(_t1, _t2, { merge_strategy = "prefer-t2" })
-	for k, v in pairs(_t2) do
-		_test.assert(_result[k] == v)
+	for k, v in pairs(t2) do
+		test.assert(result[k + #t1] == v)
 	end
 end
 
-_test["merge_arrays - overlay"] = function ()
-	local _t1 = { 1, "2", true }
-	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_arrays(_t1, _t2, { merge_strategy = "overlay" })
-	for k, v in pairs(_t2) do
-		_test.assert(_result[k] == v)
+test["merge_arrays - prefer-1"] = function ()
+	local t1 = { 1, "2", true }
+	local t2 = { 3, "4", false }
+	local result = eli_util.merge_arrays(t1, t2, { merge_strategy = "prefer-t1" })
+	for k, v in pairs(t1) do
+		test.assert(result[k] == v)
+	end
+	for k, v in pairs(t2) do
+		test.assert(result[k + #t1] == nil)
 	end
 end
 
-_test["merge_arrays (not arrays)"] = function ()
-	local _t1 = { a = "a", c = "c", b = "b" }
-	local _t2 = { d = "d", f = "f", e = "e" }
-	local _result, _error = _eliUtil.merge_arrays(_t1, _t2)
-	_test.assert(not _result and _error:find"t1")
-	local _result, _error = _eliUtil.merge_arrays({ 1, 2, 3 }, _t2)
-	_test.assert(not _result and _error:find"t2")
-end
-
-_test["merge_tables (dictionaries - unique keys)"] = function ()
-	local _t1 = { a = "a", c = "c", b = "b" }
-	local _t2 = { d = "d", f = "f", e = "e" }
-	local _result = _eliUtil.merge_tables(_t1, _t2)
-	for k, v in pairs(_t1) do
-		_test.assert(_result[k] == v)
-	end
-	for k, v in pairs(_t2) do
-		_test.assert(_result[k] == v)
+test["merge_arrays - prefer-2"] = function ()
+	local t1 = { 1, "2", true }
+	local t2 = { 3, "4", false }
+	local result = eli_util.merge_arrays(t1, t2, { merge_strategy = "prefer-t2" })
+	for k, v in pairs(t2) do
+		test.assert(result[k] == v)
 	end
 end
 
-_test["merge_tables (dictionaries - no overwrite)"] = function ()
-	local _t1 = { a = "a", c = "c", b = "b" }
-	local _t2 = { d = "d", f = "f", e = "e", c = "a" }
-	local _result = _eliUtil.merge_tables(_t1, _t2)
-	for k, v in pairs(_t1) do
-		_test.assert(_result[k] == v)
+test["merge_arrays - overlay"] = function ()
+	local t1 = { 1, "2", true }
+	local t2 = { 3, "4", false }
+	local result = eli_util.merge_arrays(t1, t2, { merge_strategy = "overlay" })
+	for k, v in pairs(t2) do
+		test.assert(result[k] == v)
 	end
-	for k, v in pairs(_t2) do
+end
+
+test["merge_arrays (not arrays)"] = function ()
+	local t1 = { a = "a", c = "c", b = "b" }
+	local t2 = { d = "d", f = "f", e = "e" }
+	local result, err = eli_util.merge_arrays(t1, t2)
+	test.assert(not result and err:find"t1")
+	local result, err = eli_util.merge_arrays({ 1, 2, 3 }, t2)
+	test.assert(not result and err:find"t2")
+end
+
+test["merge_tables (dictionaries - unique keys)"] = function ()
+	local t1 = { a = "a", c = "c", b = "b" }
+	local t2 = { d = "d", f = "f", e = "e" }
+	local result = eli_util.merge_tables(t1, t2)
+	for k, v in pairs(t1) do
+		test.assert(result[k] == v)
+	end
+	for k, v in pairs(t2) do
+		test.assert(result[k] == v)
+	end
+end
+
+test["merge_tables (dictionaries - no overwrite)"] = function ()
+	local t1 = { a = "a", c = "c", b = "b" }
+	local t2 = { d = "d", f = "f", e = "e", c = "a" }
+	local result = eli_util.merge_tables(t1, t2)
+	for k, v in pairs(t1) do
+		test.assert(result[k] == v)
+	end
+	for k, v in pairs(t2) do
 		if k ~= "c" then
-			_test.assert(_result[k] == v)
+			test.assert(result[k] == v)
 		end
 	end
 end
 
-_test["merge_tables (dictionaries - overwrite)"] = function ()
-	local _t1 = { a = "a", c = "c", b = "b" }
-	local _t2 = { d = "d", f = "f", e = "e", c = "a" }
-	local _result = _eliUtil.merge_tables(_t1, _t2, true)
-	for k, v in pairs(_t1) do
+test["merge_tables (dictionaries - overwrite)"] = function ()
+	local t1 = { a = "a", c = "c", b = "b" }
+	local t2 = { d = "d", f = "f", e = "e", c = "a" }
+	local result = eli_util.merge_tables(t1, t2, true)
+	for k, v in pairs(t1) do
 		if (k ~= "c") then
-			_test.assert(_result[k] == v)
+			test.assert(result[k] == v)
 		end
 	end
-	for k, v in pairs(_t2) do
-		_test.assert(_result[k] == v)
+	for k, v in pairs(t2) do
+		test.assert(result[k] == v)
 	end
 end
 
-_test["merge_tables (array)"] = function ()
-	local _t1 = { "a", "c", "b" }
-	local _t2 = { "d", "f", "e" }
-	local _result = _eliUtil.merge_tables(_t1, _t2)
-	_test.assert(#_result == 6)
+test["merge_tables (array)"] = function ()
+	local t1 = { "a", "c", "b" }
+	local t2 = { "d", "f", "e" }
+	local result = eli_util.merge_tables(t1, t2)
+	test.assert(#result == 6)
 
-	local _matched = 0
-	for i, v in ipairs(_result) do
-		for i2, v2 in ipairs(_t1) do
+	local matched = 0
+	for i, v in ipairs(result) do
+		for i2, v2 in ipairs(t1) do
 			if v == v2 then
-				_matched = _matched + 1
+				matched = matched + 1
 			end
 		end
 	end
-	for i, v in ipairs(_result) do
-		for i2, v2 in ipairs(_t2) do
+	for i, v in ipairs(result) do
+		for i2, v2 in ipairs(t2) do
 			if v == v2 then
-				_matched = _matched + 1
+				matched = matched + 1
 			end
 		end
 	end
-	_test.assert(_matched == 6)
+	test.assert(matched == 6)
 end
 
-_test["merge_tables (array) - combine"] = function ()
-	local _t1 = { 1, "2", true }
-	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_tables(_t1, _t2, { array_merge_strategy = "combine" })
-	for k, v in pairs(_t1) do
-		_test.assert(_result[k] == v)
+test["merge_tables (array) - combine"] = function ()
+	local t1 = { 1, "2", true }
+	local t2 = { 3, "4", false }
+	local result = eli_util.merge_tables(t1, t2, { array_merge_strategy = "combine" })
+	for k, v in pairs(t1) do
+		test.assert(result[k] == v)
 	end
-	for k, v in pairs(_t2) do
-		_test.assert(_result[k + #_t1] == v)
-	end
-end
-
-_test["merge_tables (array) - prefer-1"] = function ()
-	local _t1 = { 1, "2", true }
-	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_tables(_t1, _t2, { array_merge_strategy = "prefer-t1" })
-	for k, v in pairs(_t1) do
-		_test.assert(_result[k] == v)
-	end
-	for k, v in pairs(_t2) do
-		_test.assert(_result[k + #_t1] == nil)
+	for k, v in pairs(t2) do
+		test.assert(result[k + #t1] == v)
 	end
 end
 
-_test["merge_tables (array) - prefer-2"] = function ()
-	local _t1 = { 1, "2", true }
-	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_tables(_t1, _t2, { array_merge_strategy = "prefer-t2" })
-	for k, v in pairs(_t2) do
-		_test.assert(_result[k] == v)
+test["merge_tables (array) - prefer-1"] = function ()
+	local t1 = { 1, "2", true }
+	local t2 = { 3, "4", false }
+	local result = eli_util.merge_tables(t1, t2, { array_merge_strategy = "prefer-t1" })
+	for k, v in pairs(t1) do
+		test.assert(result[k] == v)
+	end
+	for k, v in pairs(t2) do
+		test.assert(result[k + #t1] == nil)
 	end
 end
 
-_test["merge_tables (array) - overlay"] = function ()
-	local _t1 = { 1, "2", true }
-	local _t2 = { 3, "4", false }
-	local _result = _eliUtil.merge_tables(_t1, _t2, { array_merge_strategy = "overlay" })
-	for k, v in pairs(_t2) do
-		_test.assert(_result[k] == v)
+test["merge_tables (array) - prefer-2"] = function ()
+	local t1 = { 1, "2", true }
+	local t2 = { 3, "4", false }
+	local result = eli_util.merge_tables(t1, t2, { array_merge_strategy = "prefer-t2" })
+	for k, v in pairs(t2) do
+		test.assert(result[k] == v)
 	end
 end
 
-_test["global_log_factory (GLOBAL_LOGGER == nil)"] = function ()
-	local _debug = _eliUtil.global_log_factory("test/util", "debug")
-	_test.assert(pcall(_debug, "test"))
+test["merge_tables (array) - overlay"] = function ()
+	local t1 = { 1, "2", true }
+	local t2 = { 3, "4", false }
+	local result = eli_util.merge_tables(t1, t2, { array_merge_strategy = "overlay" })
+	for k, v in pairs(t2) do
+		test.assert(result[k] == v)
+	end
 end
 
-_test["global_log_factory (GLOBAL_LOGGER == 'ELI_LOGGER')"] = function ()
-	local _called = false
+test["global_log_factory (GLOBAL_LOGGER == nil)"] = function ()
+	local debug = eli_util.global_log_factory("test/util", "debug")
+	test.assert(pcall(debug, "test"))
+end
+
+test["global_log_factory (GLOBAL_LOGGER == 'ELI_LOGGER')"] = function ()
+	local called = false
 	GLOBAL_LOGGER = {
 		log = function (logger, msg, lvl)
-			_called = true
-			_test.assert(logger.__type == "ELI_LOGGER")
-			_test.assert(lvl == "debug")
+			called = true
+			test.assert(logger.__type == "ELI_LOGGER")
+			test.assert(lvl == "debug")
 		end,
 		__type = "ELI_LOGGER",
 	}
 	setmetatable(GLOBAL_LOGGER, GLOBAL_LOGGER)
-	local _debug = _eliUtil.global_log_factory("test/util", "debug")
-	_test.assert(pcall(_debug, "test"))
-	_test.assert(_called)
+	local debug = eli_util.global_log_factory("test/util", "debug")
+	test.assert(pcall(debug, "test"))
+	test.assert(called)
 end
 
-_test["clone - primitive"] = function ()
-	local _n = 5
-	local _s = "stringToClone"
-	local _nil = nil
-	local _fn = function () end
+test["clone - primitive"] = function ()
+	local n = 5
+	local s = "stringToClone"
+	local nil_value = nil
+	local fn = function () end
 
-	_test.assert(_n == _eliUtil.clone(_n))
-	_test.assert(_s == _eliUtil.clone(_s))
-	_test.assert(_nil == _eliUtil.clone(_nil))
-	_test.assert(_fn == _eliUtil.clone(_fn))
+	test.assert(n == eli_util.clone(n))
+	test.assert(s == eli_util.clone(s))
+	test.assert(nil_value == eli_util.clone(nil_value))
+	test.assert(fn == eli_util.clone(fn))
 end
 
-_test["equals - primitive"] = function ()
+test["equals - primitive"] = function ()
 	local function _validate(v1, v2)
-		return _eliUtil.equals(v1, v2) == (v1 == v2)
+		return eli_util.equals(v1, v2) == (v1 == v2)
 	end
-	_test.assert(_validate("aaa", "aaa"))
-	_test.assert(_validate("aaa", "bbb"))
-	_test.assert(_validate(2, 2))
-	_test.assert(_validate(2, 3))
-	_test.assert(_validate(2, 2))
-	_test.assert(_validate(nil, 3))
-	_test.assert(_validate(nil, nil))
-	_test.assert(_validate(true, false))
-	_test.assert(_validate(true, true))
-	_test.assert(_validate(true, true))
+	test.assert(_validate("aaa", "aaa"))
+	test.assert(_validate("aaa", "bbb"))
+	test.assert(_validate(2, 2))
+	test.assert(_validate(2, 3))
+	test.assert(_validate(2, 2))
+	test.assert(_validate(nil, 3))
+	test.assert(_validate(nil, nil))
+	test.assert(_validate(true, false))
+	test.assert(_validate(true, true))
+	test.assert(_validate(true, true))
 end
 
-_test["clone & equals - shallow"] = function ()
-	local _t = {
-		_n = 5,
-		_s = "stringToClone",
-		_nil = nil,
-		_fn = function () end,
+test["clone & equals - shallow"] = function ()
+	local t = {
+		n = 5,
+		s = "stringToClone",
+		nil_value = nil,
+		fn = function () end,
 	}
-	local _clone = _eliUtil.clone(_t)
-	_test.assert(_clone ~= _t)
-	_test.assert(_eliUtil.equals(_t, _clone, 1))
+	local clone = eli_util.clone(t)
+	test.assert(clone ~= t)
+	test.assert(eli_util.equals(t, clone, 1))
 end
 
-_test["clone & equals - deep"] = function ()
-	local _debug = _eliUtil.global_log_factory("test/util", "debug")
-	local _t = {
-		_n = 5,
-		_s = "stringToClone",
-		_nil = nil,
-		_fn = function () end,
-		_t = {
-			_n = 5,
-			_s = "stringToClone",
-			_nil = nil,
-			_fn = function () end,
+test["clone & equals - deep"] = function ()
+	local t = {
+		n = 5,
+		s = "stringToClone",
+		nil_value = nil,
+		fn = function () end,
+		t = {
+			n = 5,
+			s = "stringToClone",
+			nil_value = nil,
+			fn = function () end,
 		},
 	}
-	local _clone = _eliUtil.clone(_t, true)
-	_test.assert(_clone ~= _t)
-	_test.assert(not _eliUtil.equals(_t, _clone, 1))
-	_test.assert(_eliUtil.equals(_t, _clone, true))
+	local clone = eli_util.clone(t, true)
+	test.assert(clone ~= t)
+	test.assert(not eli_util.equals(t, clone, 1))
+	test.assert(eli_util.equals(t, clone, true))
 end
 
 if not TEST then
-	_test.summary()
+	test.summary()
 end

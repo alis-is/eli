@@ -41,9 +41,9 @@ test["zip"] = function ()
 end
 
 test["os"] = function ()
-	local _eliOs = require"eli.os"
-	test.assert(os ~= _eliOs)
-	for k, v in pairs(_eliOs) do
+	local eli_os = require"eli.os"
+	test.assert(os ~= eli_os)
+	for k, v in pairs(eli_os) do
 		test.assert(os[k] == v)
 	end
 end
@@ -54,20 +54,20 @@ test["etype"] = function ()
 	test.assert(etype(nil) == "nil")
 	test.assert(etype(0) == "number")
 	test.assert(etype{} == "table")
-	local _t = { __type = "test" }
-	setmetatable(_t, _t)
-	test.assert(etype(_t) == "test")
+	local t = { __type = "test" }
+	setmetatable(t, t)
+	test.assert(etype(t) == "test")
 end
 
 test["get_overriden_values"] = function ()
-	local _overriden = require"eli.elify".get_overriden_values()
-	test.assert(_overriden.os == require"os")
-	test.assert(_overriden.type ~= type)
+	local overriden = require"eli.elify".get_overriden_values()
+	test.assert(overriden.os == require"os")
+	test.assert(overriden.type ~= type)
 end
 
 test["extensions.string"] = function ()
-	local _esx = require"eli.extensions.string"
-	for k, v in pairs(_esx) do
+	local string_extensions = require"eli.extensions.string"
+	for k, v in pairs(string_extensions) do
 		if k ~= "globalize" then
 			test.assert(string[k] == v)
 		end
@@ -75,8 +75,8 @@ test["extensions.string"] = function ()
 end
 
 test["extensions.table"] = function ()
-	local _etx = require"eli.extensions.table"
-	for k, v in pairs(_etx) do
+	local table_extensions = require"eli.extensions.table"
+	for k, v in pairs(table_extensions) do
 		if k ~= "globalize" then
 			test.assert(table[k] == v)
 		end

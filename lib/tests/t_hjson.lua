@@ -1,43 +1,43 @@
-local _test = TEST or require "u-test"
-local _ok, _hjson = pcall(require, "hjson")
-local _ok2, _elitUtil = pcall(require, "eli.util")
+local test = TEST or require"u-test"
+local ok, hjson = pcall(require, "hjson")
+local _, eli_util = pcall(require, "eli.util")
 
-if not _ok then
-    _test["hjson available"] = function()
-        _test.assert(false, "hjson not available")
+if not ok then
+    test["hjson available"] = function ()
+        test.assert(false, "hjson not available")
     end
     if not TEST then
-        _test.summary()
+        test.summary()
         os.exit()
     else
         return
     end
 end
 
-_test["hjson available"] = function()
-    _test.assert(true)
+test["hjson available"] = function ()
+    test.assert(true)
 end
 
-local _data = {
-	test = {
-		nested = true,
-		type = "object"
-	},
-	root = "root level",
-	test2 = { "nested", "array" },
-	test3 = {
-		nested1 = {
-			type = "nested object",
-			level = 2
-		},
-		nested2 = {
-			type = "nested object",
-			level = 2
-		}
-	}
+local data = {
+    test = {
+        nested = true,
+        type = "object",
+    },
+    root = "root level",
+    test2 = { "nested", "array" },
+    test3 = {
+        nested1 = {
+            type = "nested object",
+            level = 2,
+        },
+        nested2 = {
+            type = "nested object",
+            level = 2,
+        },
+    },
 }
 
-local _encoded = [[{
+local encoded = [[{
     root: root level
     test: {
         nested: true
@@ -59,7 +59,7 @@ local _encoded = [[{
     }
 }]]
 
-local _encodedJson = [[{
+local encoded_json = [[{
     "root": "root level",
     "test": {
         "nested": true,
@@ -81,26 +81,26 @@ local _encodedJson = [[{
     }
 }]]
 
-_test["encode"] = function()
-	local _result = _hjson.encode(_data, { sortKeys = true })
-	_test.assert(_result == _encoded)
+test["encode"] = function ()
+    local result = hjson.encode(data, { sortKeys = true })
+    test.assert(result == encoded)
 end
 
-_test["encode_to_json"] = function()
-	local _result = _hjson.encode_to_json(_data, { sortKeys = true })
-	_test.assert(_result == _encodedJson)
+test["encode_to_json"] = function ()
+    local result = hjson.encode_to_json(data, { sortKeys = true })
+    test.assert(result == encoded_json)
 end
 
-_test["decode"] = function()
-	local _result = _hjson.decode(_encoded)
-	_test.assert(_elitUtil.equals(_result, _data, true))
+test["decode"] = function ()
+    local result = hjson.decode(encoded)
+    test.assert(eli_util.equals(result, data, true))
 end
 
-_test["decode json"] = function()
-	local _result = _hjson.decode(_encodedJson)
-	_test.assert(_elitUtil.equals(_result, _data, true))
+test["decode json"] = function ()
+    local result = hjson.decode(encoded_json)
+    test.assert(eli_util.equals(result, data, true))
 end
 
 if not TEST then
-    _test.summary()
+    test.summary()
 end

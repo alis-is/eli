@@ -593,7 +593,7 @@ local ELI_DIR_LOCK_ID = "ELI_DIR_LOCK"
 ---Locks access to directory
 ---@param path string
 ---@param lock_file_name string?
----@return EliDirLock|nil, string?
+---@return EliDirLock?, string?
 function fs.lock_directory(path, lock_file_name)
 	check_efs_available"lock_dir"
 	return fs_extra.lock_dir(path, lock_file_name)
@@ -603,7 +603,7 @@ end
 ---
 ---Unlocks access to directory
 ---@param fs_lock EliDirLock
----@return boolean|nil, string?
+---@return EliDirLock?, string?
 function fs.unlock_directory(fs_lock)
 	if type(fs_lock) == ELI_DIR_LOCK_ID or (type(fs_lock) == "userdata" and fs_lock.__type --[[@as string]] == ELI_DIR_LOCK_ID) then
 		return fs_lock --[[@as EliDirLock]]:unlock()
@@ -617,7 +617,7 @@ end
 ---
 ---returns type of file
 ---@param path string
----@return boolean|nil, string
+---@return string
 function fs.file_type(path)
 	local last_character = path:sub(#path, #path)
 	if table_extensions.includes({ "/", "\\" }, last_character) then
@@ -630,7 +630,7 @@ end
 ---
 ---returns type of file
 ---@param path_or_file string|file*
----@return boolean|nil, string
+---@return table
 function fs.file_info(path_or_file)
 	if type(path_or_file) == "string" then
 		local last_character = path_or_file:sub(#path_or_file, #path_or_file)

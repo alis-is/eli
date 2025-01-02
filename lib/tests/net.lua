@@ -31,10 +31,10 @@ test["download_string"] = function ()
 end
 
 test["download (progress)"] = function ()
-	local _print = io.write
-	local _printed = ""
+	local print_fn = io.write
+	local printed = ""
 	local function new_print(msg)
-		_printed = _printed .. msg
+		printed = printed .. msg
 	end
 	io.write = new_print
 	local _, _ = eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
@@ -43,9 +43,9 @@ test["download (progress)"] = function ()
 			show_default_progress = 5,
 			buffer_capacity = 1024 * 100,
 		})
-	io.write = _print -- restore
-	test.assert(_printed:match"(%d+)%%", "no progress detected")
-	_printed = ""
+	io.write = print_fn -- restore
+	test.assert(printed:match"(%d+)%%", "no progress detected")
+	printed = ""
 	io.write = new_print
 	local _, _ = eliNet.safe_download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
 		{
@@ -53,8 +53,8 @@ test["download (progress)"] = function ()
 			show_default_progress = true,
 			buffer_capacity = 1024 * 100,
 		})
-	io.write = _print -- restore
-	test.assert(_printed:match"(%d+)%%", "no progress detected")
+	io.write = print_fn -- restore
+	test.assert(printed:match"(%d+)%%", "no progress detected")
 end
 
 test["download_large_file"] = function ()
@@ -102,8 +102,8 @@ test["RestClient get"] = function ()
 		if ok then break end
 	end
 	test.assert(ok, "request failed  - " .. tostring(response))
-	local _data = response.data
-	test.assert(_data.args.test == "aaa" and _data.args.test2 == "bbb", "Failed to verify result")
+	local data = response.data
+	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "get", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
@@ -259,10 +259,10 @@ end
 test["RestClient res (advanced)"] = function ()
 	local client = RestClient:new(HTTPBIN_URL, { content_type = "text/plain", timeout = TIMEOUT })
 	test.assert(tostring(client:get_url()) == HTTPBIN_URL)
-	local arrayClients = client:res{ "test", "test2/test3" }
-	test.assert(tostring(arrayClients[1]:get_url()) == HTTPBIN_URL .. "test")
-	test.assert(tostring(arrayClients[2]:get_url()) == HTTPBIN_URL .. "test2/test3")
-	local _objectClientsTemplate = {
+	local array_clients = client:res{ "test", "test2/test3" }
+	test.assert(tostring(array_clients[1]:get_url()) == HTTPBIN_URL .. "test")
+	test.assert(tostring(array_clients[2]:get_url()) == HTTPBIN_URL .. "test2/test3")
+	local object_clients_template = {
 		test = "test",
 		test2 = { "test3", "test4" },
 		test3 = {
@@ -271,7 +271,7 @@ test["RestClient res (advanced)"] = function ()
 			test2 = "test2",
 		},
 	}
-	local objectClients = client:res(_objectClientsTemplate)
+	local objectClients = client:res(object_clients_template)
 	test.assert(tostring(objectClients.test:get_url()) == HTTPBIN_URL .. "test")
 	test.assert(tostring(objectClients.test2[1]:get_url()) == HTTPBIN_URL .. "test2/test3")
 	test.assert(tostring(objectClients.test2[2]:get_url()) == HTTPBIN_URL .. "test2/test4")

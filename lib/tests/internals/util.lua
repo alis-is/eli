@@ -1,45 +1,45 @@
-local _test = TEST or require "u-test"
-local _ok, _internalUtil = pcall(require, "eli.internals.util")
+local test = TEST or require"u-test"
+local ok, internal_util = pcall(require, "eli.internals.util")
 
-if not _ok then
-    _test["eli.internals.util available"] = function()
-        _test.assert(false, "eli.internals.util not available")
+if not ok then
+    test["eli.internals.util available"] = function ()
+        test.assert(false, "eli.internals.util not available")
     end
     if not TEST then
-        _test.summary()
+        test.summary()
         os.exit()
     else
         return
     end
 end
 
-_test["eli.internals.util get_root_dir"] = function()
-    local _paths = {
+test["eli.internals.util get_root_dir"] = function ()
+    local paths = {
         "src/__app/aaa/remove-all.lua",
         "src/__app/aaa/configure.lua",
         "src/__app/aaa/about.hjson",
         "src/__app/specs.json",
-        "src/__app/ami.lua"
+        "src/__app/ami.lua",
     }
-    _test.assert(_internalUtil.get_root_dir(_paths):match("^src[/\\]__app[/\\]$"))
-    _paths = {
+    test.assert(internal_util.get_root_dir(paths):match"^src[/\\]__app[/\\]$")
+    paths = {
         "src/__app/aaa/remove-all.lua",
         "src/__app/aaa/configure.lua",
         "src/__app/aaa/about.hjson",
         "src/__app/specs.json",
-        "src/ami.lua"
+        "src/ami.lua",
     }
-    _test.assert(_internalUtil.get_root_dir(_paths):match("^src[/\\]$"))
-    _paths = {
+    test.assert(internal_util.get_root_dir(paths):match"^src[/\\]$")
+    paths = {
         "src/__app/aaa/remove-all.lua",
         "src/__app/aaa/configure.lua",
         "src/__app/aaa/about.hjson",
         "specs.json",
-        "src/ami.lua"
+        "src/ami.lua",
     }
-    _test.assert(_internalUtil.get_root_dir(_paths):match("^$"))
+    test.assert(internal_util.get_root_dir(paths):match"^$")
 end
 
 if not TEST then
-    _test.summary()
+    test.summary()
 end

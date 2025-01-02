@@ -1,5 +1,5 @@
 TEST = require"u-test"
-local _test = TEST
+local test = TEST
 require"t_hjson"
 require"t_bigint"
 require"t_base64"
@@ -32,5 +32,5 @@ require"internals.util"
 ]]
 require"elify"
 
-local _ntests, _nfailed = _test.result()
-_test.summary()
+local ntests, nfailed = test.result()
+test.summary()

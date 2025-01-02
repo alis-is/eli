@@ -1,51 +1,50 @@
-  
-local _test = TEST or require 'u-test'
-local _ok, _eliEnv = pcall(require, "eli.env")
+local test = TEST or require"u-test"
+local ok, eli_env = pcall(require, "eli.env")
 
-if not _ok then 
-    _test["eli.env available"] = function ()
-        _test.assert(false, "eli.env not available")
+if not ok then
+    test["eli.env available"] = function ()
+        test.assert(false, "eli.env not available")
     end
-    if not TEST then 
-        _test.summary()
+    if not TEST then
+        test.summary()
         os.exit()
-    else 
-        return 
+    else
+        return
     end
 end
 
-_test["eli.env available"] = function ()
-    _test.assert(true)
+test["eli.env available"] = function ()
+    test.assert(true)
 end
 
-_test["get_env"] = function ()
-    local _path = _eliEnv.get_env("PATH")
-    _test.assert(type(_path) == 'string')
+test["get_env"] = function ()
+    local path = eli_env.get_env"PATH"
+    test.assert(type(path) == "string")
 end
 
-if not _eliEnv.EENV then
-    if not TEST then 
-        _test.summary()
+if not eli_env.EENV then
+    if not TEST then
+        test.summary()
         print"EENV not detected, only basic tests executed..."
         os.exit()
-    else 
+    else
         print"EENV not detected, only basic tests executed..."
-        return 
+        return
     end
 end
 
-_test["set_env"] = function ()
-    local _ok = _eliEnv.set_env("t", "test_value")
-    _test.assert(_ok)
-    local _t = _eliEnv.get_env("t")
-    _test.assert(_t == 'test_value')
+test["set_env"] = function ()
+    local ok = eli_env.set_env("t", "test_value")
+    test.assert(ok)
+    local t = eli_env.get_env"t"
+    test.assert(t == "test_value")
 end
 
-_test["environment"] = function ()
-    local _env = _eliEnv.environment()
-    _test.assert(type(_env) == 'table')
+test["environment"] = function ()
+    local env = eli_env.environment()
+    test.assert(type(env) == "table")
 end
 
-if not TEST then 
-    _test.summary()
+if not TEST then
+    test.summary()
 end

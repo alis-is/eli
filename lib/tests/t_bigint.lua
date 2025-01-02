@@ -1,217 +1,217 @@
-local _test = TEST or require"u-test"
-local _ok, _bigint = pcall(require, "bigint")
+local test = TEST or require"u-test"
+local ok, bigint = pcall(require, "bigint")
 
-if not _ok then
-	_test["bigint available"] = function ()
-		_test.assert(false, "bigint not available")
+if not ok then
+	test["bigint available"] = function ()
+		test.assert(false, "bigint not available")
 	end
 	if not TEST then
-		_test.summary()
+		test.summary()
 		os.exit()
 	else
 		return
 	end
 end
 
-_test["bigint available"] = function ()
-	_test.assert(true)
+test["bigint available"] = function ()
+	test.assert(true)
 end
 
-_test["bigint.new"] = function ()
+test["bigint.new"] = function ()
 	-- bigint from float number (5.3 -> 5)
-	local _a = _bigint.new(5.3)
-	local _b = _bigint.new"5"
-	_test.assert(_a == _b)
+	local a = bigint.new(5.3)
+	local b = bigint.new"5"
+	test.assert(a == b)
 
 	-- bigint from string "5.3" (should fail)
-	local success, _c = pcall(function () return _bigint.new"5.3" end)
-	_test.assert(not success)
+	local success, c = pcall(function () return bigint.new"5.3" end)
+	test.assert(not success)
 
 	-- bigint from integer number (5 -> 5)
-	local _d = _bigint.new(5)
-	_test.assert(_d == _b)
+	local d = bigint.new(5)
+	test.assert(d == b)
 
 	-- bigint from string "5" (5 -> 5)
-	local _e = _bigint.new"5"
-	_test.assert(_e == _b)
+	local e = bigint.new"5"
+	test.assert(e == b)
 
 	-- bigint from bigint 5 (5 -> 5)
-	local _f = _bigint.new(_b)
-	_test.assert(_f == _b)
+	local f = bigint.new(b)
+	test.assert(f == b)
 
 	-- init with no param (0)
-	local _g = _bigint.new()
-	_test.assert(_g == _bigint.new"0")
+	local g = bigint.new()
+	test.assert(g == bigint.new"0")
 end
 
-_test["bigint.add"] = function ()
+test["bigint.add"] = function ()
 	-- add 2 bigints
-	local _a = _bigint.new"123456789012345678901234567890"
-	local _b = _bigint.new"123456789012345678901234567890"
-	local _c = _bigint.new"246913578024691357802469135780"
-	_test.assert(_a + _b == _c)
+	local a = bigint.new"123456789012345678901234567890"
+	local b = bigint.new"123456789012345678901234567890"
+	local c = bigint.new"246913578024691357802469135780"
+	test.assert(a + b == c)
 
 	-- add bigint and number
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = 110
-	_c = _bigint.new"123456789012345678901234568000"
-	_test.assert(_a + _b == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = 110
+	c = bigint.new"123456789012345678901234568000"
+	test.assert(a + b == c)
 
 	-- add bigint and string
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = "110"
-	_c = _bigint.new"123456789012345678901234568000"
-	_test.assert(_a + _b == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = "110"
+	c = bigint.new"123456789012345678901234568000"
+	test.assert(a + b == c)
 end
 
-_test["bigint.add_abs"] = function ()
+test["bigint.add_abs"] = function ()
 	-- add 2 bigints
-	local _a = _bigint.new"123456789012345678901234567890"
-	local _b = _bigint.new"123456789012345678901234567890" * -1
-	local _c = _bigint.new"246913578024691357802469135780"
-	_test.assert(_bigint.add_abs(_a, _b) == _c)
+	local a = bigint.new"123456789012345678901234567890"
+	local b = bigint.new"123456789012345678901234567890" * -1
+	local c = bigint.new"246913578024691357802469135780"
+	test.assert(bigint.add_abs(a, b) == c)
 
 	-- add bigint and number
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = -110
-	_c = _bigint.new"123456789012345678901234568000"
-	_test.assert(_bigint.add_abs(_a, _b) == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = -110
+	c = bigint.new"123456789012345678901234568000"
+	test.assert(bigint.add_abs(a, b) == c)
 
 	-- add bigint and string
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = "-110"
-	_c = _bigint.new"123456789012345678901234568000"
-	_test.assert(_bigint.add_abs(_a, _b) == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = "-110"
+	c = bigint.new"123456789012345678901234568000"
+	test.assert(bigint.add_abs(a, b) == c)
 end
 
-_test["bigint.sub"] = function ()
+test["bigint.sub"] = function ()
 	-- sub 2 bigints
-	local _a = _bigint.new"123456789012345678901234567890"
-	local _b = _bigint.new"123456789012345678901234567890"
-	local _c = _bigint.new"0"
-	_test.assert(_a - _b == _c)
+	local a = bigint.new"123456789012345678901234567890"
+	local b = bigint.new"123456789012345678901234567890"
+	local c = bigint.new"0"
+	test.assert(a - b == c)
 
 	-- sub bigint and number
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = 110
-	_c = _bigint.new"123456789012345678901234567780"
-	_test.assert(_a - _b == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = 110
+	c = bigint.new"123456789012345678901234567780"
+	test.assert(a - b == c)
 
 	-- sub bigint and string
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = "110"
-	_c = _bigint.new"123456789012345678901234567780"
-	_test.assert(_a - _b == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = "110"
+	c = bigint.new"123456789012345678901234567780"
+	test.assert(a - b == c)
 end
 
-_test["bigint.sub_abs"] = function ()
+test["bigint.sub_abs"] = function ()
 	-- sub 2 bigints
-	local _a = _bigint.new"123456789012345678901234567890"
-	local _b = _bigint.new"123456789012345678901234567890" * -1
-	local _c = _bigint.new"0"
-	_test.assert(_bigint.sub_abs(_a, _b) == _c)
+	local a = bigint.new"123456789012345678901234567890"
+	local b = bigint.new"123456789012345678901234567890" * -1
+	local c = bigint.new"0"
+	test.assert(bigint.sub_abs(a, b) == c)
 
 	-- sub bigint and number
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = -110
-	_c = _bigint.new"123456789012345678901234567780"
-	_test.assert(_bigint.sub_abs(_a, _b) == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = -110
+	c = bigint.new"123456789012345678901234567780"
+	test.assert(bigint.sub_abs(a, b) == c)
 
 	-- sub bigint and string
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = "-110"
-	_c = _bigint.new"123456789012345678901234567780"
-	_test.assert(_bigint.sub_abs(_a, _b) == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = "-110"
+	c = bigint.new"123456789012345678901234567780"
+	test.assert(bigint.sub_abs(a, b) == c)
 end
 
-_test["bigint.mul"] = function ()
+test["bigint.mul"] = function ()
 	-- mul 2 bigints
-	local _a = _bigint.new"123456789012345678901234567890"
-	local _b = _bigint.new"4"
-	local _c = _bigint.new"493827156049382715604938271560"
-	_test.assert(_a * _b == _c)
+	local a = bigint.new"123456789012345678901234567890"
+	local b = bigint.new"4"
+	local c = bigint.new"493827156049382715604938271560"
+	test.assert(a * b == c)
 
 	-- mul bigint and number
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = 4
-	_c = _bigint.new"493827156049382715604938271560"
-	_test.assert(_a * _b == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = 4
+	c = bigint.new"493827156049382715604938271560"
+	test.assert(a * b == c)
 
 	-- mul bigint and string
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = "4"
-	_c = _bigint.new"493827156049382715604938271560"
-	_test.assert(_a * _b == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = "4"
+	c = bigint.new"493827156049382715604938271560"
+	test.assert(a * b == c)
 end
 
-_test["bigint.div"] = function ()
+test["bigint.div"] = function ()
 	-- div 2 bigints
-	local _a = _bigint.new"123456789012345678901234567890"
-	local _b = _bigint.new"4"
-	local _c = _bigint.new"30864197253086419725308641972"
-	_test.assert(_a / _b == _c)
+	local a = bigint.new"123456789012345678901234567890"
+	local b = bigint.new"4"
+	local c = bigint.new"30864197253086419725308641972"
+	test.assert(a / b == c)
 
 	-- div bigint and number
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = 4
-	_c = _bigint.new"30864197253086419725308641972"
-	_test.assert(_a / _b == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = 4
+	c = bigint.new"30864197253086419725308641972"
+	test.assert(a / b == c)
 
 	-- div bigint and string
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = "4"
-	_c = _bigint.new"30864197253086419725308641972"
-	_test.assert(_a / _b == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = "4"
+	c = bigint.new"30864197253086419725308641972"
+	test.assert(a / b == c)
 end
 
-_test["bigint.mod"] = function ()
+test["bigint.mod"] = function ()
 	-- mod 2 bigints
-	local _a = _bigint.new"123456789012345678901234567890"
-	local _b = _bigint.new"4"
-	local _c = _bigint.new"2"
-	_test.assert(_a % _b == _c)
+	local a = bigint.new"123456789012345678901234567890"
+	local b = bigint.new"4"
+	local c = bigint.new"2"
+	test.assert(a % b == c)
 
 	-- mod bigint and number
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = 4
-	_c = _bigint.new"2"
-	_test.assert(_a % _b == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = 4
+	c = bigint.new"2"
+	test.assert(a % b == c)
 
 	-- mod bigint and string
-	_a = _bigint.new"123456789012345678901234567890"
-	_b = "4"
-	_c = _bigint.new"2"
-	_test.assert(_a % _b == _c)
+	a = bigint.new"123456789012345678901234567890"
+	b = "4"
+	c = bigint.new"2"
+	test.assert(a % b == c)
 end
 
-_test["bigint.pow"] = function ()
+test["bigint.pow"] = function ()
 	-- pow 2 bigints
-	local _a = _bigint.new"2"
-	local _b = _bigint.new"4"
-	local _c = _bigint.new"16"
-	_test.assert(_a ^ _b == _c)
+	local a = bigint.new"2"
+	local b = bigint.new"4"
+	local c = bigint.new"16"
+	test.assert(a ^ b == c)
 
 	-- pow bigint and number
-	_a = _bigint.new"2"
-	_b = 4
-	_c = _bigint.new"16"
-	_test.assert(_a ^ _b == _c)
+	a = bigint.new"2"
+	b = 4
+	c = bigint.new"16"
+	test.assert(a ^ b == c)
 
 	-- pow bigint and string
-	_a = _bigint.new"2"
-	_b = "4"
-	_c = _bigint.new"16"
-	_test.assert(_a ^ _b == _c)
+	a = bigint.new"2"
+	b = "4"
+	c = bigint.new"16"
+	test.assert(a ^ b == c)
 end
 
-_test["bigint.neg"] = function ()
+test["bigint.neg"] = function ()
 	-- unm bigint
-	local _a = _bigint.new"123456789012345678901234567890"
-	local _b = _bigint.new"-123456789012345678901234567890"
-	_test.assert(-_a == _b)
+	local a = bigint.new"123456789012345678901234567890"
+	local b = bigint.new"-123456789012345678901234567890"
+	test.assert(-a == b)
 end
 
 
 if not TEST then
-	_test.summary()
+	test.summary()
 end
