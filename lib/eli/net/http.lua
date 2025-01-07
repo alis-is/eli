@@ -550,7 +550,7 @@ function net.RestClient:new(url_or_id, parent_or_options, options)
 				["application/json"] = {
 					encode = function (v)
 						return hjson.stringify_to_json(v, {
-							invalidObjectsAsType = true,
+							invalid_objects_as_type = true,
 							indent = false,
 						})
 					end,

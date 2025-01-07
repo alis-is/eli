@@ -160,7 +160,7 @@ end
 ---@param data table
 local function log_json(data)
 	data.timestamp = os.time()
-	print(encode_to_json(data, { indent = false, skipkeys = true }))
+	print(encode_to_json(data, { indent = false, skip_keys = true }))
 end
 
 ---makes sure string is converted to EliLogMessage

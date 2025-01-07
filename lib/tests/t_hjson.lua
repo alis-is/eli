@@ -82,12 +82,12 @@ local encoded_json = [[{
 }]]
 
 test["encode"] = function ()
-    local result = hjson.encode(data, { sortKeys = true })
+    local result = hjson.encode(data, { sort_keys = true })
     test.assert(result == encoded)
 end
 
 test["encode_to_json"] = function ()
-    local result = hjson.encode_to_json(data, { sortKeys = true })
+    local result = hjson.encode_to_json(data, { sort_keys = true })
     test.assert(result == encoded_json)
 end
 

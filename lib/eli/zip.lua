@@ -230,7 +230,7 @@ end
 ---@field transform_path nil|fun(path: string): string
 ---@field open_flags nil|integer
 
----#DES 'zip.extract_string'
+---#DES 'zip.get_files'
 ---
 ---Extracts single file from source archive into string
 ---@param source string
