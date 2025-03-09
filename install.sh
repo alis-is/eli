@@ -34,16 +34,11 @@ if eli -v | grep "$LATEST"; then
     exit 0
 fi
 
-PLATFORM=$(uname -m)
-if [ "$1" = "--prerelease" ]; then
-    echo "downloading latest eli prerelease for $PLATFORM..."
-else
-    echo "downloading eli-linux-$PLATFORM $LATEST..."
-fi
-
 BIN="eli"
+rm -f "/usr/local/bin/$BIN"
 rm -f "/usr/bin/$BIN"
 rm -f "/bin/$BIN"
+rm -f "/usr/local/sbin/$BIN"
 rm -f "/usr/sbin/$BIN"
 rm -f "/sbin/$BIN"
 # check destination folder
@@ -58,6 +53,13 @@ elif [ -d "/sbin" ]; then
 else
     echo "no suitable destination folder found" 1>&2
     exit 1
+fi
+
+PLATFORM=$(uname -m)
+if [ "$1" = "--prerelease" ]; then
+    echo "downloading latest eli prerelease for $PLATFORM..."
+else
+    echo "downloading eli-linux-$PLATFORM $LATEST..."
 fi
 
 if "$@" "https://github.com/alis-is/eli/releases/download/$LATEST/eli-linux-$PLATFORM" &&
