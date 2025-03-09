@@ -30,41 +30,48 @@ else
 fi
 
 if eli -v | grep "$LATEST"; then
-    echo "Latest eli already available."
+    echo "latest eli already available"
     exit 0
 fi
 
 PLATFORM=$(uname -m)
 if [ "$1" = "--prerelease" ]; then
-    echo "Downloading latest eli prerelease for $PLATFORM..."
+    echo "downloading latest eli prerelease for $PLATFORM..."
 else
-    echo "Downloading eli-linux-$PLATFORM $LATEST..."
+    echo "downloading eli-linux-$PLATFORM $LATEST..."
 fi
 
-if [ -f "/usr/sbin/eli" ]; then
-    rm -f /usr/sbin/eli # remove old eli
-fi
-
+BIN="eli"
+rm -f "/usr/local/bin/$BIN"
+rm -f "/usr/bin/$BIN"
+rm -f "/bin/$BIN"
+rm -f "/usr/local/sbin/$BIN"
+rm -f "/usr/sbin/$BIN"
+rm -f "/sbin/$BIN"
 # check destination folder
-if [ -d "/usr/bin" ]; then
-    DESTINATION="/usr/bin/eli"
+if [ -d "/usr/local/bin" ]; then
+    DESTINATION="/usr/local/bin/$BIN"
+elif [ -d "/usr/bin" ]; then
+    DESTINATION="/usr/bin/$BIN"
 elif [ -d "/bin" ]; then
-    DESTINATION="/bin/eli"
-elif [ -d "/usr/local/bin" ]; then
-    DESTINATION="/usr/local/bin/eli"
+    DESTINATION="/bin/$BIN"
+elif [ -d "/usr/local/sbin" ]; then
+    DESTINATION="/usr/local/sbin/$BIN"
 elif [ -d "/usr/sbin" ]; then
-    DESTINATION="/usr/sbin/eli"
+    DESTINATION="/usr/sbin/$BIN"
+elif [ -d "/sbin" ]; then
+    DESTINATION="/sbin/$BIN"
 else
-    echo "No destination folder found." 1>&2
+    echo "no suitable destination folder found" 1>&2
     exit 1
 fi
 
 if "$@" "https://github.com/alis-is/eli/releases/download/$LATEST/eli-linux-$PLATFORM" &&
     cp "$TMP_NAME" "$DESTINATION" && rm "$TMP_NAME" && chmod +x "$DESTINATION"; then
     if [ "$1" = "--prerelease" ]; then
-        echo "Latest eli prerelease for $PLATFORM successfully installed."
+        echo "latest eli prerelease for $PLATFORM successfully installed"
     else
-        echo "eli $LATEST for $PLATFORM successfully installed."
+        echo "eli $LATEST for $PLATFORM successfully installed"
     fi
 else
     echo "eli installation failed!" 1>&2
