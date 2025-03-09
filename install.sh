@@ -42,21 +42,15 @@ else
 fi
 
 BIN="eli"
-rm -f "/usr/local/bin/$BIN"
 rm -f "/usr/bin/$BIN"
 rm -f "/bin/$BIN"
-rm -f "/usr/local/sbin/$BIN"
 rm -f "/usr/sbin/$BIN"
 rm -f "/sbin/$BIN"
 # check destination folder
-if [ -d "/usr/local/bin" ]; then
-    DESTINATION="/usr/local/bin/$BIN"
-elif [ -d "/usr/bin" ]; then
+if [ -d "/usr/bin" ]; then
     DESTINATION="/usr/bin/$BIN"
 elif [ -d "/bin" ]; then
     DESTINATION="/bin/$BIN"
-elif [ -d "/usr/local/sbin" ]; then
-    DESTINATION="/usr/local/sbin/$BIN"
 elif [ -d "/usr/sbin" ]; then
     DESTINATION="/usr/sbin/$BIN"
 elif [ -d "/sbin" ]; then
