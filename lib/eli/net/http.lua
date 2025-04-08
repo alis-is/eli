@@ -456,6 +456,12 @@ local function request(client, path, method, options, data)
 			-- we don't want to decode url values as they might be encoded secrets, we trust server to send us valid url
 			if not is_client_targeting_same_authority(client, location) then
 				local new_scheme, new_host, new_port, new_path, _ = net_url.extract_components_for_request(location)
+				-- allow relative (non standard) redirects
+				local old_scheme, old_host, old_port, _, _ = net_url.extract_components_for_request(client:endpoint())
+				new_scheme = new_scheme or old_scheme
+				new_host = (new_host and new_host ~= "") and new_host or old_host
+				new_port = new_port or old_port
+
 				local new_client = corehttp.new_client(new_scheme, new_host, new_port, options)
 				return request(new_client, new_path, method, options, data)
 			else
