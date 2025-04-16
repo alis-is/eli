@@ -67,7 +67,7 @@ end
 ---@class RequestOptions: BaseRequestOptions
 ---@field write_function fun(data: string)?
 ---@field headers table<string, string>?
----@field codecs table<string, MimeCodec>
+---@field codecs table<string, MimeCodec>?
 
 ---@alias HTTPMethodKind '"GET"'|'"HEAD"'|'"POST"'|'"PUT"'|'"DELETE"'|'"CONNECT"'|'"OPTIONS"'|'"TRACE"'|'"PATH"'
 

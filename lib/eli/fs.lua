@@ -41,21 +41,34 @@ function fs.read_file(path, options)
 	return result
 end
 
+---@class WriteFileOptions: AccessFileOptions
+---@field atomic boolean?
+
 ---#DES 'fs.write_file'
 ---
 ---Writes content into file in specified path
 ---@param path string
 ---@param content string
----@param options AccessFileOptions?
+---@param options WriteFileOptions?
 function fs.write_file(path, content, options)
-	---@type AccessFileOptions
-	options = util.merge_tables({ binary_mode = true, append = false }, options, true)
+	---@type WriteFileOptions
+	options = util.merge_tables({ binary_mode = true, append = false, atomic = false }, options, true)
 	local mode = options.binary_mode and "wb" or "w"
 	if options.append then
 		mode = options.binary_mode and "ab" or "a"
 	end
+
+	local target_path = options.atomic and path .. ".tmp" or path
 	local f <close> = assert(io.open(path, mode), "No such a file or directory - " .. path)
 	f:write(content)
+	if options.atomic then
+		f:close()
+		local ok, err = os.rename(path, target_path)
+		if not ok then
+			os.remove(path)
+			error(err or "")
+		end
+	end
 end
 
 ---#DES 'fs.copy_file'
@@ -112,7 +125,7 @@ end
 ---
 ---@param src string
 ---@param dst string
----@param options any
+---@param options FsCopyoptions?
 function fs.copy(src, dst, options)
 	if type(options) ~= "table" then
 		options = {}
@@ -131,16 +144,17 @@ function fs.copy(src, dst, options)
 		end
 
 		local destination_file = eli_path.combine(dst, source_file)
-		if fs.file_type(source_file --[[@as string]]) == "directory" then
+		local source_file_full_path = eli_path.combine(src, source_file)
+		if fs.file_type(source_file_full_path --[[@as string]]) == "directory" then
 			if fs.exists(destination_file) and fs.file_type(destination_file) ~= "directory" then
 				error"Cannot copy directory to file!"
 			end
-			local file_info = fs.file_info(source_file) or {}
+			local file_info = fs.file_info(source_file_full_path) or {}
 			fs.mkdirp(destination_file)
 			fs.chmod(destination_file, file_info.permissions or "rw-r--r--")
 		elseif not fs.exists(destination_file) or options.overwrite then
 			fs.mkdirp(eli_path.dir(destination_file))
-			fs.copy_file(eli_path.combine(src, source_file) --[[@as string]], destination_file, options)
+			fs.copy_file(source_file_full_path, destination_file, options)
 		end
 		::continue::
 	end
