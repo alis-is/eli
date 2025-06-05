@@ -83,11 +83,6 @@ local mergeArrayStrategies = {
 ---@return any[]
 local function merge_arrays(t1, t2, options)
 	local merge_strategy = options.merge_strategy
-	-- // TODO: remove
-	if options.arrayMergeStrategy ~= nil and options.merge_strategy == nil then
-		merge_strategy = options.arrayMergeStrategy
-		print"arrayMergeStrategy is deprecated, use merge_strategy instead"
-	end
 
 	local merge_fn = mergeArrayStrategies[merge_strategy]
 	if type(merge_fn) ~= "function" then
@@ -181,10 +176,13 @@ function util.escape_magic_characters(s)
 end
 
 ---#DES 'util.generate_safe_functions'
+---@deprecated
 ---@generic T : table<string, function>
 ---@param fnTable T
 ---@return T
 function util.generate_safe_functions(fnTable)
+	print
+	"util.generate_safe_functions is deprecated, you shouldn't throw errors in functions unless invalid arguments are passed, use pcall if necessary"
 	if type(fnTable) ~= "table" then
 		return fnTable
 	end

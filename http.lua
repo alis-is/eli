@@ -67,7 +67,7 @@ end
 ---@class RequestOptions: BaseRequestOptions
 ---@field write_function fun(data: string)?
 ---@field headers table<string, string>?
----@field codecs table<string, MimeCodec>?
+---@field codecs table<string, MimeCodec>
 
 ---@alias HTTPMethodKind '"GET"'|'"HEAD"'|'"POST"'|'"PUT"'|'"DELETE"'|'"CONNECT"'|'"OPTIONS"'|'"TRACE"'|'"PATH"'
 
@@ -108,6 +108,15 @@ local DEFAULT_HEADERS = {
 	["Cache-Control"] = "no-cache",
 	["Pragma"] = "no-cache",
 }
+
+local function unwrap_safe_result(...)
+	local result = table.pack(...)
+	local msg, code = util.extract_error_info(result[2])
+	if not result[1] then
+		return result[1], msg, code
+	end
+	return table.unpack(result)
+end
 
 local function encode_uri_component(url)
 	if url == nil then return end
@@ -164,7 +173,7 @@ end
 ---@param response BaseResponse
 ---@param options RequestOptions
 ---@param progress_function (fun(total?: number, current: number))?
----@return string?, string?
+---@return string
 local function read_content(response, options, progress_function)
 	local raw_response_data = ""
 
@@ -182,10 +191,7 @@ local function read_content(response, options, progress_function)
 		local chunk = response:read(buffer_capacity)
 		if not chunk or type(chunk) ~= "string" then
 			if content_length > 0 and total_bytes_read ~= content_length then
-				local err_msg = string.interpolate(
-					"expected ${content_length} bytes, got ${total_bytes_read}",
-					{ content_length = content_length, total_bytes_read = total_bytes_read })
-				return nil, err_msg
+				error("expected " .. content_length .. " bytes, got " .. total_bytes_read)
 			end
 			break
 		end
@@ -210,10 +216,6 @@ local function read_content(response, options, progress_function)
 end
 
 -- // TODO: port to C
---- comment
---- @param response any
---- @param options any
---- @return string?, string?
 local function read_chunked_content(response, options)
 	local raw_response_data = ""
 
@@ -238,8 +240,7 @@ local function read_chunked_content(response, options)
 
 		local data, data_length_or_error = response:read(buffer_capacity)
 		if not data or type(data) ~= "string" then
-			local error_msg = string.interpolate("cannot retrieve data: ${error}", { error = data_length_or_error })
-			return nil, error_msg
+			error(string.interpolate("cannot retreive data: ${error}", { error = data_length_or_error }))
 		end
 		data_cache = data_cache .. data
 		available_data_size = available_data_size + data_length_or_error
@@ -289,11 +290,88 @@ end
 ---@param method any
 ---@param options RequestOptions
 ---@param data (string | RequestData)?
----@return BaseResponse?, string?, integer?
 local function request(client, path, method, options, data)
 	if type(options) ~= "table" then options = { codecs = {} } end
 	if type(options.headers) ~= "table" then options.headers = {} end
 	if type(options.codecs) ~= "table" then options.codecs = {} end
+
+	-- // TODO: remove in next version
+	if options.followRedirects ~= nil and options.follow_redirects == nil then
+		options.follow_redirects = options.followRedirects
+		print"followRedirects is deprecated, use follow_redirects"
+	end
+
+	-- // TODO: remove in next version
+	if options.verifyPeer ~= nil and options.verify_peer == nil then
+		options.verify_peer = options.verifyPeer
+		print"verifyPeer is deprecated, use verify_peer"
+	end
+
+	-- // TODO: remove in next version
+	if options.connectTimeout ~= nil and options.connect_timeout == nil then
+		options.connect_timeout = options.connectTimeout
+		print"connectTimeout is deprecated, use connect_timeout"
+	end
+
+	-- // TODO: remove in next version
+	if options.readTimeout ~= nil and options.read_timeout == nil then
+		options.read_timeout = options.readTimeout
+		print"readTimeout is deprecated, use read_timeout"
+	end
+
+	-- // TODO: remove in next version
+	if options.writeTimeout ~= nil and options.write_timeout == nil then
+		options.write_timeout = options.writeTimeout
+		print"writeTimeout is deprecated, use write_timeout"
+	end
+
+	-- // TODO: remove in next version
+	if options.contentType ~= nil and options.content_type == nil then
+		options.content_type = options.contentType
+		print"contentType is deprecated, use content_type"
+	end
+
+	-- // TODO: remove in next version
+	if options.progressFunction ~= nil and options.progress_function == nil then
+		options.progress_function = options.progressFunction
+		print"progressFunction is deprecated, use progress_function"
+	end
+
+	-- // TODO: remove in next version
+	if options.showDefaultProgress ~= nil and options.show_default_progress == nil then
+		options.show_default_progress = options.showDefaultProgress
+		print"showDefaultProgress is deprecated, use show_default_progress"
+	end
+
+	-- // TODO: remove in next version
+	if options.bufferCapacity ~= nil and options.buffer_capacity == nil then
+		options.buffer_capacity = options.bufferCapacity
+		print"bufferCapacity is deprecated, use buffer_capacity"
+	end
+
+	-- // TODO: remove in next version
+	if options.drgbSeed ~= nil and options.drgb_seed == nil then
+		options.drgb_seed = options.drgbSeed
+		print"drgbSeed is deprecated, use drgb_seed"
+	end
+
+	-- // TODO: remove in next version
+	if options.useBundledRootCertificates ~= nil and options.use_bundled_root_certificates == nil then
+		options.use_bundled_root_certificates = options.useBundledRootCertificates
+		print"useBundledRootCertificates is deprecated, use use_bundled_root_certificates"
+	end
+
+	-- // TODO: remove in next version
+	if options.caCertificates ~= nil and options.ca_certificates == nil then
+		options.ca_certificates = options.caCertificates
+		print"caCertificates is deprecated, use ca_certificates"
+	end
+
+	-- // TODO: remove in next version
+	if options.clientCertificate ~= nil and options.client_certificate == nil then
+		options.client_certificate = options.clientCertificate
+		print"clientCertificate is deprecated, use client_certificate"
+	end
 
 	local request_options = {}
 	local headers = setmetatable(options.headers or {}, corehttp.HEADERS_METATABLE)
@@ -338,13 +416,13 @@ local function request(client, path, method, options, data)
 				if type(data.seek) == "function" then
 					local current_pos = data:seek("cur", 0)
 					if current_pos == nil then
-						return nil, "data seek failed", -1
+						error(err_msg)
 					end
 					local size = data:seek("end", 0)
 					data:seek("set", current_pos)
 					headers["Content-Length"] = tostring(size - current_pos)
 				else
-					return nil, err_msg, -1
+					error(err_msg)
 				end
 			end
 
@@ -368,7 +446,7 @@ local function request(client, path, method, options, data)
 	--- options contains 'headers' table and 'body' string
 	local response, err_msg, err_code = client:request(path, method, request_options)
 	if not response then
-		return nil, err_msg or "unknown http error", err_code
+		error(tostring(err_msg) .. " (" .. tostring(err_code) .. ")")
 	end
 
 	local response_headers = response:headers()
@@ -378,7 +456,7 @@ local function request(client, path, method, options, data)
 			-- we don't want to decode url values as they might be encoded secrets, we trust server to send us valid url
 			if not is_client_targeting_same_authority(client, location) then
 				local new_scheme, new_host, new_port, new_path, _ = net_url.extract_components_for_request(location)
-				-- allow relative (non standard) redirects
+
 				local old_scheme, old_host, old_port, _, _ = net_url.extract_components_for_request(client:endpoint())
 				new_scheme = new_scheme or old_scheme
 				new_host = (new_host and new_host ~= "") and new_host or old_host
@@ -392,22 +470,16 @@ local function request(client, path, method, options, data)
 		end
 	end
 
-	local raw_response_data, err
+	local raw_response_data
 	local is_chunked_encoding = response_headers["Transfer-Encoding"] == "chunked"
 	local is_event_stream = response_headers["Content-Type"] == "text/event-stream"
 
 	if is_chunked_encoding then
-		raw_response_data, err = read_chunked_content(response, options)
-		if not raw_response_data then
-			return nil, err or "failed to read chunked content"
-		end
+		raw_response_data = read_chunked_content(response, options)
 	elseif is_event_stream then
-		return nil, "event stream not supported yet"
+		error"event stream not supported yet"
 	else
-		raw_response_data, err = read_content(response, options, progress_function)
-		if not raw_response_data then
-			return nil, err or "failed to read content"
-		end
+		raw_response_data = read_content(response, options, progress_function)
 	end
 
 	local response_data = nil
@@ -421,7 +493,7 @@ local function request(client, path, method, options, data)
 
 	local core_status_code = response:status_code()
 	if core_status_code ~= 0 then
-		return nil, "http request failed - corehttp error " .. tostring(core_status_code) .. ")", core_status_code
+		error(tostring(response:status()) .. " (" .. tostring(core_status_code) .. ")")
 	end
 
 	local result = {
@@ -621,6 +693,16 @@ function net.RestClient:res(resources, options)
 	end
 end
 
+---#DES 'net.http.RestClient:safe_res'
+---
+--- creates resource
+---@overload fun(self: RestClient, resources: string, options: RestClientOptions?):boolean, RestClient?
+---@overload fun(self: RestClient, resources: string[], options: RestClientOptions?):boolean, RestClient[]?
+---@overload fun(self: RestClient, resources: {k:string, v:string}, options: RestClientOptions?):boolean, {k:string, v:RestClient}?
+function net.RestClient:safe_res(resources, options)
+	return unwrap_safe_result(pcall(self.res, self, resources, options))
+end
+
 ---Resolves request url and options
 ---@param client RestClient
 ---@param path_or_options (RestClientOptions | string)?
@@ -662,7 +744,7 @@ end
 ---@param self RestClient
 ---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
----@return BaseResponse?, string?, integer?
+---@return BaseResponse
 function net.RestClient:get(path_or_options, options)
 	local url, options = get_request_url(self, path_or_options,
 		options)
@@ -671,18 +753,39 @@ function net.RestClient:get(path_or_options, options)
 	return request(self.__client, path, "GET", util.merge_tables(options, self.__options))
 end
 
+---#DES 'net.http.RestClient:safe_get'
+---
+---@param self RestClient
+---@param path_or_options (string|RestClientOptions)?
+---@param options RestClientOptions?
+---@return boolean, BaseResponse
+function net.RestClient:safe_get(path_or_options, options)
+	return unwrap_safe_result(pcall(self.get, self, path_or_options, options))
+end
+
 ---#DES 'net.http.RestClient:post'
 ---
 ---@param self RestClient
 ---@param data (any|RequestData)?
 ---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
----@return BaseResponse?, string?, integer?
+---@return BaseResponse
 function net.RestClient:post(data, path_or_options, options)
 	local url, options = get_request_url(self, path_or_options,
 		options)
 	local _, _, _, path, _ = net_url.extract_components_for_request(url)
 	return request(self.__client, path, "POST", util.merge_tables(options, self.__options), data)
+end
+
+---#DES 'net.http.RestClient:safe_post'
+---
+---@param self RestClient
+---@param data (any|RequestData)?
+---@param path_or_options (string|RestClientOptions)?
+---@param options RestClientOptions?
+---@return boolean, BaseResponse
+function net.RestClient:safe_post(data, path_or_options, options)
+	return unwrap_safe_result(pcall(self.post, self, data, path_or_options, options))
 end
 
 ---#DES 'net.http.RestClient:put'
@@ -691,12 +794,23 @@ end
 ---@param data (any|RequestData)?
 ---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
----@return BaseResponse?, string?, integer?
+---@return BaseResponse
 function net.RestClient:put(data, path_or_options, options)
 	local url, options = get_request_url(self, path_or_options,
 		options)
 	local _, _, _, path, _ = net_url.extract_components_for_request(url)
 	return request(self.__client, path, "PUT", util.merge_tables(options, self.__options), data)
+end
+
+---#DES 'net.http.RestClient:safe_put'
+---
+---@param self RestClient
+---@param data (any|RequestData)?
+---@param path_or_options (string|RestClientOptions)?
+---@param options RestClientOptions?
+---@return boolean, BaseResponse
+function net.RestClient:safe_put(data, path_or_options, options)
+	return unwrap_safe_result(pcall(self.put, self, data, path_or_options, options))
 end
 
 ---#DES 'net.http.RestClient:patch'
@@ -705,7 +819,7 @@ end
 ---@param data (any|RequestData)?
 ---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
----@return BaseResponse?, string?, integer?
+---@return BaseResponse
 function net.RestClient:patch(data, path_or_options, options)
 	local url, options = get_request_url(self, path_or_options,
 		options)
@@ -713,12 +827,23 @@ function net.RestClient:patch(data, path_or_options, options)
 	return request(self.__client, path, "PATCH", util.merge_tables(options, self.__options), data)
 end
 
+---#DES 'net.http.RestClient:safe_patch'
+---
+---@param self RestClient
+---@param data (any|RequestData)?
+---@param path_or_options (string|RestClientOptions)?
+---@param options RestClientOptions?
+---@return boolean, BaseResponse
+function net.RestClient:safe_patch(data, path_or_options, options)
+	return unwrap_safe_result(pcall(self.patch, self, data, path_or_options, options))
+end
+
 ---#DES 'net.http.RestClient:delete'
 ---
 ---@param self RestClient
 ---@param path_or_options (string|RestClientOptions)?
 ---@param options RestClientOptions?
----@return BaseResponse?, string?, integer?
+---@return BaseResponse
 function net.RestClient:delete(path_or_options, options)
 	local url, options = get_request_url(self, path_or_options,
 		options)
@@ -727,11 +852,21 @@ function net.RestClient:delete(path_or_options, options)
 	return request(self.__client, path, "DELETE", util.merge_tables(options, self.__options))
 end
 
+---#DES 'net.http.RestClient:safe_delete'
+---
+---@param self RestClient
+---@param path_or_options (string|RestClientOptions)?
+---@param options RestClientOptions?
+---@return boolean, BaseResponse
+function net.RestClient:safe_delete(path_or_options, options)
+	return unwrap_safe_result(pcall(self.delete, self, path_or_options, options))
+end
+
 ---Performs download operation. Data received are passed to write_function
 ---@param url string
 ---@param write_function (fun(data: string))?
 ---@param options BaseRequestOptions?
----@return BaseResponse?, string?
+---@return BaseResponse
 local function download(url, write_function, options)
 	if type(options) ~= "table" then options = {} end
 
@@ -762,29 +897,25 @@ end
 ---@param url string
 ---@param destination string
 ---@param options BaseRequestOptions?
----@return boolean, string?
 function net.download_file(url, destination, options)
 	local tries = 0
 	local retry_limit = get_retry_limit(options)
 
 	while tries <= retry_limit do
-		local df <close>, err = io.open(destination, "wb")
-		if not df or df == nil then
-			return false, tostring(err)
-		end
+		local did_open_file, df <close> = pcall(io.open, destination, "wb")
+		if not did_open_file or df == nil then error(df) end
 		local write = function (data) df:write(data) end
 
-		local response, err = download(url, write, options)
-		if response then
+		local ok, response = pcall(download, url, write, options)
+		if ok then
 			return response.code
 		elseif (tries >= retry_limit) then
 			os.remove(destination)
-			return false, "retries exceeded, " .. tostring(err)
+			error(response)
 		end
 
 		tries = tries + 1
 	end
-	return false, "retries exceeded"
 end
 
 ---#DES net.http.download_string
@@ -792,7 +923,7 @@ end
 --- Downloads file from url to destination
 ---@param url string
 ---@param options BaseRequestOptions?
----@return string?, number|string
+---@return string?, number?
 function net.download_string(url, options)
 	local tries = 0
 	local retry_limit = get_retry_limit(options)
@@ -801,15 +932,14 @@ function net.download_string(url, options)
 		local result = ""
 		local write = function (data) result = result .. data end
 
-		local response, err = download(url, write, options)
-		if response then
+		local ok, response = pcall(download, url, write, options)
+		if ok then
 			return result, response.code
 		elseif (tries >= retry_limit) then
-			return nil, "retries exceeded, " .. tostring(err)
+			error(response)
 		end
 		tries = tries + 1
 	end
-	return nil, "retries exceeded"
 end
 
 return net
