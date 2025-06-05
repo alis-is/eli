@@ -778,6 +778,4 @@ function fs.file_info(path_or_file)
 	return fs_extra.file_info(path_or_file)
 end
 
-local result = is_fs_extra_loaded and util.merge_tables(fs, fs_extra) or fs
-result.safe_iter_dir = nil -- not supported
-return result
+return is_fs_extra_loaded and util.merge_tables(fs, fs_extra) or fs
