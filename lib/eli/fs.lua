@@ -409,7 +409,7 @@ function fs.dir_exists(path)
 end
 
 ---@class FsHashFileOptions: AccessFileOptions
----@field type '"sha256"'| '"sha512"'
+---@field type '"sha256"'| '"sha512"' | nil defaults sha256
 ---@field hex boolean?
 ---@field binary_mode boolean?
 
