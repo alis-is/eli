@@ -11,8 +11,8 @@ local function _get_next_doc_block(code, libName, position)
 	local _blockStart, _blockEnd = code:find("%s-%-%-%-.-\n[^%S\n]*", position)
 	if _blockStart == nil then return nil end
 	_blockContent = _blockContent ..
-		code:sub(_blockStart, _blockEnd):match"^%s*(.-)%s*$" ..
-		"\n"
+	   code:sub(_blockStart, _blockEnd):match"^%s*(.-)%s*$" ..
+	   "\n"
 
 	-- extension libs are overriding existing libs so we need to remove extensions part
 	if libName:match"extensions%.([%w_]*)" then
@@ -30,7 +30,7 @@ local function _get_next_doc_block(code, libName, position)
 		local _start, _end = code:find("%-%-%-.-\n[^%S\n]*", _blockEnd)
 		if _start == nil or _start ~= _blockEnd + 1 then break end
 		_blockContent = _blockContent ..
-			code:sub(_start, _end):match"^%s*(.-)%s*$" .. "\n"
+		   code:sub(_start, _end):match"^%s*(.-)%s*$" .. "\n"
 		_blockEnd = _end
 	end
 	return _blockContent, _blockEnd, _field, isInject
@@ -67,10 +67,10 @@ local function _collect_function(code, libName, docBlock, isGlobal)
 		libName = libName:match"extensions%.([%w_]*)"
 	end
 	local _functionDef = "function " .. libName .. docBlock.libFieldSeparator ..
-		docBlock.name
+	   docBlock.name
 	if _start ~= docBlock.blockEnd + 1 then
 		local _start =
-			code:find("local%s-function.-%((.-)%)", docBlock.blockEnd)
+		   code:find("local%s-function.-%((.-)%)", docBlock.blockEnd)
 		if _start ~= docBlock.blockEnd + 1 then
 			local _params = {}
 			for _paramName in string.gmatch(docBlock.content,
@@ -78,35 +78,36 @@ local function _collect_function(code, libName, docBlock, isGlobal)
 				table.insert(_params, _paramName)
 			end
 			return docBlock.content .. _functionDef .. "(" ..
-				string.join_strings(", ", table.unpack(_params)) ..
-				") end\n"
+			   string.join_strings(", ", table.unpack(_params)) ..
+			   ") end\n"
 		end
 	end
 	local _params = code:match("function.-%((.-)%)", docBlock.blockEnd)
 	return docBlock.content .. _functionDef .. "(" .. _params .. ") end\n"
 end
 
----collects safe function
----@param code string
----@param libName string
----@param docBlock DocBlock
----@param isGlobal boolean
----@return string
-local function _collect_safe_function(code, libName, docBlock, isGlobal)
-	local _content = _collect_function(code, libName, docBlock, isGlobal)
-	_content = _content:gsub("#DES '?" .. libName .. "%." ..
-		docBlock.name:match"safe_(.*)" .. "'?",
-		"#DES '" .. libName .. "." .. docBlock.name .. "'")
-	-- fix content for safe function
-	if _content:find"---[ ]?@return" then
-		_content = _content:gsub("---[ ]?@return", "---@return boolean, string|")
-	else
-		local _, _end = _get_next_doc_block(_content, libName)
-		_content = _content:sub(1, _end) .. "---@return boolean, string?\n" ..
-			_content:sub(_end + 1)
-	end
-	return _content
-end
+-- // TODO: remove
+-- ---collects safe function
+-- ---@param code string
+-- ---@param libName string
+-- ---@param docBlock DocBlock
+-- ---@param isGlobal boolean
+-- ---@return string
+-- local function _collect_safe_function(code, libName, docBlock, isGlobal)
+-- 	local _content = _collect_function(code, libName, docBlock, isGlobal)
+-- 	_content = _content:gsub("#DES '?" .. libName .. "%." ..
+-- 		docBlock.name:match"safe_(.*)" .. "'?",
+-- 		"#DES '" .. libName .. "." .. docBlock.name .. "'")
+-- 	-- fix content for safe function
+-- 	if _content:find"---[ ]?@return" then
+-- 		_content = _content:gsub("---[ ]?@return", "---@return boolean, string|")
+-- 	else
+-- 		local _, _end = _get_next_doc_block(_content, libName)
+-- 		_content = _content:sub(1, _end) .. "---@return boolean, string?\n" ..
+-- 			_content:sub(_end + 1)
+-- 	end
+-- 	return _content
+-- end
 
 ---comment
 ---@param _ string
@@ -119,10 +120,10 @@ local function _collect_class(_, libName, docBlock, isGlobal)
 		if docBlock.name == libName and
 		docBlock.content:match("%-%-%-[ ]?#DES '?" .. libName .. "'?%s-\n") then
 			return docBlock.content .. (isGlobal and "" or "local ") .. libName ..
-				" = {}\n"
+			   " = {}\n"
 		end
 		return docBlock.content .. (isGlobal and "" or "local ") .. libName ..
-			"." .. docBlock.name .. " = {}\n"
+		   "." .. docBlock.name .. " = {}\n"
 	else
 		return docBlock.content .. "\n"
 	end
@@ -153,8 +154,8 @@ local function _collect_field(_, libName, docBlock, isGlobal)
 
 	if docBlock.isPublic then
 		return docBlock.content .. (isGlobal and "" or "local ") .. libName ..
-			"." .. docBlock.name .. " = " .. _defaultValues[_type] ..
-			"\n"
+		   "." .. docBlock.name .. " = " .. _defaultValues[_type] ..
+		   "\n"
 	else
 		return docBlock.content .. "\n"
 	end
@@ -177,7 +178,7 @@ end
 local _collectors = {
 	["independent"] = function (_, _, docBlock, _) return docBlock.content end,
 	["function"] = _collect_function,
-	["safe_function"] = _collect_safe_function,
+	-- ["safe_function"] = _collect_safe_function,
 	["class"] = _collect_class,
 	["field"] = _collect_field,
 	["inject"] = collect_inject,
@@ -210,8 +211,8 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 	end
 	local _code = ""
 	for _, v in ipairs(_sourcePaths) do
-		local ok, codePart = fs.safe_read_file(v)
-		if ok then
+		local codePart, _ = fs.read_file(v)
+		if codePart then
 			_code = _code .. codePart .. "\n"
 		end
 	end
@@ -234,7 +235,7 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 			})
 		end
 
-		if _field == nil then                                   -- dangling
+		if _field == nil then                                 -- dangling
 			if _docBlock:match"@class" or _docBlock:match"@alias" then -- only classes and aliases are allowed into danglings
 				table.insert(_docsBlocks, {
 					name = _field,
@@ -265,8 +266,8 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 				isPublic = _lib[_field] ~= nil,
 				value = _lib[_field],
 				libFieldSeparator = _docBlock:match(
-						"%-%-%-[ ]?#DES '?" .. _libName .. "(.)[%w_:]+'?.-\n%s*") or
-					".",
+					   "%-%-%-[ ]?#DES '?" .. _libName .. "(.)[%w_:]+'?.-\n%s*") or
+				   ".",
 			})
 		end
 		::continue::
@@ -276,7 +277,7 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 	for _, v in ipairs(_docsBlocks) do
 		if v.kind == "field" then
 			local _className, _fieldName =
-				v.name:match"(%w+)%s*[:%.]%s*([%w_]+)"
+			   v.name:match"(%w+)%s*[:%.]%s*([%w_]+)"
 			if _lib[_className] ~= nil and type(_lib[_className][_fieldName]) ==
 			"function" then
 				v.kind = "function"
@@ -288,20 +289,21 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 		local _collector = _collectors[v.kind]
 		if _collector ~= nil then
 			_generatedDoc = _generatedDoc .. _collector(_code, _libName, v, isGlobal) ..
-				"\n"
-			if v.kind == "function" and not v.name:match"^safe_" then
-				local _safeFnName = "safe_" .. v.name
-				if type(_lib[_safeFnName]) == "function" then
-					local _saveV = util.clone(v, true)
-					_saveV.name = _safeFnName
-					_generatedDoc = _generatedDoc ..
-						_collectors["safe_function"](_code,
-							_libName,
-							_saveV,
-							isGlobal) ..
-						"\n"
-				end
-			end
+			   "\n"
+			-- //TODO: remove
+			-- if v.kind == "function" and not v.name:match"^safe_" then
+			-- 	local _safeFnName = "safe_" .. v.name
+			-- 	if type(_lib[_safeFnName]) == "function" then
+			-- 		local _saveV = util.clone(v, true)
+			-- 		_saveV.name = _safeFnName
+			-- 		_generatedDoc = _generatedDoc ..
+			-- 		   _collectors["safe_function"](_code,
+			-- 			   _libName,
+			-- 			   _saveV,
+			-- 			   isGlobal) ..
+			-- 		   "\n"
+			-- 	end
+			-- end
 		end
 	end
 	if not isGlobal then
@@ -311,7 +313,7 @@ local function _generate_meta(libPath, libReference, sourceFiles, isGlobal)
 			local _part = nil
 			for _match in _libName:gmatch"([^%.]+)" do
 				_toInject = _toInject .. (_part or "local ") .. _match ..
-					" = {}\n"
+				   " = {}\n"
 				_part = (_part or "") .. _match .. "."
 			end
 			_generatedDoc = _toInject .. "\n" .. _generatedDoc
@@ -322,7 +324,7 @@ end
 
 local _hjson = require"hjson"
 
-local _ok, _configContent = fs.safe_read_file"config.hjson"
+local _configContent = fs.read_file"config.hjson"
 local _config = _hjson.parse(_configContent)
 
 for _, _docs in ipairs(_config.inject_docs) do

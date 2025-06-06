@@ -91,7 +91,8 @@ local function configure(id, rootDir, isZig, toolchainDor)
 		local _, gcc = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-gcc" -type f')
 		local _, gpp = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-g++" -type f')
 		local _, ld = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-ld" -type f')
-		local _, ar = execute_collect_stdout("find -H /opt/cross/" .. id .. '/bin -name "*-ar" -type f ! -name "*-gcc-ar"')
+		local _, ar = execute_collect_stdout("find -H /opt/cross/" ..
+			id .. '/bin -name "*-ar" -type f ! -name "*-gcc-ar"')
 		local _, ranlib = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-ranlib" -type f')
 		local _, rc = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-windres" -type f')
 		local _, strip = execute_collect_stdout("find -H /opt/cross/" .. id .. ' -name "*-strip" -type f')
@@ -138,7 +139,7 @@ local function buildWithChain(id, buildDir)
 		--fs.mkdirp("/opt/cross/" .. id)
 		local tmp = os.tmpname()
 		local tmp2 = os.tmpname()
-		local _ok = net.safe_download_file("https://github.com/alis-is/musl-toolchains/releases/download/global/" ..
+		local _ok = net.download_file("https://github.com/alis-is/musl-toolchains/releases/download/global/" ..
 			id .. ".tgz", tmp)
 		if not _ok then
 			print"Mirror not found. Downloading from upstream."
@@ -234,7 +235,7 @@ if os.execute"chmod +x ./release/eli-linux-$(uname -m) && ./release/eli-linux-$(
 	fs.remove(".meta", { recurse = true })
 	os.execute"chmod +x ./release/eli-linux-*"
 	os.execute"./release/eli-linux-$(uname -m) ./tools/meta-generator.lua"
-	fs.safe_remove("release/meta.zip", {})
+	fs.remove("release/meta.zip", {})
 	zip.compress(".meta", "release/meta.zip", { recurse = true })
 	log_success"Meta definitions generated..."
 end
