@@ -1,5 +1,7 @@
 param ([string]$platform_choice)
 
+Start-Job { go run github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@v2 -host 127.0.0.1 -port 8081 }
+
 $ROOT=$(pwd).Path
 
 function test_build {
