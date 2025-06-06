@@ -172,7 +172,6 @@ function fs.copy(src, dst, options)
 		if is_ignored(source_file) then
 			goto continue
 		end
-
 		local destination_file = eli_path.combine(dst, source_file)
 		local source_file_full_path = eli_path.combine(src, source_file)
 		if fs.file_type(source_file_full_path --[[@as string]]) == "directory" then
@@ -209,16 +208,16 @@ local function internal_mkdir(path, mkdir_override)
 		mkdir_func = fs_extra.mkdir
 	end
 
-	if mkdir_func then
-		return mkdir_func(path)
-	end
-
 	local f <close> = io.open(path)
 	if f then
 		local ok = f:seek"end" ~= nil
 		if ok then
 			return true
 		end
+	end
+
+	if mkdir_func then
+		return mkdir_func(path)
 	end
 
 	return false, "mkdir unavailable and could not confirm directory existence"
@@ -257,19 +256,20 @@ end
 ---
 ---Creates directory (recursively if recurse set to true)
 ---@param path string
----@param options boolean|CreateDirOptions?
-function fs.create_dir(path, options)
-	if type(options) == "boolean" then
-		options = { recurse = options }
+---@param optionsOrRecurse boolean|CreateDirOptions?
+---@return boolean, string?
+function fs.create_dir(path, optionsOrRecurse)
+	if type(optionsOrRecurse) == "boolean" then
+		optionsOrRecurse = { recurse = optionsOrRecurse }
 	end
-	if type(options) ~= "table" then
-		options = {}
+	if type(optionsOrRecurse) ~= "table" then
+		optionsOrRecurse = {}
 	end
 
-	if options.recurse then
-		return fs.mkdirp(path, options.mkdir_override)
+	if optionsOrRecurse.recurse then
+		return fs.mkdirp(path, optionsOrRecurse.mkdir_override)
 	end
-	return internal_mkdir(path, options.mkdir_override)
+	return internal_mkdir(path, optionsOrRecurse.mkdir_override)
 end
 
 ---@param path string
@@ -338,7 +338,8 @@ local function internal_remove(path, options)
 				end
 			end
 		end
-		if not content_only or not are_all_children_removed then
+
+		if not content_only and are_all_children_removed then
 			local ok, err = fs_extra.rmdir(path)
 			if not ok then return ok, err end
 
@@ -477,7 +478,7 @@ local function read_dir_recurse(path, as_dir_entries, length_of_path_to_remove)
 	local result = {}
 
 	for _, entry in ipairs(entries) do
-		local full_path = as_dir_entries and entry:fullpath() or eli_path.combine(dir_path, entry)
+		local full_path = as_dir_entries and entry:fullpath() or eli_path.combine(path, entry)
 		local entry_type = get_direntry_type(as_dir_entries and entry or full_path)
 
 		if entry_type == "directory" then

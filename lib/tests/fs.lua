@@ -252,13 +252,13 @@ test["create_dir"] = function ()
 	local exists = eli_fs.dir_exists"tmp/test-dir"
 	test.assert(exists, "not exists")
 
-	local ok = eli_fs.create_dir"tmp/test-dir/test/test"
-	test.assert(ok)
+	local ok, err = eli_fs.create_dir"tmp/test-dir/test/test"
+	test.assert(not ok, "shouldn't be created")
 	local exists = eli_fs.dir_exists"tmp/test-dir/test/test"
 	test.assert(not exists, "exists")
 
-	local ok = eli_fs.create_dir("tmp/test-dir/test/test", { recurse = true })
-	test.assert(ok)
+	local ok, err = eli_fs.create_dir("tmp/test-dir/test/test", { recurse = true })
+	test.assert(ok, err)
 	local exists = eli_fs.dir_exists"tmp/test-dir/test/test"
 	test.assert(exists, "not exists")
 end
@@ -266,6 +266,8 @@ end
 test["remove (file)"] = function ()
 	local ok, file1 = eli_fs.remove"tmp/test.file2"
 	test.assert(ok, file1)
+	local ok = eli_fs.copy_file("assets/test.file", "tmp/test.file")
+	test.assert(ok, "copy failed")
 	local file2, _ = eli_fs.read_file"tmp/test.file2"
 	test.assert(not file2, "exists")
 	local ok, err = eli_fs.move("tmp/test.file", "tmp/test.file2")
@@ -311,9 +313,9 @@ test["remove (keep)"] = function ()
 end
 
 test["move (dir)"] = function ()
-	local ok, err = eli_fs.move("tmp/test-dir/test", "tmp/test-dir/test2")
+	local ok, err = eli_fs.move("tmp/test-dir/test", "tmp/test-dir/test3")
 	test.assert(ok, err)
-	local exists = eli_fs.exists"tmp/test-dir/test2"
+	local exists = eli_fs.exists"tmp/test-dir/test3"
 	test.assert(exists, "not exists")
 end
 
@@ -350,8 +352,8 @@ end
 
 test["file_type (file)"] = function ()
 	eli_fs.remove"tmp/test.file"
-	local file_type, err = eli_fs.file_type"tmp/test.file"
-	test.assert(file_type, err)
+	local file_type, _ = eli_fs.file_type"tmp/test.file"
+	test.assert(not file_type, "exists")
 	local ok, err = eli_fs.copy_file("assets/test.file", "tmp/test.file")
 	test.assert(ok, err)
 	local file_type, err = eli_fs.file_type"tmp/test.file"

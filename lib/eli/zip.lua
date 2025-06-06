@@ -38,14 +38,16 @@ local zip = {}
 ---@param source string
 ---@param destination string?
 ---@param options ZipExtractOptions?
+---@return boolean, string?
 function zip.extract(source, destination, options)
 	if type(options) ~= "table" then
 		options = {}
 	end
 
 	if fs.EFS and not options.skip_destination_check then
-		assert(destination and fs.file_type(destination) == "directory",
-			"Destination not found or is not a directory: " .. destination)
+		if not destination or fs.file_type(destination) ~= "directory" then
+			return false, "zip.extract: skip_destination_check is required when using EFS - " .. tostring(destination)
+		end
 	end
 
 	if options.open_flags ~= nil and options.open_flags == nil then
@@ -88,7 +90,9 @@ function zip.extract(source, destination, options)
 	end
 
 	local zipArch, err = lzip.open(source, open_flags)
-	assert(zipArch ~= nil, err)
+	if not zipArch then
+		return false, err
+	end
 
 	local ignorePath = flatten_root_dir and get_root_dir(zipArch) or ""
 	local il = #ignorePath + 1 -- ignore length
@@ -123,7 +127,9 @@ function zip.extract(source, destination, options)
 
 			local b = 0
 			local file, err = open_file(target_path, "wb")
-			assert(file, "Failed to open file: " .. target_path .. " because of: " .. (err or ""))
+			if not file then
+				return false, "zip.extract: failed to open file: " .. target_path .. " because of: " .. (err or "")
+			end
 			local chunkSize = 2 ^ 13 -- 8K
 			while b < stat.size do
 				local bytes = comprimedFile:read(math.min(chunkSize, stat.size - b))
@@ -144,6 +150,7 @@ function zip.extract(source, destination, options)
 		::files_loop::
 	end
 	zipArch:close()
+	return true
 end
 
 ---#DES 'zip.extract_file'
@@ -153,6 +160,7 @@ end
 ---@param file string
 ---@param destination string
 ---@param extract_options ZipExtractOptions?
+---@return boolean, string?
 function zip.extract_file(source, file, destination, extract_options)
 	if type(destination) == "table" and extract_options == nil then
 		extract_options = destination
@@ -182,7 +190,7 @@ end
 ---@param source string
 ---@param file string
 ---@param extract_options ZipExtractOptions?
----@return string
+---@return string?, string?
 function zip.extract_string(source, file, extract_options)
 	local result = ""
 	local options =
@@ -209,7 +217,10 @@ function zip.extract_string(source, file, extract_options)
 		   true
 	   )
 
-	zip.extract(source, nil, options)
+	local ok, err = zip.extract(source, nil, options)
+	if not ok then
+		return nil, err or "zip.extract_string: failed to extract string from compressed archive"
+	end
 	return result
 end
 
@@ -346,9 +357,10 @@ function zip.compress(source, target, options)
 			if not ok then
 				return false, "zip.compress: failed to overwrite target file: " .. (err or "")
 			end
-		else
-			assert(target_type == nil,
-				"can not overwrite - target is not a file. (" .. (target_type or "unknown type") .. ")")
+		elseif target_type ~= nil then
+			return false,
+			   "zip.compress: can not overwrite target - target is not a file. (" ..
+			   (target_type or "unknown type") .. ")"
 		end
 	end
 
