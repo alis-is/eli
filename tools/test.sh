@@ -3,7 +3,10 @@
 # for debugging
 # set -euxo
 
+go mod init localhost
+go get github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@v2
 go run github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@v2 -host 127.0.0.1 -port 8081 &
+sleep 2
 
 PLATFORM=$(uname -m)
 ROOT=$(pwd)
