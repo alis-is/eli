@@ -86,7 +86,7 @@ end
 
 test["download_timeout"] = function ()
 	local s, err = eliNet.download_string("https://raw.githubusercontent.com:81/alis-is/eli/main/LICENSE",
-		{ timeout = 1 })
+		{ connect_timeout = 10 })
 	test.assert(not s, "should fail")
 end
 
@@ -180,7 +180,7 @@ test["RestClient patch"] = function ()
 	local client = RestClient:new(HTTPBIN_URL, { timeout = TIMEOUT })
 	local response, err
 	for _ = 1, RETRIES do
-	   response, err = client:patch({ test = "data", test2 = { other = "data2" } }, "patch",
+		response, err = client:patch({ test = "data", test2 = { other = "data2" } }, "patch",
 			{ params = { test = "aaa", test2 = "bbb" } })
 		if response then break end
 	end
