@@ -236,6 +236,6 @@ if os.execute"chmod +x ./release/eli-linux-$(uname -m) && ./release/eli-linux-$(
 	os.execute"chmod +x ./release/eli-linux-*"
 	os.execute"./release/eli-linux-$(uname -m) ./tools/meta-generator.lua"
 	fs.remove("release/meta.zip", {})
-	zip.compress(".meta", "release/meta.zip", { recurse = true })
+	os.execute('./release/eli-linux-$(uname -m) -e \'zip.compress(".meta", "release/meta.zip", { recurse = true })\'')
 	log_success"Meta definitions generated..."
 end
