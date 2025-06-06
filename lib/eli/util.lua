@@ -175,37 +175,6 @@ function util.escape_magic_characters(s)
 	return (s:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"))
 end
 
----#DES 'util.generate_safe_functions'
----@deprecated
----@generic T : table<string, function>
----@param fnTable T
----@return T
-function util.generate_safe_functions(fnTable)
-	print
-	"util.generate_safe_functions is deprecated, you shouldn't throw errors in functions unless invalid arguments are passed, use pcall if necessary"
-	if type(fnTable) ~= "table" then
-		return fnTable
-	end
-	if util.is_array(fnTable) then
-		return fnTable -- safe function can be generated only on dictionary
-	end
-	local res = {}
-
-	for k, v in pairs(fnTable) do
-		if type(v) == "function" and not k:match"^safe_" then
-			res["safe_" .. k] = function (...)
-				local result = table.pack(pcall(v, ...))
-				if not result[1] then
-					local msg, code = util.extract_error_info(result[2])
-					return result[1], msg, code
-				end
-				return table.unpack(result)
-			end
-		end
-	end
-	return util.merge_tables(fnTable, res)
-end
-
 ---@param t table
 ---@param prefix string?
 local function internal_print_table_deep(t, prefix)
