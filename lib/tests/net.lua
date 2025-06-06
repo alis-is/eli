@@ -2,10 +2,8 @@ local test = TEST or require"u-test"
 local ok, eliNet = pcall(require, "eli.net")
 local eliFs = require"eli.fs"
 
--- https://postman-echo.com/ ?
-local HTTPBIN_URL = os.getenv"HTTPBIN_URL" or "https://httpbin.org/"
+local HTTPBIN_URL = os.getenv"HTTPBIN_URL" or "http://127.0.0.1:8081/"
 local TIMEOUT = 180 * 1000
--- // TODO: find better way to test net
 local RETRIES = 3
 
 if not ok then
@@ -37,7 +35,7 @@ test["download (progress)"] = function ()
 		printed = printed .. msg
 	end
 	io.write = new_print
-	local _, _ = eliNet.download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
+	local _, _ = eliNet.download_string("https://link.testfile.org/15MB",
 		{
 			follow_redirects = true,
 			show_default_progress = 5,
@@ -47,7 +45,7 @@ test["download (progress)"] = function ()
 	test.assert(printed:match"(%d+)%%", "no progress detected")
 	printed = ""
 	io.write = new_print
-	local _, _ = eliNet.download_string("http://speedtest.ftp.otenet.gr/files/test1Mb.db",
+	local _, _ = eliNet.download_string("https://link.testfile.org/15MB",
 		{
 			follow_redirects = true,
 			show_default_progress = true,
@@ -103,7 +101,7 @@ test["RestClient get"] = function ()
 	end
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "get", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
@@ -112,7 +110,7 @@ test["RestClient get"] = function ()
 	end
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient post"] = function ()
@@ -127,7 +125,7 @@ test["RestClient post"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "post", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
@@ -138,7 +136,7 @@ test["RestClient post"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient put"] = function ()
@@ -152,7 +150,7 @@ test["RestClient put"] = function ()
 	test.assert(response, "request failed - " .. tostring(err))
 	local data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "put", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
@@ -163,17 +161,18 @@ test["RestClient put"] = function ()
 	test.assert(response, "request failed - " .. tostring(err))
 	data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "put", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
-		response, err = client:put(io.open"assets/put.txt", { params = { "test=aaa", "test2=bbb" } })
+		response, err = client:put(io.open"assets/put.txt",
+			{ params = { "test=aaa", "test2=bbb" }, headers = { ["Content-Type"] = "text/plain" } })
 		if response then break end
 	end
 	test.assert(response, "request failed  - " .. tostring(err))
 	data = response.data
 	test.assert(data.data == "simple", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient patch"] = function ()
@@ -187,7 +186,7 @@ test["RestClient patch"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "patch", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
@@ -198,7 +197,7 @@ test["RestClient patch"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient delete"] = function ()
@@ -210,7 +209,7 @@ test["RestClient delete"] = function ()
 	end
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "delete", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
@@ -219,7 +218,7 @@ test["RestClient delete"] = function ()
 	end
 	test.assert(response, "request failed  - " .. tostring(err))
 	data = response.data
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient conf"] = function ()
@@ -233,7 +232,7 @@ test["RestClient conf"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
 	test.assert(data.json == nil, "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client:conf{ headers = { ["Content-Type"] = "application/json" } }
 	for _ = 1, RETRIES do
@@ -244,7 +243,7 @@ test["RestClient conf"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient get_url and res"] = function ()

@@ -4,22 +4,27 @@ description: downloads and chmods artifacts
 runs:
   using: "composite"
   steps:
-  - name: prepare linux/macos
-    if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
-    shell: sh
-    run: mkdir release
-  - name: prepare windows
-    if: ${{ runner.os == 'Windows' }}
-    shell: pwsh
-    run: mkdir release
+    - name: prepare linux/macos
+      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
+      shell: sh
+      run: mkdir release
+    - name: prepare windows
+      if: ${{ runner.os == 'Windows' }}
+      shell: pwsh
+      run: mkdir release
 
-  - uses: actions/download-artifact@v4
-    with:
-      path: ./release
-      pattern: release-*
-      merge-multiple: true
+    - uses: actions/download-artifact@v4
+      with:
+        path: ./release
+        pattern: release-*
+        merge-multiple: true
 
-  - name: make executable
-    if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
-    shell: sh
-    run: chmod +x ./release/* && ls -la ./release/*
+    - name: make executable
+      if: ${{ runner.os == 'Linux' || runner.os == 'macOS' }}
+      shell: sh
+      run: chmod +x ./release/* && ls -la ./release/*
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ">=1.24.0"
