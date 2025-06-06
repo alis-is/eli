@@ -203,6 +203,8 @@ test["hash file (file*)"] = function ()
 end
 
 test["read file"] = function ()
+	local ok, err = eli_fs.copy("assets/test.file", "tmp/test.file", { overwrite = true })
+	test.assert(ok, err)
 	local file1, err = eli_fs.read_file"assets/test.file"
 	test.assert(file1, err)
 	local file2, err = eli_fs.read_file"tmp/test.file"
@@ -221,6 +223,8 @@ test["write file"] = function ()
 end
 
 test["move (file)"] = function ()
+	local ok, err = fs.remove"tmp/test.file2"
+	test.assert(ok, err)
 	local ok, err = eli_fs.move("tmp/test.file", "tmp/test.file2")
 	test.assert(ok, err)
 	local file1, err = eli_fs.read_file"assets/test.file"
@@ -412,7 +416,7 @@ end
 local function external_lock(file)
 	local cmd = (os.getenv"QEMU" or "") ..
 	   " " .. arg[-1] .. " -e \"x, err = fs.lock_file('" .. file .. "','w'); " ..
-	   "if etype(x) == 'ELI_FILE_LOCK' then os.exit(0); end; notAvailable = tostring(err):match('Resource temporarily unavailable') or tostring(err):match('locked a portion of the file'); " ..
+	   "if etype(x) == 'ELI_FILE_LOCK' then os.exit(0); end; notAvailable = tostring(err):match('Resource temporarily unavailable') or tostring(err):match('lock'); " ..
 	   "exitCode = notAvailable and 11 or 12; os.exit(exitCode)\""
 	local ok, _, code = os.execute(cmd)
 	return ok, code
@@ -427,6 +431,7 @@ test["lock_file (passed file)"] = function ()
 	local ok, code, _ = external_lock"assets/test.file"
 	test.assert(not ok and code == 11, "Should not be able to lock twice!")
 end
+
 test["lock (active - passed file)"] = function ()
 	test.assert(lock:is_active(), "Lock should be active")
 end
@@ -493,12 +498,12 @@ test["lock_file (owned file - <close>)"] = function ()
 end
 
 test["lock_dir & unlock_dir"] = function ()
-	local lock, err = eli_fs.lock_dir"tmp"
+	local lock, err = eli_fs.lock_directory"tmp"
 	test.assert(lock, err)
 	test.assert(lock:is_active(), "Lock should be active")
 	local locked, err = eli_fs.link_info"tmp/lockfile"
 	test.assert(locked, err)
-	local ok, err = eli_fs.unlock_dir(lock)
+	local ok, err = eli_fs.unlock_directory(lock)
 	test.assert(ok, err)
 	test.assert(not lock:is_active(), "Lock should not be active")
 	local locked, err = eli_fs.link_info"tmp/lockfile"

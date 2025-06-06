@@ -172,6 +172,7 @@ function fs.copy(src, dst, options)
 		if is_ignored(source_file) then
 			goto continue
 		end
+
 		local destination_file = eli_path.combine(dst, source_file)
 		local source_file_full_path = eli_path.combine(src, source_file)
 		if fs.file_type(source_file_full_path --[[@as string]]) == "directory" then
@@ -179,7 +180,6 @@ function fs.copy(src, dst, options)
 				return false, "cannot copy a directory into a file"
 			end
 			local file_info = fs.file_info(source_file_full_path) or {}
-
 			local ok, err = fs.mkdirp(destination_file)
 			if not ok then return ok, err end
 
@@ -206,6 +206,15 @@ local function internal_mkdir(path, mkdir_override)
 
 	if not mkdir_func and is_fs_extra_loaded then
 		mkdir_func = fs_extra.mkdir
+	end
+
+	if is_fs_extra_loaded then
+		local link_type = fs_extra.link_type(path)
+		if link_type == "directory" then
+			return true
+		elseif link_type ~= nil then
+			return false, "can not create ..."
+		end
 	end
 
 	local f <close> = io.open(path)
