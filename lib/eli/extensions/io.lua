@@ -14,7 +14,7 @@ local eio = {}
 ---@return string? errmsg
 function eio.open_fstream(filename, mode)
     if not ok then
-        error"eli.stream is not available"
+        return nil, "eli.stream is not available"
     end
 
     return stream_extra.open_fstream(filename, mode)

@@ -62,26 +62,15 @@ local tar = util.clone(ltar)
 ---@param source string
 ---@param destination string?
 ---@param options TarExtractOptions?
+---@return boolean, string?
 function tar.extract(source, destination, options)
 	if type(options) ~= "table" then
 		options = {}
 	end
 
-	--// TODO: remove in next version
-	if options.skipDestinationCheck ~= nil and options.skip_destination_check == nil then
-		options.skip_destination_check = options.skipDestinationCheck
-		print"Deprecation warning: skipDestinationCheck is deprecated, use skip_destination_check instead"
-	end
-
 	if fs.EFS and not options.skip_destination_check then
-		assert(type(destination) == "string", "Destination must be a string!")
-		assert(fs.file_type(destination) == "directory", "Destination not found or is not a directory: " .. destination)
-	end
-
-	--// TODO: remove in next version
-	if options.flattenRootDir ~= nil and options.flatten_root_dir == nil then
-		options.flatten_root_dir = options.flattenRootDir
-		print"Deprecation warning: flattenRootDir is deprecated, use flatten_root_dir instead"
+		assert(type(destination) == "string", "destination must be a string")
+		assert(fs.file_type(destination) == "directory", "destination not found or is not a directory: " .. destination)
 	end
 
 	local flatten_root_dir = options.flatten_root_dir or false
@@ -114,15 +103,12 @@ function tar.extract(source, destination, options)
 		return file:close()
 	end
 
-	--// TODO: remove in next version
-	if options.chunkSize ~= nil and options.chunk_size == nil then
-		options.chunk_size = options.chunkSize
-		print"Deprecation warning: chunkSize is deprecated, use chunk_size instead"
-	end
 	local chunk_size = type(options.chunk_size) ~= "number" and options.chunk_size or 2 ^ 13 -- 8K
 
-	local tar_archive <close> = ltar.open(source)
-	assert(tar_archive, "tar: Failed to open source file " .. tostring(source) .. "!")
+	local tar_archive <close>, err = ltar.open(source)
+	if not tar_archive then
+		return false, err or ("tar: Failed to open source file " .. tostring(source) .. "!")
+	end
 
 	local ignore_path = flatten_root_dir and get_root_dir(tar_archive) or ""
 	local ignore_length = #ignore_path + 1 -- ignore length
@@ -163,7 +149,10 @@ function tar.extract(source, destination, options)
 
 			--if entry:type() == ltar.FILE
 			local f, err = open_file(target_path, "wb")
-			assert(f, "Failed to open file: " .. target_path .. " because of: " .. (err or ""))
+			if not f then
+				log("TAR: failed to open file: " .. target_path .. " because of: " .. (err or ""))
+				return false, err or ("tar: failed to open file: " .. target_path)
+			end
 
 			while true do
 				local chunk = entry:read(chunk_size)
@@ -207,6 +196,8 @@ function tar.extract(source, destination, options)
 		extended_header = {}
 		::CONTINUE::
 	end
+
+	return true
 end
 
 ---#DES 'tar.extract_file'
@@ -216,24 +207,24 @@ end
 ---@param file string
 ---@param destination string
 ---@param extract_options TarExtractOptions?
+---@return boolean, string?
 function tar.extract_file(source, file, destination, extract_options)
 	if type(destination) == "table" and extract_options == nil then
 		extract_options = destination
 		destination = file
 	end
-	local options =
-	   util.merge_tables(
-		   type(extract_options) == "table" and extract_options or {},
-		   {
-			   transform_path = function (path)
-				   return path == file and destination or path
-			   end,
-			   filter = function (path)
-				   return path == file
-			   end,
-		   } --[[@as TarExtractOptions]],
-		   true
-	   )
+	local options = util.merge_tables(
+		type(extract_options) == "table" and extract_options or {},
+		{
+			transform_path = function (path)
+				return path == file and destination or path
+			end,
+			filter = function (path)
+				return path == file
+			end,
+		} --[[@as TarExtractOptions]],
+		true
+	)
 	return tar.extract(source, path.dir(destination), options)
 end
 
@@ -243,35 +234,37 @@ end
 ---@param source string
 ---@param file string
 ---@param extract_options TarExtractOptions?
----@return string
+---@return string?, string?
 function tar.extract_string(source, file, extract_options)
 	local result = ""
-	local options =
-	   util.merge_tables(
-		   type(extract_options) == "table" and extract_options or {},
-		   {
-			   open_file = function ()
-				   return result
-			   end,
-			   write = function (_, data)
-				   result = result .. data
-			   end,
-			   close_file = function ()
-			   end,
-			   skip_destination_check = true, -- no destination dir
-			   filter = function (path)
-				   return path == file
-			   end,
-			   mkdirp = function ()
-			   end, -- we do not want to create
-			   chmod = function ()
-			   end,
-		   } --[[@as TarExtractOptions]],
-		   true
-	   )
+	local options = util.merge_tables(
+		type(extract_options) == "table" and extract_options or {},
+		{
+			open_file = function ()
+				return result
+			end,
+			write = function (_, data)
+				result = result .. data
+			end,
+			close_file = function ()
+			end,
+			skip_destination_check = true, -- no destination dir
+			filter = function (path)
+				return path == file
+			end,
+			mkdirp = function ()
+			end, -- we do not want to create
+			chmod = function ()
+			end,
+		} --[[@as TarExtractOptions]],
+		true
+	)
 
-	tar.extract(source, nil, options)
+	local ok, err = tar.extract(source, nil, options)
+	if not ok then
+		return nil, err or "tar: failed to extract string from archive"
+	end
 	return result
 end
 
-return util.generate_safe_functions(tar)
+return tar

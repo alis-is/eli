@@ -83,11 +83,6 @@ local mergeArrayStrategies = {
 ---@return any[]
 local function merge_arrays(t1, t2, options)
 	local merge_strategy = options.merge_strategy
-	-- // TODO: remove
-	if options.arrayMergeStrategy ~= nil and options.merge_strategy == nil then
-		merge_strategy = options.arrayMergeStrategy
-		print"arrayMergeStrategy is deprecated, use merge_strategy instead"
-	end
 
 	local merge_fn = mergeArrayStrategies[merge_strategy]
 	if type(merge_fn) ~= "function" then
@@ -178,34 +173,6 @@ function util.escape_magic_characters(s)
 		return s
 	end
 	return (s:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%1"))
-end
-
----#DES 'util.generate_safe_functions'
----@generic T : table<string, function>
----@param fnTable T
----@return T
-function util.generate_safe_functions(fnTable)
-	if type(fnTable) ~= "table" then
-		return fnTable
-	end
-	if util.is_array(fnTable) then
-		return fnTable -- safe function can be generated only on dictionary
-	end
-	local res = {}
-
-	for k, v in pairs(fnTable) do
-		if type(v) == "function" and not k:match"^safe_" then
-			res["safe_" .. k] = function (...)
-				local result = table.pack(pcall(v, ...))
-				if not result[1] then
-					local msg, code = util.extract_error_info(result[2])
-					return result[1], msg, code
-				end
-				return table.unpack(result)
-			end
-		end
-	end
-	return util.merge_tables(fnTable, res)
 end
 
 ---@param t table

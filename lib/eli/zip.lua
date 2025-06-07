@@ -38,27 +38,18 @@ local zip = {}
 ---@param source string
 ---@param destination string?
 ---@param options ZipExtractOptions?
+---@return boolean, string?
 function zip.extract(source, destination, options)
 	if type(options) ~= "table" then
 		options = {}
 	end
 
-	-- // TODO: remove
-	if options.skipDestinationCheck ~= nil and options.skip_destination_check == nil then
-		options.skip_destination_check = options.skipDestinationCheck
-		print"Deprecation warning: skipDestinationCheck is deprecated, use skip_destination_check instead"
-	end
-
 	if fs.EFS and not options.skip_destination_check then
-		assert(destination and fs.file_type(destination) == "directory",
-			"Destination not found or is not a directory: " .. destination)
+		if not destination or fs.file_type(destination) ~= "directory" then
+			return false, "zip.extract: skip_destination_check is required when using EFS - " .. tostring(destination)
+		end
 	end
 
-	-- // TODO: remove
-	if options.flattenRootDir ~= nil and options.flatten_root_dir == nil then
-		options.flatten_root_dir = options.flattenRootDir
-		print"Deprecation warning: flattenRootDir is deprecated, use flatten_root_dir instead"
-	end
 	if options.open_flags ~= nil and options.open_flags == nil then
 		options.open_flags = options.open_flags
 		print"Deprecation warning: openFLags is deprecated, use skip_destination_check instead"
@@ -99,7 +90,9 @@ function zip.extract(source, destination, options)
 	end
 
 	local zipArch, err = lzip.open(source, open_flags)
-	assert(zipArch ~= nil, err)
+	if not zipArch then
+		return false, err
+	end
 
 	local ignorePath = flatten_root_dir and get_root_dir(zipArch) or ""
 	local il = #ignorePath + 1 -- ignore length
@@ -134,7 +127,9 @@ function zip.extract(source, destination, options)
 
 			local b = 0
 			local file, err = open_file(target_path, "wb")
-			assert(file, "Failed to open file: " .. target_path .. " because of: " .. (err or ""))
+			if not file then
+				return false, "zip.extract: failed to open file: " .. target_path .. " because of: " .. (err or "")
+			end
 			local chunkSize = 2 ^ 13 -- 8K
 			while b < stat.size do
 				local bytes = comprimedFile:read(math.min(chunkSize, stat.size - b))
@@ -155,6 +150,7 @@ function zip.extract(source, destination, options)
 		::files_loop::
 	end
 	zipArch:close()
+	return true
 end
 
 ---#DES 'zip.extract_file'
@@ -164,6 +160,7 @@ end
 ---@param file string
 ---@param destination string
 ---@param extract_options ZipExtractOptions?
+---@return boolean, string?
 function zip.extract_file(source, file, destination, extract_options)
 	if type(destination) == "table" and extract_options == nil then
 		extract_options = destination
@@ -193,7 +190,7 @@ end
 ---@param source string
 ---@param file string
 ---@param extract_options ZipExtractOptions?
----@return string
+---@return string?, string?
 function zip.extract_string(source, file, extract_options)
 	local result = ""
 	local options =
@@ -220,7 +217,10 @@ function zip.extract_string(source, file, extract_options)
 		   true
 	   )
 
-	zip.extract(source, nil, options)
+	local ok, err = zip.extract(source, nil, options)
+	if not ok then
+		return nil, err or "zip.extract_string: failed to extract string from compressed archive"
+	end
 	return result
 end
 
@@ -235,36 +235,27 @@ end
 ---Extracts single file from source archive into string
 ---@param source string
 ---@param options GetFilesOptions?
----@return string[]
+---@return string[]?, string?
 function zip.get_files(source, options)
 	if type(options) ~= "table" then
 		options = {}
-	end
-
-	-- // TODO: remove
-	if options.flattenRootDir ~= nil and options.flatten_root_dir == nil then
-		options.flatten_root_dir = options.flattenRootDir
-		print"Deprecation warning: flattenRootDir is deprecated, use skip_destination_check instead"
-	end
-	-- // TODO: remove
-	if options.openFlags ~= nil and options.open_flags == nil then
-		options.open_flags = options.openFlags
-		print"Deprecation warning: openFlags is deprecated, use skip_destination_check instead"
 	end
 
 	local flatten_root_dir = options.flatten_root_dir or false
 	local transform_path = options.transform_path or nil
 	local open_flags = type(options.open_flags) == "number" and options.open_flags or lzip.CHECKCONS
 
-	local zipArch, err = lzip.open(source, open_flags)
-	assert(zipArch ~= nil, err)
+	local zip_arch, err = lzip.open(source, open_flags)
+	if not zip_arch then
+		return nil, "zip.get_files: failed to open archive " .. source .. " because of: " .. (err or "")
+	end
 
-	local ignorePath = flatten_root_dir and get_root_dir(zipArch) or ""
-	local il = #ignorePath + 1 -- ignore length
+	local ignore_path = flatten_root_dir and get_root_dir(zip_arch) or ""
+	local il = #ignore_path + 1 -- ignore length
 
 	local files = {}
-	for i = 1, #zipArch do
-		local stat = zipArch:stat(i)
+	for i = 1, #zip_arch do
+		local stat = zip_arch:stat(i)
 
 		if #stat.name:sub(il) == 0 then
 			-- skip empty paths
@@ -277,7 +268,7 @@ function zip.get_files(source, options)
 		table.insert(files, targetPath)
 		::files_loop::
 	end
-	zipArch:close()
+	zip_arch:close()
 	return files
 end
 
@@ -289,6 +280,7 @@ end
 ---@param path string
 ---@param type '"file"' | '"string"' | '"directory"'
 ---@param content string
+---@return boolean, string?
 function zip.add_to_archive(archive, path, type, content)
 	if type == "directory" then
 		-- // TODO: typing for archive
@@ -301,8 +293,9 @@ function zip.add_to_archive(archive, path, type, content)
 		---@diagnostic disable-next-line: undefined-field
 		archive:add(path, "string", content)
 	else
-		error"Unsupported data type for compression..."
+		return false, "zip.add_to_archive: unsupported data type for compression - " .. type
 	end
+	return true
 end
 
 -- // TODO: add zip archive class
@@ -312,27 +305,22 @@ end
 ---Opens zip archive and returns it
 ---@param path string
 ---@param checkcons boolean?
----@return userdata
+---@return userdata?, string?
 function zip.open_archive(path, checkcons)
-	local result, err
 	if checkcons then
-		result, err = lzip.open(path, lzip.CHECKCONS)
+		return lzip.open(path, lzip.CHECKCONS)
 	else
-		result, err = lzip.open(path)
+		return lzip.open(path)
 	end
-	assert(result, err)
-	return result
 end
 
 ---#DES 'zip.new_archive'
 ---
 ---Creates zip archive file and returns it
 ---@param path string
----@return userdata
+---@return userdata?, string?
 function zip.new_archive(path)
-	local result, err = lzip.open(path, lzip.OR(lzip.CREATE, lzip.EXCL))
-	assert(result, err)
-	return result
+	return lzip.open(path, lzip.OR(lzip.CREATE, lzip.EXCL))
 end
 
 ---@class CompressOptions
@@ -344,18 +332,20 @@ end
 
 ---#DES 'zip.compress'
 ---
----Copresses directory into zip archive
+---Compresses directory into zip archive
 ---@param source string
 ---@param target string
 ---@param options CompressOptions?
+---@return boolean, string?
 function zip.compress(source, target, options)
 	if type(options) ~= "table" then
 		options = {}
 	end
 
-	if fs.file_type(source) == nil then
-		error("Cannot compress. Invalid source " .. (source or ""))
+	if fs.file_type(source) == "nil" then
+		return false, "zip.compress: source does not exist: " .. (source or "")
 	end
+
 	local filter = type(options.filter) == "function" and options.filter or function ()
 		return true
 	end
@@ -363,38 +353,34 @@ function zip.compress(source, target, options)
 	if options.overwrite then
 		local target_type = fs.file_type(target)
 		if target_type == "file" then
-			fs.remove(target)
-		elseif target_type ~= nil then -- exists but not file
-			error("Can not overwrite! Target is not a file. (" .. (target_type or "unknown type") .. ")")
+			local ok, err = fs.remove(target)
+			if not ok then
+				return false, "zip.compress: failed to overwrite target file: " .. (err or "")
+			end
+		elseif target_type ~= nil then
+			return false,
+			   "zip.compress: can not overwrite target - target is not a file. (" ..
+			   (target_type or "unknown type") .. ")"
 		end
 	end
 
 	local skip_length = 1 -- dont skip anything
-	-- // TODO: remove
-	if options.preserveFullPath ~= nil and options.preserve_full_path == nil then
-		options.preserve_full_path = options.preserveFullPath
-		print"Deprecation warning: preserveFullPath is deprecated, use preserve_full_path instead"
-	end
+
 	if not options.preserve_full_path then
 		local target_name = path.file(source)
 		skip_length = #source - #target_name + 1
 	end
 
-	-- // TODO: remove
-	if options.contentOnly ~= nil and options.content_only == nil then
-		options.content_only = options.contentOnly
-		print"Deprecation warning: contentOnly is deprecated, use content_only instead"
-	end
 	if options.content_only and fs.file_type(source) == "directory" and not options.preserve_full_path then
 		skip_length = #source + (source:sub(-1) == "/" and 1 or 2)
 	end
 
 	local archive = zip.new_archive(target)
 	if fs.file_type(source) == "file" then
-		zip.add_to_archive(archive, source:sub(skip_length), "file", source)
+		local ok, err = zip.add_to_archive(archive, source:sub(skip_length), "file", source)
 		---@diagnostic disable-next-line: undefined-field
 		archive:close()
-		return
+		return ok, err
 	end
 
 	local dir_entries = fs.read_dir(source, { recurse = options.recurse, as_dir_entries = true }) --[=[@as DirEntry[]]=]
@@ -404,11 +390,13 @@ function zip.compress(source, target, options)
 			goto files_loop
 		end
 
-		zip.add_to_archive(archive, entry_path, entry:type(), entry:fullpath())
+		local ok, err = zip.add_to_archive(archive, entry_path, entry:type(), entry:fullpath())
+		if not ok then return false, err end
 		::files_loop::
 	end
 	---@diagnostic disable-next-line: undefined-field
 	archive:close()
+	return true
 end
 
-return util.generate_safe_functions(zip)
+return zip

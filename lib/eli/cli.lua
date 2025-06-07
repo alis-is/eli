@@ -15,25 +15,35 @@ local cli = {}
 ---@return CliArg[]
 function cli.parse_args(args)
     if not util.is_array(args) then
-        args = arg
+        args = _G.arg
     end
-    local arg_list = {}
-    if args == nil then return arg_list end
+    local parsed_args = {}
+    if args == nil then return parsed_args end
     for i = 1, #args, 1 do
-        local arg = args[i]
-        if type(arg) == "string" then
-            local cli_option = arg:match"^-[-]?([^=]*)"
-            if cli_option then -- option
-                local _value = arg:match"^[^=]*=(.*)" or true
-                table.insert(arg_list, { type = "option", value = _value, id = cli_option, arg = arg })
-            else -- command or parameter
-                table.insert(arg_list, { type = "parameter", value = arg, id = arg, arg = arg })
+        local current = args[i]
+        if type(current) == "string" then
+            local cli_option, cli_value = current:match"^%-%-?([^=]+)=?(.*)"
+            if cli_option then
+                local value = cli_value ~= "" and cli_value or true
+                table.insert(parsed_args, {
+                    type = "option",
+                    id = cli_option,
+                    value = value,
+                    arg = current,
+                })
+            else
+                table.insert(parsed_args, {
+                    type = "parameter",
+                    id = current,
+                    value = current,
+                    arg = current,
+                })
             end
-        elseif type(arg) == "table" then -- passthrough pre processed args
-            table.insert(arg_list, arg)
+        elseif type(current) == "table" then -- passthrough pre processed args
+            table.insert(parsed_args, current)
         end
     end
-    return arg_list
+    return parsed_args
 end
 
 return cli

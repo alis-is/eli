@@ -24,41 +24,41 @@ end
 ]]
 test["extract"] = function ()
     eli_fs.remove"tmp/test.tar"
-    local ok, err = eli_lz.safe_extract("assets/test.tar.gz", "tmp/test.tar")
+    local ok, err = eli_lz.extract("assets/test.tar.gz", "tmp/test.tar")
     test.assert(ok, err)
-    local ok, hash = eli_fs.safe_hash_file("tmp/test.tar", { hex = true })
-    test.assert(ok, hash)
-    local ok, hash2 = eli_fs.safe_hash_file("assets/test.tar", { hex = true })
-    test.assert(ok, hash2)
+    local hash, err = eli_fs.hash_file("tmp/test.tar", { hex = true })
+    test.assert(hash, err)
+    local hash2, err = eli_fs.hash_file("assets/test.tar", { hex = true })
+    test.assert(hash2, err)
     test.assert(hash == hash2, "hashes dont match")
 end
 
 test["extract_string"] = function ()
-    local ok, file = eli_lz.safe_extract_string"assets/test.tar.gz"
-    test.assert(ok, file)
-    local ok, hash = eli_hash.safe_sha256_sum(file, true)
-    test.assert(ok, hash)
-    local ok, hash2 = eli_fs.safe_hash_file("assets/test.tar", { hex = true })
-    test.assert(ok, hash2)
+    local file, eer = eli_lz.extract_string"assets/test.tar.gz"
+    test.assert(file, err)
+    local hash, err = eli_hash.sha256_sum(file, true)
+    test.assert(hash, err)
+    local hash2, err = eli_fs.hash_file("assets/test.tar", { hex = true })
+    test.assert(hash2, err)
     test.assert(hash == hash2, "hashes dont match")
 end
 
 test["extract_from_string"] = function ()
     local gz_bytes = eli_fs.read_file"assets/test.tar.gz"
-    local ok, file = eli_lz.safe_extract_from_string(gz_bytes)
-    test.assert(ok, file)
-    local ok, hash = eli_hash.safe_sha256_sum(file, true)
-    test.assert(ok, hash)
-    local ok, hash2 = eli_fs.safe_hash_file("assets/test.tar", { hex = true })
-    test.assert(ok, hash2)
+    local file, err = eli_lz.extract_from_string(gz_bytes)
+    test.assert(file, err)
+    local hash, err = eli_hash.sha256_sum(file, true)
+    test.assert(hash, err)
+    local hash2, err = eli_fs.hash_file("assets/test.tar", { hex = true })
+    test.assert(hash2, err)
     test.assert(hash == hash2, "hashes dont match")
 end
 
 test["compress_string"] = function ()
-    local ok, data = eli_lz.safe_compress_string"test string"
-    test.assert(ok, data)
-    local ok, data2 = eli_lz.safe_extract_from_string(data)
-    test.assert(ok, data2 == "test string")
+    local data, err = eli_lz.compress_string"test string"
+    test.assert(data, err)
+    local data2, err = eli_lz.extract_from_string(data)
+    test.assert(data2 and data2 == "test string", err)
 end
 
 if not TEST then

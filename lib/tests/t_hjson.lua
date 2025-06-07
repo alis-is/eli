@@ -38,48 +38,29 @@ local data = {
 }
 
 local encoded = [[{
-    root: root level
-    test: {
-        nested: true
-        type: object
-    }
-    test2: [
-        nested
-        array
-    ]
-    test3: {
-        nested1: {
-            level: 2
-            type: nested object
-        }
-        nested2: {
-            level: 2
-            type: nested object
-        }
-    }
+	root: root level
+	test: {
+		nested: true
+		type: object
+	}
+	test2: [
+		nested
+		array
+	]
+	test3: {
+		nested1: {
+			level: 2
+			type: nested object
+		}
+		nested2: {
+			level: 2
+			type: nested object
+		}
+	}
 }]]
 
-local encoded_json = [[{
-    "root": "root level",
-    "test": {
-        "nested": true,
-        "type": "object"
-    },
-    "test2": [
-        "nested",
-        "array"
-    ],
-    "test3": {
-        "nested1": {
-            "level": 2,
-            "type": "nested object"
-        },
-        "nested2": {
-            "level": 2,
-            "type": "nested object"
-        }
-    }
-}]]
+local encoded_json =
+[[{"root":"root level","test":{"nested":true,"type":"object"},"test2":["nested","array"],"test3":{"nested1":{"level":2,"type":"nested object"},"nested2":{"level":2,"type":"nested object"}}}]]
 
 test["encode"] = function ()
     local result = hjson.encode(data, { sort_keys = true })

@@ -61,8 +61,8 @@ end
 
 test["exec (stdin)"] = function ()
 	local scriptPath = eli_path.combine("tmp", "script")
-	local ok = eli_fs.safe_write_file(scriptPath, "123\n\n")
-	test.assert(ok, "Failed to write stdin file")
+	local ok, err = eli_fs.write_file(scriptPath, "123\n\n")
+	test.assert(ok, "Failed to write stdin file - " .. tostring(err))
 	local result = eli_proc.exec("more", { stdin = scriptPath, stdout = "pipe" })
 	test.assert(result.exit_code == 0 and string.trim(result.stdout_stream:read"a") == "123" and
 		result.stderr_stream == nil)
@@ -102,8 +102,8 @@ test["spawn (cleanup)"] = function ()
 end
 
 test["spawn (not found)"] = function ()
-	local testExecutable = "nonExistentExecutable"
-	local ok, _ = eli_proc.safe_spawn(testExecutable)
+	local test_executable = "nonExistentExecutable"
+	local ok, _ = eli_proc.spawn(test_executable)
 	test.assert(not ok)
 end
 
