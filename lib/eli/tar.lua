@@ -237,10 +237,12 @@ end
 ---@return string?, string?
 function tar.extract_string(source, file, extract_options)
 	local result = ""
+	local found = false
 	local options = util.merge_tables(
 		type(extract_options) == "table" and extract_options or {},
 		{
 			open_file = function ()
+				found = true
 				return result
 			end,
 			write = function (_, data)
@@ -263,6 +265,9 @@ function tar.extract_string(source, file, extract_options)
 	local ok, err = tar.extract(source, nil, options)
 	if not ok then
 		return nil, err or "tar: failed to extract string from archive"
+	end
+	if not found then
+		return nil, "tar: file not found in archive: " .. file
 	end
 	return result
 end

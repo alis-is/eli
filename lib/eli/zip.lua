@@ -89,24 +89,24 @@ function zip.extract(source, destination, options)
 		return file:close()
 	end
 
-	local zipArch, err = lzip.open(source, open_flags)
-	if not zipArch then
+	local zip_arch, err = lzip.open(source, open_flags)
+	if not zip_arch then
 		return false, err
 	end
 
-	local ignorePath = flatten_root_dir and get_root_dir(zipArch) or ""
-	local il = #ignorePath + 1 -- ignore length
+	local ignore_path = flatten_root_dir and get_root_dir(zip_arch) or ""
+	local il = #ignore_path + 1 -- ignore length
 
-	for i = 1, #zipArch do
-		local stat = zipArch:stat(i)
+	for i = 1, #zip_arch do
+		local stat = zip_arch:stat(i)
 
 		if #stat.name:sub(il) == 0 then
 			-- skip empty paths
-			goto files_loop
+			goto continue
 		end
 
 		if not filter(stat.name:sub(il), stat) then
-			goto files_loop
+			goto continue
 		end
 
 		-- by default we assume that mkdir is nor supported and we cannot create directories
@@ -121,7 +121,7 @@ function zip.extract(source, destination, options)
 			-- directory
 			mkdirp(target_path)
 		else
-			local comprimedFile = zipArch:open(i)
+			local comprimedFile = zip_arch:open(i)
 			local dir = path.dir(target_path)
 			mkdirp(dir)
 
@@ -138,7 +138,7 @@ function zip.extract(source, destination, options)
 			end
 			close_file(file)
 		end
-		local external_attributes = zipArch:get_external_attributes(i)
+		local external_attributes = zip_arch:get_external_attributes(i)
 		if external_chmod then                      -- we got supplied chmod
 			chmod(target_path, external_attributes)
 		elseif type(external_attributes) == "number" then -- we use built in chmod
@@ -147,9 +147,9 @@ function zip.extract(source, destination, options)
 				pcall(chmod, target_path, tonumber(permissions))
 			end
 		end
-		::files_loop::
+		::continue::
 	end
-	zipArch:close()
+	zip_arch:close()
 	return true
 end
 
@@ -193,11 +193,13 @@ end
 ---@return string?, string?
 function zip.extract_string(source, file, extract_options)
 	local result = ""
+	local found = false
 	local options =
 	   util.merge_tables(
 		   type(extract_options) == "table" and extract_options or {},
 		   {
 			   open_file = function ()
+				   found = true
 				   return result
 			   end,
 			   write = function (_, data)
@@ -219,7 +221,10 @@ function zip.extract_string(source, file, extract_options)
 
 	local ok, err = zip.extract(source, nil, options)
 	if not ok then
-		return nil, err or "zip.extract_string: failed to extract string from compressed archive"
+		return nil, err or "zip: failed to extract string from compressed archive"
+	end
+	if not found then
+		return nil, "zip: file not found in archive: " .. file
 	end
 	return result
 end
@@ -309,9 +314,8 @@ end
 function zip.open_archive(path, checkcons)
 	if checkcons then
 		return lzip.open(path, lzip.CHECKCONS)
-	else
-		return lzip.open(path)
 	end
+	return lzip.open(path)
 end
 
 ---#DES 'zip.new_archive'

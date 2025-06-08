@@ -236,5 +236,4 @@ jobs:
           artifacts: ./release/*
           tag: ${{ needs.prepare.outputs.VERSION }}
           commit: ${{ github.sha }}
-          token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: ${{needs.prepare.outputs.PRERELEASE}}
