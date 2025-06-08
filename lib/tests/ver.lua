@@ -13,6 +13,49 @@ if not ok then
     end
 end
 
+test["parse_valid_versions"] = function ()
+    local cases = {
+        { "1.0.0", { major = 1, minor = 0, patch = 0 } },
+        { "2.5.3-alpha", { major = 2, minor = 5, patch = 3, prerelease = "alpha" } },
+        { "3.1.4+meta", { major = 3, minor = 1, patch = 4, metadata = "meta" } },
+        { "4.2.1-beta.1+exp.sha.5114f85", {
+            major = 4,
+            minor = 2,
+            patch = 1,
+            prerelease = "beta.1",
+            metadata = "exp.sha.5114f85",
+        } },
+        { "1", { major = 1, minor = 0, patch = 0 } },
+        { "1.2", { major = 1, minor = 2, patch = 0 } },
+    }
+
+    for _, case in ipairs(cases) do
+        local input, expected = case[1], case[2]
+        local parsed, err = eli_ver.parse(input)
+        assert(parsed, "Failed to parse valid version: " .. tostring(input) .. " (" .. tostring(err) .. ")")
+        for k, v in pairs(expected) do
+            assert(parsed[k] == v, ("Expected %s to be %s, got %s in '%s'"):format(k, v, parsed[k], input))
+        end
+    end
+end
+
+test["parse_invalid_versions"] = function ()
+    local invalid_cases = {
+        "1.2.3.4",                -- too many segments
+        "1..3",                   -- empty minor
+        "v1.0.0",                 -- prefix not allowed
+        "1.0.0-",                 -- empty prerelease
+        "1.0.0+",                 -- empty metadata
+        "1.0.alpha",              -- non-numeric core
+        "1.0.0-alpha+meta+extra", -- too many '+'
+    }
+
+    for _, input in ipairs(invalid_cases) do
+        local ok, err = eli_ver.parse(input)
+        assert(ok == nil and err, "Expected parse to fail for: " .. input)
+    end
+end
+
 test["semver_compare"] = function () -- from: http://semver.org/spec/v2.0.0.html#spec-item-11
     local test_cases = {
         { "1", "0", 1 },

@@ -1,22 +1,21 @@
 local mbed_hash = require"lmbed_hash"
-local util = require"eli.util"
 
 ---@class HashGenerator
----@field update fun(self: HashGenerator, data: string)
----@field finish fun(self: HashGenerator, hex: boolean): string
+---@field update fun(self: HashGenerator, data: string): string?, string?
+---@field finish fun(self: HashGenerator, hex: boolean): string?, string?
 
 local hash = {
 	---#DES 'hash.sha256_sum'
 	---
 	--- Calculates sha256 hash of the data
-	--- @param data string
-	--- @param hex boolean? (default false)	- if true, returns the hash in hex format
+	--- @param data string?
+	--- @param hex boolean|string? (default false)	- if true, returns the hash in hex format
 	sha256_sum = mbed_hash.sha256_sum,
 	---#DES 'hash.sha512_sum'
 	---
 	--- Calculates sha512 hash of the data
-	--- @param data string
-	--- @param hex boolean? (default false)	- if true, returns the hash in hex format
+	--- @param data string?
+	--- @param hex boolean|string? (default false)	- if true, returns the hash in hex format
 	sha512_sum = mbed_hash.sha512_sum,
 	---#DES 'hash.sha256_init'
 	---
@@ -38,30 +37,4 @@ local hash = {
 	equals = mbed_hash.equals,
 }
 
--- // TODO: remove deprecated functions in next version
-
----@deprecated
-function hash.sha256sum(data, hex)
-	print"Deprecation warning: use hash.sha256_sum instead"
-	return mbed_hash.sha256_sum(data, hex)
-end
-
----@deprecated
-function hash.sha512sum(data, hex)
-	print"Deprecation warning: use hash.sha512_sum instead"
-	return mbed_hash.sha512_sum(data, hex)
-end
-
----@deprecated
-function hash.sha256init()
-	print"Deprecation warning: use hash.sha256_init instead"
-	return mbed_hash.sha256_init()
-end
-
----@deprecated
-function hash.sha512init()
-	print"Deprecation warning: use hash.sha512_init instead"
-	return mbed_hash.sha512_init()
-end
-
-return util.generate_safe_functions(hash)
+return hash

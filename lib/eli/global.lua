@@ -9,16 +9,30 @@ local global = {}
 ---interpolating with table varargs if any ${varName} applicable
 ---@param format string
 ---@param ... any
+---@deprecated use string.interpolate
 function global.printf(format, ...)
 	local args = table.pack(...)
-	for i, v in ipairs(args) do
-		if type(v) == "table" and not table_extensions.is_array(args[1]) then
-			-- interpolate
-			local interpolation_table = table.remove(args, i)
-			format = string_extensions.interpolate(format, interpolation_table)
+	local interpolation_data = {}
+	local to_remove = {}
+
+	for i = 1, args.n do
+		local v = args[i]
+		if type(v) == "table" and not table_extensions.is_array(v) then
+			for k, val in pairs(v) do
+				interpolation_data[k] = val
+			end
+			table.insert(to_remove, i)
 		end
 	end
-	return io.write(string.format(format, ...))
+	for i = #to_remove, 1, -1 do
+		table.remove(args, to_remove[i])
+		args.n = args.n - 1
+	end
+
+	if next(interpolation_data) then
+		format = string_extensions.interpolate(format, interpolation_data)
+	end
+	return io.write(string.format(format, table.unpack(args, 1, args.n)))
 end
 
 return global

@@ -1,5 +1,4 @@
 local ipc_core = require"ipc.core"
-local util = require"eli.util"
 local signal = require"os.signal"
 local table_extensions = require"eli.extensions.table"
 
@@ -56,12 +55,13 @@ local ipc = {}
 ---@param path string @path to the socket on linux or name of the pipe on windows
 ---@param handlers IPCHandlers
 ---@param options IPCServerOptions?
+---@return boolean, string?
 function ipc.listen(path, handlers, options)
 	local _, is_main_thread = coroutine.running()
 
 	local server, err = ipc_core.listen(path, options)
 	if not server then
-		error(err)
+		return false, err
 	end
 
 	signal.handle(signal.SIGPIPE, function () end) -- ignore SIGPIPE
@@ -87,13 +87,13 @@ end
 ---
 --- Connects to the given path and returns the socket
 ---@param path string @path to the socket on linux or name of the pipe on windows
----@return IPCSocket
+---@return IPCSocket?, string?
 function ipc.connect(path)
 	local client, err = ipc_core.connect(path)
 	if not client then
-		error(err)
+		return nil, err
 	end
 	return client
 end
 
-return util.generate_safe_functions(ipc)
+return ipc

@@ -33,13 +33,10 @@ local function get_stdstream_cmd_part(stdname, file, options)
 		file = os.tmpname()
 		is_tmp_file_mode = true
 	end
-	if type(file) ~= "string" then
-		error("Invalid " .. stdname .. " filename (got: " .. tostring(file) ..
-			", expects: string)!")
-	end
+	assert(type(file) == "string", "invalid file arg type (got: " .. type(file) .. ", expects: string)")
+
 	if file == "ignore" then return "", nil end
-	local template = options[stdname .. "_redirect_template"] or
-	   proc.settings[stdname .. "_redirect_template"]
+	local template = options[stdname .. "_redirect_template"] or proc.settings[stdname .. "_redirect_template"]
 	if type(template) == "function" then
 		return template(file), file, is_tmp_file_mode
 	elseif type(template) == "string" then
@@ -147,7 +144,7 @@ function proc.exec(cmd, options)
 	} --[[@as ExecResult]]
 end
 
-if not is_proc_extra_loaded then return util.generate_safe_functions(proc) end
+if not is_proc_extra_loaded then return proc end
 
 ---@class SpawnResult
 ---@field exit_code integer
@@ -209,7 +206,7 @@ if not is_proc_extra_loaded then return util.generate_safe_functions(proc) end
 ---#DES 'proc.generate_spawn_result'
 ---
 ---@param process EliProcess
----@return SpawnResult
+---@return SpawnResult?, string?
 function proc.generate_spawn_result(process)
 	if ((type(process) == "userdata" or type(process) == "table") and process.__type ~= "ELI_PROCESS") or
 	etype(process) == "ELI_PROCESS" then
@@ -219,8 +216,7 @@ function proc.generate_spawn_result(process)
 			stderr_stream = process:get_stderr(),
 		} --[[@as SpawnResult]]
 	end
-	error
-	"Generate process result is possible only from ELI_PROCESS data structure!"
+	return nil, "invalid process type: " .. type(process) .. ", expects ELI_PROCESS"
 end
 
 ---#DES 'proc.spawn'
@@ -229,7 +225,7 @@ end
 ---@param path string
 ---@param args_or_options string[]|SpawnOptions?
 ---@param options SpawnOptions?
----@return EliProcess | SpawnResult
+---@return EliProcess | SpawnResult | nil, string?
 function proc.spawn(path, args_or_options, options)
 	if type(args_or_options) == "table" and not util.is_array(args_or_options) and type(options) ~= "table" then
 		options = args_or_options
@@ -237,18 +233,14 @@ function proc.spawn(path, args_or_options, options)
 	end
 	if type(options) ~= "table" then options = {} end
 
-	-- // TODO: remove in the next version
-	if options.createProcessGroup ~= nil and options.create_process_group then
-		options.create_process_group = options.createProcessGroup
-		print"createProcessGroup is deprecated, use create_process_group instead"
-	end
-
 	local spawnParams = util.merge_tables({
 		command = path,
 		args = args_or_options,
 	}, options)
 	local process, err = proc_extra.spawn(spawnParams)
-	if not process then error(err) end
+	if not process then
+		return nil, err
+	end
 
 	if type(options.wait) == "boolean" and options.wait then
 		process:wait()
@@ -276,4 +268,4 @@ function proc.get_by_pid(pid, options)
 	return proc_extra.get_by_pid(pid, options)
 end
 
-return util.generate_safe_functions(proc)
+return proc

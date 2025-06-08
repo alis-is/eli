@@ -1,6 +1,4 @@
 -- conforms to semver 2.0
-local generate_safe_functions = require"eli.util".generate_safe_functions
-
 ---@class SemVer
 ---@field major number
 ---@field minor number
@@ -15,28 +13,47 @@ local ver = {}
 ---Parses version string and returns table with major, minor, path, prerelease
 ---and metadata values
 ---@param ver string
----@return SemVer?
+---@return SemVer?, string?
 function ver.parse(ver)
 	if type(ver) ~= "string" then
-		return nil
-	end
-	local metadata = ver:match".+%+(.+)"
-	if (metadata ~= nil) then
-		ver = ver:sub(1, #ver - #metadata - 1)
-	end
-	local prerelease = ver:match".+-([^%+]+)"
-	if (prerelease ~= nil) then
-		ver = ver:sub(1, #ver - #prerelease - 1)
+		return nil, "version must be a string"
 	end
 
-	local major = tonumber(ver:match"[^%.]+")
-	local minor = tonumber(ver:match"[^%.]+.([^%.]+)")
-	local patch = tonumber(ver:match"[^%.]+.[^%.]+.([^-]+)")
+	local main, metadata = ver:match"([^+]+)%+(.*)"
+	if not main then
+		main = ver
+	elseif metadata == "" or metadata == nil then
+		return nil, "invalid version string: empty metadata"
+	elseif metadata:find"+" then
+		return nil, "invalid version string: multiple '+' characters"
+	end
+
+	local core, prerelease = main:match"([^%-]+)%-(.*)"
+	if not core then
+		core = main
+	elseif prerelease == "" or prerelease == nil then
+		return nil, "invalid version string: empty prerelease"
+	end
+
+	local major, minor, patch = core:match"^(%d+)%.(%d+)%.(%d+)$"
+	if not major then
+		major, minor = core:match"^(%d+)%.(%d+)$"
+		patch = 0
+	end
+	if not major then
+		major = core:match"^(%d+)$"
+		minor = 0
+		patch = 0
+	end
+
+	if not major then
+		return nil, "invalid version core: " .. tostring(ver)
+	end
 
 	return {
-		major = major,
-		minor = minor,
-		patch = patch,
+		major = tonumber(major) or 0,
+		minor = tonumber(minor) or 0,
+		patch = tonumber(patch) or 0,
 		prerelease = prerelease,
 		metadata = metadata,
 	}
@@ -116,13 +133,19 @@ function ver.compare(v1, v2)
 		end
 	end
 
-	local ver1
+	local ver1, err
 	if type(v1) == "string" then
-		ver1 = ver.parse(v1)
+		ver1, err = ver.parse(v1)
+		if err then
+			error(err)
+		end
 	end
 	local ver2
 	if type(v2) == "string" then
-		ver2 = ver.parse(v2)
+		ver2, err = ver.parse(v2)
+		if err then
+			error(err)
+		end
 	end
 	assert(type(ver1) == "table", "Invalid v1 version!")
 	assert(type(ver2) == "table", "Invalid v2 version!")
@@ -142,4 +165,4 @@ function ver.compare(v1, v2)
 	return compare_prerelase(ver1.prerelease, ver2.prerelease)
 end
 
-return generate_safe_functions(ver)
+return ver
