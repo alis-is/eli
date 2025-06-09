@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TMP_NAME="./$(head -n 1 -c 32 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32)"
+TMP_NAME="./$(head -c 32 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"
 PRERELEASE=false
 if [ "$1" = "--prerelease" ]; then
     PRERELEASE=true
@@ -34,6 +34,23 @@ if eli -v | grep "$LATEST"; then
     exit 0
 fi
 
+PLATFORM=$(uname -m)
+UNAME=$(uname -s | tr '[:upper:]' '[:lower:]')
+OS=linux
+if [ "$UNAME" = "darwin" ]; then
+    mkdir -p /usr/local/bin
+    OS=macos
+
+    if [ "$PLATFORM" = "x86_64" ]; then
+        PLATFORM="amd64"
+    elif [ "$PLATFORM" = "arm64" ]; then
+        PLATFORM="aarch64"
+    else
+        echo "Unsupported platform: $PLATFORM" 1>&2
+        exit 1
+    fi
+fi
+
 BIN="eli"
 rm -f "/usr/local/bin/$BIN"
 rm -f "/usr/bin/$BIN"
@@ -42,27 +59,30 @@ rm -f "/usr/local/sbin/$BIN"
 rm -f "/usr/sbin/$BIN"
 rm -f "/sbin/$BIN"
 # check destination folder
-if [ -d "/usr/bin" ]; then
+if [ -w "/usr/local/bin" ]; then
+    DESTINATION="/usr/local/bin/$BIN"
+elif [ -w "/usr/local/sbin" ]; then
+    DESTINATION="/usr/local/sbin/$BIN"
+elif [ -w "/usr/bin" ]; then
     DESTINATION="/usr/bin/$BIN"
-elif [ -d "/bin" ]; then
-    DESTINATION="/bin/$BIN"
-elif [ -d "/usr/sbin" ]; then
+elif [ -w "/usr/sbin" ]; then
     DESTINATION="/usr/sbin/$BIN"
-elif [ -d "/sbin" ]; then
+elif [ -w "/bin" ]; then
+    DESTINATION="/bin/$BIN"
+elif [ -w "/sbin" ]; then
     DESTINATION="/sbin/$BIN"
 else
-    echo "no suitable destination folder found" 1>&2
-    exit 1
+    echo "No writable system binary directory found, installing locally."
+    DESTINATION="./$BIN"
 fi
 
-PLATFORM=$(uname -m)
 if [ "$1" = "--prerelease" ]; then
     echo "downloading latest eli prerelease for $PLATFORM..."
 else
-    echo "downloading eli-linux-$PLATFORM $LATEST..."
+    echo "downloading eli-$OS-$PLATFORM $LATEST..."
 fi
 
-if "$@" "https://github.com/alis-is/eli/releases/download/$LATEST/eli-linux-$PLATFORM" &&
+if "$@" "https://github.com/alis-is/eli/releases/download/$LATEST/eli-$OS-$PLATFORM" &&
     cp "$TMP_NAME" "$DESTINATION" && rm "$TMP_NAME" && chmod +x "$DESTINATION"; then
     if [ "$1" = "--prerelease" ]; then
         echo "latest eli prerelease for $PLATFORM successfully installed"
