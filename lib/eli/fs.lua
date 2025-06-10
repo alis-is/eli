@@ -209,11 +209,11 @@ local function internal_mkdir(path, mkdir_override)
 	end
 
 	if is_fs_extra_loaded then
-		local link_type = fs_extra.link_type(path)
-		if link_type == "directory" then
+		local file_type = fs_extra.file_type(path)
+		if file_type == "directory" then
 			return true
-		elseif link_type ~= nil then
-			return false, "can not create ..."
+		elseif file_type then
+			return false, "cannot create directory - file with the same name exists"
 		end
 	end
 
