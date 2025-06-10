@@ -359,4 +359,33 @@ function util.extract_error_info(error_message)
 	end
 end
 
+---#DES 'util.generate_safe_functions'
+---@generic T : table<string, function>
+---@param fnTable T
+---@return T
+---@deprecated
+function util.generate_safe_functions(fnTable)
+	if type(fnTable) ~= "table" then
+		return fnTable
+	end
+	if util.is_array(fnTable) then
+		return fnTable -- safe function can be generated only on dictionary
+	end
+	local res = {}
+
+	for k, v in pairs(fnTable) do
+		if type(v) == "function" and not k:match"^safe_" then
+			res["safe_" .. k] = function (...)
+				local result = table.pack(pcall(v, ...))
+				if not result[1] then
+					local msg, code = util.extract_error_info(result[2])
+					return result[1], msg, code
+				end
+				return table.unpack(result)
+			end
+		end
+	end
+	return util.merge_tables(fnTable, res)
+end
+
 return util
