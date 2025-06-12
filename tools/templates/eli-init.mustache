@@ -1,5 +1,7 @@
 /* eli init */
+#ifdef SIGPIPE
 	signal(SIGPIPE, SIG_IGN);
+#endif
 	const char eli_init[] = "{{{embedableInit}}}";
 	luaL_dostring(L, eli_init);
 /* end eli init */
