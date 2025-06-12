@@ -1,4 +1,5 @@
 /* eli init */
+	signal(SIGPIPE, SIG_IGN);
 	const char eli_init[] = "{{{embedableInit}}}";
 	luaL_dostring(L, eli_init);
 /* end eli init */
