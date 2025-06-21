@@ -22,13 +22,16 @@ function cli.parse_args(args)
     for i = 1, #args, 1 do
         local current = args[i]
         if type(current) == "string" then
-            local cli_option, cli_value = current:match"^%-%-?([^=]+)=?(.*)"
+            local cli_option, cli_value = current:match"^%-%-?([^=]+)=(.*)"
+            if not cli_option then -- fallback for options without value
+                cli_option = current:match"^%-%-?([^=]+)"
+                cli_value = true
+            end
             if cli_option then
-                local value = cli_value ~= "" and cli_value or true
                 table.insert(parsed_args, {
                     type = "option",
                     id = cli_option,
-                    value = value,
+                    value = cli_value,
                     arg = current,
                 })
             else
