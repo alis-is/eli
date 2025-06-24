@@ -412,7 +412,11 @@ end
 ---extracts url components
 ---returns scheme, authority, path, query, fragment
 ---@param urlStr string
----@return string, string, string, string, string
+---@return string scheme
+---@return string authority
+---@return string path
+---@return string query
+---@return string fragment
 local function extract_url_components(urlStr)
 	local scheme, authority, path, query, fragment
 	local urlStr = tostring(urlStr or "")
@@ -593,7 +597,11 @@ end
 ---#DES 'net.url.to_request_parameters'
 --- returns scheme, host, port, path + query + fragment, credentials
 ---@param urlObjOrStr Url | string
----@return string?, string?, string?, string?, string?
+---@return string? scheme
+---@return host string?
+---@return port string?
+---@return pathQueryFragment string?
+---@return credentials string?
 function url.extract_components_for_request(urlObjOrStr)
 	if type(urlObjOrStr) == "string" then
 		local scheme, authority, path, query, fragment = extract_url_components(urlObjOrStr)

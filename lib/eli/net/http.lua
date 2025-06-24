@@ -384,6 +384,10 @@ local function request(client, path, method, options, data)
 				new_host = (new_host and new_host ~= "") and new_host or old_host
 				new_port = new_port or old_port
 
+				if type(new_host) ~= "string" or new_host == "" then
+					return nil, "invalid redirect location: " .. tostring(location)
+				end
+
 				local new_client = corehttp.new_client(new_scheme, new_host, new_port, options)
 				return request(new_client, new_path, method, options, data)
 			else
@@ -443,7 +447,8 @@ end
 ---@param url_or_id string
 ---@param parent_or_options (RestClient|RestClientOptions)?
 ---@param options RestClientOptions?
----@return RestClient
+---@return RestClient?
+---@return string? error
 function net.RestClient:new(url_or_id, parent_or_options, options)
 	local rest_client = {
 		host = nil,
@@ -468,6 +473,10 @@ function net.RestClient:new(url_or_id, parent_or_options, options)
 		options = parent_or_options --[[@as RestClientOptions]]
 		rest_client.__url = net_url.parse(url_or_id)
 		local scheme, host, port, _, _ = net_url.extract_components_for_request(rest_client.__url)
+		if not host or host == "" then
+			return nil, "invalid host in url: " .. tostring(rest_client.__url)
+		end
+
 		rest_client.__client = corehttp.new_client(scheme, host, port, options)
 		rest_client.__options = util.merge_tables(options, {
 			follow_redirects = false,
@@ -499,7 +508,8 @@ function net.RestClient:new(url_or_id, parent_or_options, options)
 	self.__index = function (t, k)
 		local result = rawget(self, k)
 		if result == nil and type(k) == "string" and not k:match"^__.*" then
-			return net.RestClient:new(k, rest_client)
+			local client, _ = net.RestClient:new(k, rest_client) -- derived from parent - wont return error
+			return client
 		end
 		return result
 	end
@@ -571,7 +581,7 @@ function net.RestClient:res(resources, options)
 		if type(self.__resources) ~= "table" then self.__resources = {} end
 		if self.__resources[path] then return self.__resources[path] end
 
-		local result = net.RestClient:new(tostring(path), self)
+		local result, _ = net.RestClient:new(tostring(path), self) -- derived from parent - wont return error
 		self.__resources[path] = result
 		if shortcut then
 			self.__shortcuts[name] = result
@@ -735,10 +745,13 @@ end
 local function download(url, write_function, options)
 	if type(options) ~= "table" then options = {} end
 
-	local client = net.RestClient:new(url, util.merge_tables(options, {
+	local client, err = net.RestClient:new(url, util.merge_tables(options, {
 		timeout = options.timeout,
 		write_function = write_function,
 	}, true))
+	if not client then
+		return nil, err
+	end
 
 	return client:get()
 end
@@ -779,7 +792,7 @@ function net.download_file(url, destination, options)
 			return response.code
 		elseif (tries >= retry_limit) then
 			os.remove(destination)
-			return false, "retries exceeded, " .. tostring(err)
+			return false, err
 		end
 
 		tries = tries + 1
@@ -805,7 +818,7 @@ function net.download_string(url, options)
 		if response then
 			return result, response.code
 		elseif (tries >= retry_limit) then
-			return nil, "retries exceeded, " .. tostring(err)
+			return nil, err
 		end
 		tries = tries + 1
 	end
