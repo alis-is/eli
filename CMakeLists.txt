@@ -7,7 +7,9 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 set(CMAKE_CROSSCOMPILING CACHE BOOL ON FORCE)
 project(eli)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${BUILD_FLAGS} -fPIC -fPIE -ffunction-sections -fdata-sections -g0 -Wl,--as-needed -Wno-sign-compare -Wl,--gc-sections -static")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${BUILD_FLAGS} -fPIC -fPIE -ffunction-sections -fdata-sections -mcpu=baseline -g0 -Wl,--as-needed -Wno-sign-compare -Wl,--gc-sections -static")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=baseline")
+
 set(LD_FLAGS "${LD_FLAGS} -Wl,-s -Wl,-Bsymbolic -Wl,--gc-sections")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
 
