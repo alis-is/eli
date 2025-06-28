@@ -7,9 +7,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 set(CMAKE_CROSSCOMPILING CACHE BOOL ON FORCE)
 project(eli)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${BUILD_FLAGS} -fPIC -fPIE -ffunction-sections -fdata-sections -mcpu=baseline -g0 -Wl,--as-needed -Wno-sign-compare -Wl,--gc-sections -static")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=baseline")
-
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${BUILD_FLAGS} -fPIC -fPIE -ffunction-sections -fdata-sections -g0 -Wl,--as-needed -Wno-sign-compare -Wl,--gc-sections -static")
 set(LD_FLAGS "${LD_FLAGS} -Wl,-s -Wl,-Bsymbolic -Wl,--gc-sections")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_CRT_SECURE_NO_WARNINGS")
 
@@ -90,6 +88,8 @@ target_include_directories(ltar PRIVATE ${ELI_EXTRA_UTILS_INCLUDE})
 # ZLIB
 set(ZLIB_COMPAT ON CACHE BOOL "")
 set(ZLIB_ENABLE_TESTS OFF CACHE BOOL "")
+set(WITH_AVX512 OFF CACHE BOOL "" FORCE)
+set(WITH_AVX512VNNI OFF CACHE BOOL "" FORCE)
 set(ZLIBNG_ENABLE_TESTS OFF CACHE BOOL "")
 add_subdirectory(deps/zlib-ng/ EXCLUDE_FROM_ALL)
 add_custom_target(copy_zlib_files ALL DEPENDS zlibstatic)
