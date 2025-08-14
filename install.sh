@@ -1,6 +1,6 @@
 #!/bin/sh
 
-TMP_NAME="./$(head -c 32 /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)"
+TMP_NAME="./$(head -c 24 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c 32)"
 PRERELEASE=false
 if [ "$1" = "--prerelease" ]; then
     PRERELEASE=true
