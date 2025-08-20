@@ -6,6 +6,8 @@ local HTTPBIN_URL = os.getenv"HTTPBIN_URL" or "http://127.0.0.1:8081/"
 local TIMEOUT = 180 * 1000
 local RETRIES = 3
 
+local LARGE_FILE_TEST_URL = "https://github.com/tez-capital/tezpeak/releases/download/0.7.4-beta/tezpeak-linux-amd64"
+
 if not ok then
 	test["eli.net available"] = function ()
 		test.assert(false, "eli.net not available")
@@ -35,7 +37,7 @@ test["download (progress)"] = function ()
 		printed = printed .. msg
 	end
 	io.write = new_print
-	local _, _ = eliNet.download_string("https://link.testfile.org/15MB",
+	local _, _ = eliNet.download_string(LARGE_FILE_TEST_URL,
 		{
 			follow_redirects = true,
 			show_default_progress = 5,
@@ -45,7 +47,7 @@ test["download (progress)"] = function ()
 	test.assert(printed:match"(%d+)%%", "no progress detected")
 	printed = ""
 	io.write = new_print
-	local _, _ = eliNet.download_string("https://link.testfile.org/15MB",
+	local _, _ = eliNet.download_string(LARGE_FILE_TEST_URL,
 		{
 			follow_redirects = true,
 			show_default_progress = true,
