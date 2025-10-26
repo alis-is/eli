@@ -1,5 +1,5 @@
 	/* eli additional libs */
-	luaL_getsubtable(L, LUA_REGISTRYINDEX, "_PRELOAD");
+	luaL_getsubtable(L, LUA_REGISTRYINDEX, LUA_PRELOAD_TABLE);
 	for (lib = preloadedlibs; lib->func; lib++) {
 		lua_pushcfunction(L, lib->func);
 		lua_setfield(L, -2, lib->name);
