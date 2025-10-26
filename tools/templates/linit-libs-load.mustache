@@ -21,13 +21,20 @@
 	inflateInit(&i_stream);
 	inflate(&i_stream, Z_NO_FLUSH);
 	inflateEnd(&i_stream);
-
 	luaL_loadbuffer(L, uncompressedLibs, {{{embedableLibsLength}}}, "preload-libs");
 {{/compress}}
 {{^compress}}
 	luaL_loadbuffer(L, lua_libs, {{{embedableLibsLength}}}, "preload-libs");
 {{/compress}}
-	lua_insert(L,1);
-	lua_call(L,arg,1);
+	if (lua_isstring(L, -1)) {
+		const char *error_message = lua_tostring(L, -1);
+		printf("--- Eli Libs Load Error ---\n");
+        printf("%%s\n", error_message);
+        printf("----------------------\n");
+		exit(1);
+	} else {
+		lua_insert(L,1);
+		lua_call(L,arg,1);
+	}
 	/* end eli additional libs */
 }
