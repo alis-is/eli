@@ -11,6 +11,13 @@ local function error_efs_not_available(first_arg)
 	return first_arg, "extra fs api not available"
 end
 
+local function get_relative_path(path, root)
+	local path_relative_to_root = path:sub(#root + 1) -- strip root
+	if path_relative_to_root:sub(1, 1) == "/" then path_relative_to_root = path_relative_to_root:sub(2) end
+	if path_relative_to_root == "" then path_relative_to_root = "." end
+	return path_relative_to_root
+end
+
 local fs = {
 	---#DES 'fs.EFS'
 	---@type boolean
@@ -308,9 +315,7 @@ local ERROR_FS_REMOVE_PATH_FILTERED = "not removed: path filtered"
 local function internal_remove(path, options)
 	assert(type(path) == "string", "invalid path type - expected string, got " .. type(path))
 	options = util.merge_tables({ root = path }, options, true)
-	local path_relative_to_root = path:sub(#options.root + 1) -- strip root
-	if path_relative_to_root:sub(1, 1) == "/" then path_relative_to_root = path_relative_to_root:sub(2) end
-	if path_relative_to_root == "" then path_relative_to_root = "." end
+	local path_relative_to_root = get_relative_path(path, options.root)
 
 	local should_keep = type(options.keep) == "function" and options.keep or function (_, _) return false end
 
@@ -565,6 +570,7 @@ end
 ---@class FsChownOptions
 ---@field recurse boolean?
 ---@field recurse_ignore_errors boolean?
+---@field filter (fun(path: string, full_path: string): boolean)?
 
 ---#DES 'fs.chown'
 ---
@@ -599,10 +605,18 @@ function fs.chown(path, uid, gid, options)
 	end
 
 	for _, entry_path in ipairs(entries) do
+		if type(options.filter) == "function" then
+			local relative_path = get_relative_path(entry_path, path)
+			if options.filter(relative_path, entry_path) then
+				goto continue
+			end
+		end
+
 		ok, err, errno = fs_extra.chown(entry_path, uid, gid)
 		if not ok and not ignore_errors then
 			return ok, err, errno
 		end
+		::continue::
 	end
 
 	return true
@@ -611,6 +625,7 @@ end
 ---@class FsChmodOptions
 ---@field recurse boolean?
 ---@field recurse_ignore_errors boolean?
+---@field filter (fun(path: string, full_path: string): boolean)?
 
 ---#DES 'fs.chmod'
 ---
@@ -649,10 +664,18 @@ function fs.chmod(path, mode, options)
 	end
 
 	for _, entry_path in ipairs(entries) do
+		if type(options.filter) == "function" then
+			local relative_path = get_relative_path(entry_path, path)
+			if options.filter(relative_path, entry_path) then
+				goto continue
+			end
+		end
+
 		ok, err, errno = fs_extra.chmod(entry_path, mode)
 		if not ok and not ignore_errors then
 			return ok, err, errno
 		end
+		::continue::
 	end
 
 	return true
