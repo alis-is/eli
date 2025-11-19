@@ -22,10 +22,11 @@ function string_extensions.split(s, separator, trim)
 	end
 	local result = {}
 	for str in string.gmatch(s, "([^" .. separator .. "]+)") do
+		local to_add = str
 		if trim then
-			str = string_extensions.trim(str)
+			to_add = string_extensions.trim(to_add)
 		end
-		table.insert(result, str)
+		table.insert(result, to_add)
 	end
 	return result
 end

@@ -5,7 +5,7 @@ RUN mkdir /usr/local/zig
 RUN wget -q https://raw.githubusercontent.com/alis-is/eli/main/install.sh -O /tmp/install.sh && \
 	sh /tmp/install.sh
 # setup zig
-RUN export ZIG_VERSION=0.14.1 && \
+RUN export ZIG_VERSION=0.15.2 && \
 	wget https://ziglang.org/download/$ZIG_VERSION/zig-x86_64-linux-$ZIG_VERSION.tar.xz && \
 	mkdir zig && tar --xz -xf zig-x86_64-linux-$ZIG_VERSION.tar.xz --directory zig && \
 	cp -rf zig/zig*/* --target-directory=/usr/local/zig
