@@ -83,7 +83,7 @@ end
 ---@param default any
 ---@return any
 function table_extensions.get(obj, path, default)
-	local result = base_get(obj, path)
+	local result = base_get(obj, util.clone(path))
 	if result == nil then
 		return default
 	end
@@ -102,6 +102,7 @@ function table_extensions.set(obj, path, value)
 	if type(obj) ~= "table" then
 		return obj
 	end
+	path = util.clone(path)
 	if type(path) == "string" or type(path) == "number" then
 		obj[path] = value
 	elseif util.is_array(path) then
