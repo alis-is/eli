@@ -104,6 +104,9 @@ test["set"] = function ()
     table_extensions.set(t, { "t2", "v1" }, "zzz")
     test.assert(table_extensions.get(t, { "t2", "v1" }) == "zzz")
 
+    table_extensions.set(t, { "t3", "v1" }, "zzz")
+    test.assert(table_extensions.get(t, { "t3", "v1" }) == "zzz")
+
     local t2 = { "aaa", "bbb", "ccc" }
     table_extensions.set(t2, "2", "zzz")
     test.assert(table_extensions.get(t2, { "2" }) == "zzz")
