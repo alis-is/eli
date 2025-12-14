@@ -63,7 +63,7 @@ local function base_get(obj, path)
 	end
 	if type(path) == "string" or type(path) == "number" then
 		return obj[path]
-	elseif util.is_array(path) then
+	elseif util.is_array(path) and #path > 0 then
 		local part = table.remove(path, 1)
 		local index = util.is_array(obj) and tonumber(part) or part
 		if #path == 0 then
@@ -105,7 +105,7 @@ function table_extensions.set(obj, path, value)
 	path = util.clone(path)
 	if type(path) == "string" or type(path) == "number" then
 		obj[path] = value
-	elseif util.is_array(path) then
+	elseif util.is_array(path) and #path > 0 then
 		local part = table.remove(path, 1)
 		local index = util.is_array(obj) and tonumber(part) or part
 		if #path == 0 then
