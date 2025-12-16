@@ -99,7 +99,9 @@ end
 ---@param value any
 ---@return T, string?
 function table_extensions.set(obj, path, value)
-	if type(obj) ~= "table" then
+	if obj == nil and #path > 0 then -- create table if obj is nil
+		obj = {}
+	elseif type(obj) ~= "table" then
 		if #path > 0 then
 			return nil, "cannot set nested value on a non-table object"
 		end
