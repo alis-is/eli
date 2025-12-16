@@ -72,7 +72,7 @@ test["get"] = function ()
             v1 = "aaa",
         },
         v2 = "bbb",
-        v3 = {
+        v4 = {
             { name = "item1" },
             { name = "item2" },
         },
@@ -85,8 +85,8 @@ test["get"] = function ()
     test.assert(table_extensions.get(t, { "t2", "v1" }) == "aaa")
     test.assert(table_extensions.get(t, { "t2", "v2" }) == nil)
     test.assert(table_extensions.get("invalid", { "t2", "v2" }) == nil)
-    test.assert(table_extensions.get(t, { "v3", "1", "name" }) == "item1")
-    test.assert(table_extensions.get(t, { "v3", "2", "name" }) == "item2")
+    test.assert(table_extensions.get(t, { "v4", "1", "name" }) == "item1")
+    test.assert(table_extensions.get(t, { "v4", "2", "name" }) == "item2")
 
     local t2 = { "aaa", "bbb", "ccc" }
     test.assert(table_extensions.get(t2, { "t2", "v2" }) == nil)
