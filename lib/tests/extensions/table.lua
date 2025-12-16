@@ -110,6 +110,11 @@ test["set"] = function ()
     local t2 = { "aaa", "bbb", "ccc" }
     table_extensions.set(t2, "2", "zzz")
     test.assert(table_extensions.get(t2, { "2" }) == "zzz")
+
+    -- errors
+    table_extensions.set(t, "v4", "zzz")
+    local _, err = table_extensions.set(t, { "v4", "v5" }, "zzz")
+    test.assert(err ~= nil)
 end
 
 test["map"] = function ()

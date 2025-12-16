@@ -1,5 +1,5 @@
 {
-    version: 0.36.11
+    version: 0.36.12
     global_modules: false //disables global modules loading (only looks up for modules in cwd)
     minify: true
     compress: true

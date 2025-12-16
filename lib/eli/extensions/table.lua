@@ -97,10 +97,13 @@ end
 ---@param obj T
 ---@param path string|string[]
 ---@param value any
----@return T
+---@return T, string?
 function table_extensions.set(obj, path, value)
 	if type(obj) ~= "table" then
-		return obj
+		if #path > 0 then
+			return nil, "cannot set nested value on a non-table object"
+		end
+		return value
 	end
 	path = util.clone(path)
 	if type(path) == "string" or type(path) == "number" then
@@ -112,7 +115,7 @@ function table_extensions.set(obj, path, value)
 			obj[index] = value
 		else
 			obj[part] = obj[part] or {} -- create table if not exists
-			table_extensions.set(obj[part], path, value)
+			return table_extensions.set(obj[part], path, value)
 		end
 	end
 	return obj
