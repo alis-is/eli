@@ -116,9 +116,9 @@ function table_extensions.set(obj, path, value)
 		if #path == 0 then
 			obj[index] = value
 		else
-			obj[part] = obj[part] or {} -- create table if not exists
-			return table_extensions.set(obj[part], path, value)
+			obj[part] = table_extensions.set(obj[part], path, value)
 		end
+		return obj
 	end
 	return obj
 end
