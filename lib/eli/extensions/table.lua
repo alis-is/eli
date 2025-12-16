@@ -116,7 +116,9 @@ function table_extensions.set(obj, path, value)
 		if #path == 0 then
 			obj[index] = value
 		else
-			obj[part] = table_extensions.set(obj[part], path, value)
+			local val, err = table_extensions.set(obj[part], path, value)
+			if not val and err then return nil, err end
+			obj[part] = val
 		end
 		return obj
 	end
