@@ -69,7 +69,7 @@ local function base_get(obj, path)
 		if #path == 0 then
 			return obj[index]
 		end
-		return base_get(obj[part], path)
+		return base_get(obj[index], path)
 	else
 		return nil
 	end
