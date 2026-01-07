@@ -30,11 +30,11 @@ end
 
 test["sleep"] = function ()
 	local reference_point = os.date"%S"
-	eli_os.sleep(10)
+	eli_os.sleep(5, "s")
 	local after_sleep = os.date"%S"
 	local diff = after_sleep - reference_point
 	if diff < 0 then diff = diff + 60 end
-	test.assert(diff > 6 and diff < 14)
+	test.assert(diff > 3 and diff < 7)
 end
 
 test["chdir & cwd"] = function ()

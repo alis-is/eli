@@ -28,6 +28,10 @@ test["raise"]                     = function ()
 	end)
 	signal.raise(signal.SIGTERM)
 
+	while not catched do
+		os.sleep(1, "ms")
+	end
+
 	signal.reset(signal.SIGTERM)
 
 	test.assert(catched, "signal not catched")
@@ -148,8 +152,6 @@ test["process by pid"]            = function ()
 	local code = p:wait()
 	test.assert(code == 0, "signal not catched")
 end
-
-
 
 if not TEST then
 	test.summary()
