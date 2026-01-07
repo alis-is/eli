@@ -83,6 +83,7 @@ test["process group"]             = function ()
 	local p = eliProc.spawn(bin, args, { stdio = "inherit", create_process_group = true })
 
 	local g = p:get_group()
+	os.sleep(1, "s") -- give first process some time to create console
 	assert(g, "process group not created")
 	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", process_group = g })
 	os.sleep(3, "s")
@@ -90,7 +91,7 @@ test["process group"]             = function ()
 
 	local code = p:wait()
 	local code2 = p2:wait()
-	if code ~= 0 and code2 ~= 0 then
+	if code ~= 0 or code2 ~= 0 then
 		print(" ======> exit codes: ", code, code2)
 	end
 	test.assert(code == 0 and code2 == 0, "signal not catched")
