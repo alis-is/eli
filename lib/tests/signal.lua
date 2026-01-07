@@ -81,7 +81,7 @@ test["process group"]             = function ()
 	local g = p:get_group()
 	assert(g, "process group not created")
 	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", process_group = g })
-	os.sleep(1)
+	os.sleep(2)
 	g:kill(signal.SIGINT)
 
 	local code = p:wait()
