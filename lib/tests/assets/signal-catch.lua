@@ -3,12 +3,6 @@ signal.handle(signal.SIGTERM, function ()
 	os.exit(0)
 end)
 
-if signal.SIGBREAK ~= nil then
-	signal.handle(signal.SIGBREAK, function ()
-		os.exit(0)
-	end)
-end
-
 signal.handle(signal.SIGINT, function ()
 	os.exit(0)
 end)
