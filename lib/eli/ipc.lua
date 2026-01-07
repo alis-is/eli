@@ -64,7 +64,7 @@ function ipc.listen(path, handlers, options)
 		return false, err
 	end
 
-	signal.handle(signal.SIGPIPE, function () end) -- ignore SIGPIPE
+	signal.handle(signal.SIGPIPE, signal.IGNORE_SIGNAL) -- ignore SIGPIPE, ignore works even if signal isnt defined on the platform - no-op
 
 	coroutine.yield(server)
 
