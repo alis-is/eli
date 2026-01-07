@@ -90,6 +90,9 @@ test["process group"]             = function ()
 
 	local code = p:wait()
 	local code2 = p2:wait()
+	if code ~= 0 and code2 ~= 0 then
+		print(" ======> exit codes: ", code, code2)
+	end
 	test.assert(code == 0 and code2 == 0, "signal not catched")
 end
 

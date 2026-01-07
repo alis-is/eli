@@ -271,7 +271,9 @@ test["spawn (read timeout ms)"] = function ()
 	local beforeRead = os.time()
 	local content = output:read("a", 10, "ms")
 	test.assert(os.time() - beforeRead <= 1)
-	print("====> content:", content)
+	if content ~= "" then
+		print("======> content: ", content)
+	end
 	test.assert(content == "")
 	content = output:read("a", 5, "s")
 	test.assert(content:match"12345")
