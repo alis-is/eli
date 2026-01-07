@@ -72,6 +72,10 @@ test["get"] = function ()
             v1 = "aaa",
         },
         v2 = "bbb",
+        v4 = {
+            { name = "item1" },
+            { name = "item2" },
+        },
     }
     test.assert(type(table_extensions.get(t, "t2")) == "table")
     test.assert(table_extensions.get(t, "v2") == "bbb")
@@ -81,6 +85,8 @@ test["get"] = function ()
     test.assert(table_extensions.get(t, { "t2", "v1" }) == "aaa")
     test.assert(table_extensions.get(t, { "t2", "v2" }) == nil)
     test.assert(table_extensions.get("invalid", { "t2", "v2" }) == nil)
+    test.assert(table_extensions.get(t, { "v4", "1", "name" }) == "item1")
+    test.assert(table_extensions.get(t, { "v4", "2", "name" }) == "item2")
 
     local t2 = { "aaa", "bbb", "ccc" }
     test.assert(table_extensions.get(t2, { "t2", "v2" }) == nil)
@@ -104,9 +110,22 @@ test["set"] = function ()
     table_extensions.set(t, { "t2", "v1" }, "zzz")
     test.assert(table_extensions.get(t, { "t2", "v1" }) == "zzz")
 
+    table_extensions.set(t, { "t3", "v1" }, "zzz")
+    test.assert(table_extensions.get(t, { "t3", "v1" }) == "zzz")
+
     local t2 = { "aaa", "bbb", "ccc" }
     table_extensions.set(t2, "2", "zzz")
     test.assert(table_extensions.get(t2, { "2" }) == "zzz")
+
+    -- errors
+    table_extensions.set(t, "v4", "zzz")
+    local _, err = table_extensions.set(t, { "v4", "v5" }, "zzz")
+    test.assert(err ~= nil)
+
+    local _, err = table_extensions.set(t, { "v5", "v6", "v7" }, "zzz")
+    test.assert(err == nil)
+    test.assert(table_extensions.get(t, { "v5", "v6", "v7" }) == "zzz")
+    test.assert(table_extensions.get(t, { "v2" }) == "bbb")
 end
 
 test["map"] = function ()

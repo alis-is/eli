@@ -63,13 +63,13 @@ local function base_get(obj, path)
 	end
 	if type(path) == "string" or type(path) == "number" then
 		return obj[path]
-	elseif util.is_array(path) then
+	elseif util.is_array(path) and #path > 0 then
 		local part = table.remove(path, 1)
 		local index = util.is_array(obj) and tonumber(part) or part
 		if #path == 0 then
 			return obj[index]
 		end
-		return base_get(obj[part], path)
+		return base_get(obj[index], path)
 	else
 		return nil
 	end
@@ -83,7 +83,7 @@ end
 ---@param default any
 ---@return any
 function table_extensions.get(obj, path, default)
-	local result = base_get(obj, path)
+	local result = base_get(obj, util.clone(path))
 	if result == nil then
 		return default
 	end
@@ -97,21 +97,30 @@ end
 ---@param obj T
 ---@param path string|string[]
 ---@param value any
----@return T
+---@return T, string?
 function table_extensions.set(obj, path, value)
-	if type(obj) ~= "table" then
-		return obj
+	if obj == nil and #path > 0 then -- create table if obj is nil
+		obj = {}
+	elseif type(obj) ~= "table" then
+		if #path > 0 then
+			return nil, "cannot set nested value on a non-table object"
+		end
+		return value
 	end
+	path = util.clone(path)
 	if type(path) == "string" or type(path) == "number" then
 		obj[path] = value
-	elseif util.is_array(path) then
+	elseif util.is_array(path) and #path > 0 then
 		local part = table.remove(path, 1)
 		local index = util.is_array(obj) and tonumber(part) or part
 		if #path == 0 then
 			obj[index] = value
 		else
-			table_extensions.set(obj[part], path, value)
+			local val, err = table_extensions.set(obj[part], path, value)
+			if not val and err then return nil, err end
+			obj[part] = val
 		end
+		return obj
 	end
 	return obj
 end

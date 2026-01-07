@@ -570,7 +570,7 @@ end
 ---@class FsChownOptions
 ---@field recurse boolean?
 ---@field recurse_ignore_errors boolean?
----@field filter (fun(path: string, full_path: string): boolean)?
+---@field skip (fun(path: string, full_path: string): boolean)?
 
 ---#DES 'fs.chown'
 ---
@@ -605,9 +605,9 @@ function fs.chown(path, uid, gid, options)
 	end
 
 	for _, entry_path in ipairs(entries) do
-		if type(options.filter) == "function" then
+		if type(options.skip) == "function" then
 			local relative_path = get_relative_path(entry_path, path)
-			if options.filter(relative_path, entry_path) then
+			if options.skip(relative_path, entry_path) then
 				goto continue
 			end
 		end
@@ -625,7 +625,7 @@ end
 ---@class FsChmodOptions
 ---@field recurse boolean?
 ---@field recurse_ignore_errors boolean?
----@field filter (fun(path: string, full_path: string): boolean)?
+---@field skip (fun(path: string, full_path: string): boolean)?
 
 ---#DES 'fs.chmod'
 ---
@@ -664,9 +664,9 @@ function fs.chmod(path, mode, options)
 	end
 
 	for _, entry_path in ipairs(entries) do
-		if type(options.filter) == "function" then
+		if type(options.skip) == "function" then
 			local relative_path = get_relative_path(entry_path, path)
-			if options.filter(relative_path, entry_path) then
+			if options.skip(relative_path, entry_path) then
 				goto continue
 			end
 		end
