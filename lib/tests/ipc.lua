@@ -89,7 +89,7 @@ test["ipc (cross process - client)"] = function ()
 		args = { arg[-1], path.combine("assets", "ipc-server.lua") }
 	end
 	eliProc.spawn(bin, args)
-	os.sleep(1)
+	os.sleep(1, "s")
 	local client, err = eliIpc.connect"/tmp/test.sock"
 	test.assert(client, err)
 	client:write"ping"

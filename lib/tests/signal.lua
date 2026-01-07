@@ -51,7 +51,7 @@ test["out of process signal"]     = function ()
 		args = { arg[-1], path.combine("assets", "signal-catch.lua") }
 	end
 	local p = eliProc.spawn(bin, args, { stdio = "inherit" })
-	os.sleep(1)
+	os.sleep(1, "s")
 	p:kill(isWindows and signal.SIGBREAK or signal.SIGTERM)
 
 	local code = p:wait()
@@ -66,7 +66,7 @@ test["kill process"]              = function ()
 		args = { arg[-1], path.combine("assets", "signal-catch.lua") }
 	end
 	local p = eliProc.spawn(bin, args, { stdio = "inherit" })
-	os.sleep(1)
+	os.sleep(1, "s")
 	p:kill(signal.SIGKILL)
 
 	local code = p:wait()
@@ -85,7 +85,7 @@ test["process group"]             = function ()
 	local g = p:get_group()
 	assert(g, "process group not created")
 	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", process_group = g })
-	os.sleep(2)
+	os.sleep(2, "s")
 	g:kill(signal.SIGINT)
 
 	local code = p:wait()
@@ -105,7 +105,7 @@ test["windows ctrl events group"] = function ()
 	end
 
 	local p = eliProc.spawn(bin, args, { stdio = "inherit" })
-	os.sleep(1)
+	os.sleep(1, "s")
 
 	p:kill(signal.SIGBREAK)
 
@@ -124,7 +124,7 @@ test["kill group"]                = function ()
 	local g = p:get_group()
 	assert(g, "process group not created")
 	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", process_group = g })
-	os.sleep(1)
+	os.sleep(1, "s")
 	g:kill(signal.SIGKILL)
 
 	local code = p:wait()
@@ -146,7 +146,7 @@ test["process by pid"]            = function ()
 
 	local g = pref:get_group()
 	assert(g, "process group not created")
-	os.sleep(1)
+	os.sleep(1, "s")
 	g:kill(signal.SIGINT)
 
 	local code = p:wait()

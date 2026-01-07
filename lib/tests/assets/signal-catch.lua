@@ -16,7 +16,7 @@ end)
 local counter = 0
 while counter < 10000 do
 	counter = counter + 1
-	os.sleep(1)
+	os.sleep(1, "ms")
 end
 
 os.exit(1)
