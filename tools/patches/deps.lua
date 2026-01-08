@@ -50,7 +50,7 @@ local patches = {
 	},
 	[LINIT_C] = {
 		validate = function (file)
-			return file:match"\nLUALIB_API void luaL_openlibs.-\n%s*}"
+			return file:match"\nLUALIB_API void luaL_openselectedlibs.-\n%s*}"
 		end,
 		patch = function (file)
 			local _embedableLibs = generate_embedable_module(config.lua_libs, {
@@ -69,8 +69,7 @@ local patches = {
 				compress = config.compress,
 			})
 			local _linit = file:gsub("/%* eli additional libs %*/.-/%* end eli additional libs %*/\n", "") -- cleanup potential old init
-			   :gsub("\nLUALIB_API void luaL_openlibs", _rendered)                                -- inject libs
-			local _start, _end = _linit:find"\nLUALIB_API void luaL_openlibs.*$"
+			   :gsub("\nLUALIB_API void luaL_openselectedlibs", _rendered)                        -- inject libs
 			return _linit:gsub("\n%s-}%s-$", "\n" .. lustache:render(
 				templates.LINIT_LIBS_LOAD,
 				{ embedableLibsLength = _embedableLibsSize, compress = config.compress }

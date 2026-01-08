@@ -28,6 +28,10 @@ test["raise"]                     = function ()
 	end)
 	signal.raise(signal.SIGTERM)
 
+	while not catched do
+		os.sleep(1, "ms")
+	end
+
 	signal.reset(signal.SIGTERM)
 
 	test.assert(catched, "signal not catched")
@@ -47,7 +51,7 @@ test["out of process signal"]     = function ()
 		args = { arg[-1], path.combine("assets", "signal-catch.lua") }
 	end
 	local p = eliProc.spawn(bin, args, { stdio = "inherit" })
-	os.sleep(1)
+	os.sleep(1, "s")
 	p:kill(isWindows and signal.SIGBREAK or signal.SIGTERM)
 
 	local code = p:wait()
@@ -62,7 +66,7 @@ test["kill process"]              = function ()
 		args = { arg[-1], path.combine("assets", "signal-catch.lua") }
 	end
 	local p = eliProc.spawn(bin, args, { stdio = "inherit" })
-	os.sleep(1)
+	os.sleep(1, "s")
 	p:kill(signal.SIGKILL)
 
 	local code = p:wait()
@@ -79,13 +83,21 @@ test["process group"]             = function ()
 	local p = eliProc.spawn(bin, args, { stdio = "inherit", create_process_group = true })
 
 	local g = p:get_group()
+	os.sleep(1, "s") -- give first process some time to create console
 	assert(g, "process group not created")
 	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", process_group = g })
-	os.sleep(1)
-	g:kill(signal.SIGINT)
+	os.sleep(3, "s")
+	local ok, err = g:kill(signal.SIGINT)
+	if not ok then
+		print"failed to send signal to process group"
+		print("err: ", err)
+	end
 
 	local code = p:wait()
 	local code2 = p2:wait()
+	if code ~= 0 or code2 ~= 0 then
+		print(" ======> exit codes: ", code, code2)
+	end
 	test.assert(code == 0 and code2 == 0, "signal not catched")
 end
 
@@ -101,7 +113,7 @@ test["windows ctrl events group"] = function ()
 	end
 
 	local p = eliProc.spawn(bin, args, { stdio = "inherit" })
-	os.sleep(1)
+	os.sleep(1, "s")
 
 	p:kill(signal.SIGBREAK)
 
@@ -120,7 +132,7 @@ test["kill group"]                = function ()
 	local g = p:get_group()
 	assert(g, "process group not created")
 	local p2 = eliProc.spawn(bin, args, { stdio = "inherit", process_group = g })
-	os.sleep(1)
+	os.sleep(1, "s")
 	g:kill(signal.SIGKILL)
 
 	local code = p:wait()
@@ -142,14 +154,12 @@ test["process by pid"]            = function ()
 
 	local g = pref:get_group()
 	assert(g, "process group not created")
-	os.sleep(1)
+	os.sleep(1, "s")
 	g:kill(signal.SIGINT)
 
 	local code = p:wait()
 	test.assert(code == 0, "signal not catched")
 end
-
-
 
 if not TEST then
 	test.summary()

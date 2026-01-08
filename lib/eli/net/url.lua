@@ -145,7 +145,7 @@ function url.parse_query(str, sep)
 
 	local values = {}
 	for key, val in str:gmatch(string.format("([^%q=]+)(=*[^%q=]*)", sep, sep)) do
-		key = decodeValue(key)
+		local key = decodeValue(key)
 		local keys = {}
 		key = key:gsub("%[([^%]]*)%]", function (v)
 			-- extract keys between balanced brackets

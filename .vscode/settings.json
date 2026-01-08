@@ -59,7 +59,8 @@
         "sleep.h": "c",
         "numbers": "cpp",
         "lerror.h": "c",
-        "stream_win.h": "c"
+        "stream_win.h": "c",
+        "luaconf.h": "c"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/cpp",
     "editor.formatOnSave": true,
