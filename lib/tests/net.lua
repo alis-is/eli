@@ -103,7 +103,7 @@ test["RestClient get"] = function ()
 	end
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
-	if data.args.test ~= "aaa" or data.args.test2 ~= "bbb" then
+	if data.args.test[1] ~= "aaa" or data.args.test2[1] ~= "bbb" then
 		print"----- raw data -----"
 		print(response.raw)
 		print"---------------------"
@@ -117,7 +117,7 @@ test["RestClient get"] = function ()
 	end
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient post"] = function ()
@@ -132,7 +132,7 @@ test["RestClient post"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "post", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
@@ -143,7 +143,7 @@ test["RestClient post"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient put"] = function ()
@@ -157,7 +157,7 @@ test["RestClient put"] = function ()
 	test.assert(response, "request failed - " .. tostring(err))
 	local data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "put", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
@@ -168,7 +168,7 @@ test["RestClient put"] = function ()
 	test.assert(response, "request failed - " .. tostring(err))
 	data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "put", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
@@ -179,7 +179,7 @@ test["RestClient put"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	data = response.data
 	test.assert(data.data == "simple", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient patch"] = function ()
@@ -193,7 +193,7 @@ test["RestClient patch"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "patch", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
@@ -204,7 +204,7 @@ test["RestClient patch"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient delete"] = function ()
@@ -216,7 +216,7 @@ test["RestClient delete"] = function ()
 	end
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client = RestClient:new(HTTPBIN_URL .. "delete", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
@@ -225,7 +225,7 @@ test["RestClient delete"] = function ()
 	end
 	test.assert(response, "request failed  - " .. tostring(err))
 	data = response.data
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient conf"] = function ()
@@ -239,7 +239,7 @@ test["RestClient conf"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
 	test.assert(data.json == nil, "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 
 	client:conf{ headers = { ["Content-Type"] = "application/json" } }
 	for _ = 1, RETRIES do
@@ -250,7 +250,7 @@ test["RestClient conf"] = function ()
 	test.assert(response, "request failed  - " .. tostring(err))
 	data = response.data
 	test.assert(data.json.test == "data" and data.json.test2.other == "data2", "Failed to verify result")
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	test.assert(data.args.test[1] == "aaa" and data.args.test2[1] == "bbb", "Failed to verify result")
 end
 
 test["RestClient get_url and res"] = function ()
