@@ -103,7 +103,12 @@ test["RestClient get"] = function ()
 	end
 	test.assert(response, "request failed  - " .. tostring(err))
 	local data = response.data
-	test.assert(data.args.test == "aaa" and data.args.test2 == "bbb", "Failed to verify result")
+	if data.args.test ~= "aaa" or data.args.test2 ~= "bbb" then
+		print"----- raw data -----"
+		print(response.raw)
+		print"---------------------"
+		test.assert(false, "Failed to verify result")
+	end
 
 	client = RestClient:new(HTTPBIN_URL .. "get", { timeout = TIMEOUT })
 	for _ = 1, RETRIES do
