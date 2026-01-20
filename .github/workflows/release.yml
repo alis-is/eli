@@ -196,7 +196,6 @@ jobs:
       - name: test ami
         run: |
           cd ami
-          ls -la tests/assets/cli/
           ../release/eli-linux-x86_64 tests/all.lua
 
   test-ascend:
