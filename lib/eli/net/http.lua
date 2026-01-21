@@ -4,7 +4,6 @@ local util = require"eli.util"
 local hjson = require"hjson"
 local table_extensions = require"eli.extensions.table"
 local net_url = require"eli.net.url"
-local zlib = require"zlib"
 local base64 = require"base64"
 
 local MINIMUM_BUFFER_CAPACITY = 1024
@@ -160,129 +159,6 @@ local function is_client_targeting_same_authority(client, url)
 	return scheme == client_scheme and host == client_host and port == client_port
 end
 
--- // TODO: port to C
----@param response BaseResponse
----@param options RequestOptions
----@param progress_function (fun(total?: number, current: number))?
----@return string?, string?
-local function read_content(response, options, progress_function)
-	local raw_response_data = ""
-
-	local response_headers = response:headers()
-	local content_length = response_headers["Content-Length"] and tonumber(response_headers["Content-Length"])
-	local content_encoding = response_headers["Content-Encoding"]
-
-	local total_bytes_read = 0
-	local inflate = (content_encoding == "deflate" or content_encoding == "gzip") and zlib.inflate() or false
-	local inflate_cache = ""
-
-	while true do
-		local buffer_capacity = math.min(options.buffer_capacity or DEFAULT_BUFFER_CAPACITY,
-			content_length - total_bytes_read)
-		local chunk = response:read(buffer_capacity)
-		if not chunk or type(chunk) ~= "string" then
-			if content_length > 0 and total_bytes_read ~= content_length then
-				local err_msg = string.interpolate(
-					"expected ${content_length} bytes, got ${total_bytes_read}",
-					{ content_length = content_length, total_bytes_read = total_bytes_read })
-				return nil, err_msg
-			end
-			break
-		end
-		total_bytes_read = total_bytes_read + #chunk
-		if type(progress_function) == "function" then
-			progress_function(content_length, total_bytes_read)
-		end
-		if inflate then
-			inflate_cache = inflate_cache .. chunk
-			local bytes_in
-			chunk, _, bytes_in = inflate(inflate_cache)
-			inflate_cache = inflate_cache:sub(bytes_in + 1) -- remove inflated part
-		end
-		if type(options.write_function) == "function" then
-			options.write_function(chunk)
-		else
-			raw_response_data = raw_response_data .. chunk
-		end
-		if total_bytes_read == content_length then break end
-	end
-	return raw_response_data
-end
-
--- // TODO: port to C
---- comment
---- @param response any
---- @param options any
---- @return string?, string?
-local function read_chunked_content(response, options)
-	local raw_response_data = ""
-
-	local response_headers = response:headers()
-	local content_encoding = response_headers["Content-Encoding"]
-
-	local inflate = (content_encoding == "deflate" or content_encoding == "gzip") and zlib.inflate() or false
-	local inflate_cache = ""
-
-	local data_cache = ""
-	---@type integer|nil
-	local expected_chunk_size
-	local available_data_size = 0
-
-	while true do
-		-- we always need either chunk size and 5 bytes for next chunk size or at least 3 bytes for chunk header
-		local bytes_needed = expected_chunk_size and (expected_chunk_size - available_data_size) + 5 or 3
-		if bytes_needed == 3 and available_data_size > 1 then
-			bytes_needed = data_cache:sub(-1) == "\r" and 1 or 2 -- we need only 1 or 2 bytes to close chunk header
-		end
-		local buffer_capacity = math.min(options.buffer_capacity or DEFAULT_BUFFER_CAPACITY, bytes_needed)
-
-		local data, data_length_or_error = response:read(buffer_capacity)
-		if not data or type(data) ~= "string" then
-			local error_msg = string.interpolate("cannot retrieve data: ${error}", { error = data_length_or_error })
-			return nil, error_msg
-		end
-		data_cache = data_cache .. data
-		available_data_size = available_data_size + data_length_or_error
-
-		while true do
-			if expected_chunk_size == nil then
-				local _, match_end = data_cache:find("\r\n", 1, true)
-				if match_end == 2 then
-					_, match_end = data_cache:find("\r\n", 3, true) -- skip \r\n
-				end
-				if not match_end then break end      -- Not enough data to determine chunk size
-
-				expected_chunk_size = tonumber(data_cache:sub(1, match_end), 16)
-				if expected_chunk_size == 0 then return raw_response_data end -- Last chunk
-				data_cache = data_cache:sub(match_end + 1)
-				available_data_size = available_data_size - match_end
-			end
-
-			if available_data_size < expected_chunk_size then
-				break -- Not enough data to read the full chunk
-			end
-
-			local chunk = data_cache:sub(1, expected_chunk_size)
-			data_cache = data_cache:sub(expected_chunk_size + 1)
-			available_data_size = available_data_size - expected_chunk_size
-			expected_chunk_size = nil
-
-			if inflate then
-				inflate_cache = inflate_cache .. chunk
-				local bytes_in
-				chunk, _, bytes_in, _ = inflate(inflate_cache)
-				inflate_cache = inflate_cache:sub(bytes_in + 1) -- remove inflated part
-			end
-
-			if type(options.write_function) == "function" then
-				options.write_function(chunk)
-			else
-				raw_response_data = raw_response_data .. chunk
-			end
-		end
-	end
-end
-
 ---Performs request
 ---@param client CorehttpClient
 ---@param path any
@@ -401,14 +277,16 @@ local function request(client, path, method, options, data)
 	local is_event_stream = response_headers["Content-Type"] == "text/event-stream"
 
 	if is_chunked_encoding then
-		raw_response_data, err = read_chunked_content(response, options)
+		raw_response_data, err = response:read_chunked_content(options.write_function, progress_function, options
+			.buffer_capacity)
 		if not raw_response_data then
 			return nil, err or "failed to read chunked content"
 		end
 	elseif is_event_stream then
 		return nil, "event stream not supported yet"
 	else
-		raw_response_data, err = read_content(response, options, progress_function)
+		raw_response_data, err = response:read_content(options.write_function, progress_function, options
+			.buffer_capacity)
 		if not raw_response_data then
 			return nil, err or "failed to read content"
 		end
