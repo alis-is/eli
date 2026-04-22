@@ -275,6 +275,7 @@ static int worker_pack_value(lua_State *L, int index, worker_value *value,
 	size_t count = 0;
 	size_t i = 0;
 	const void *pointer;
+	int has_table_value = 0;
 
 	memset(value, 0, sizeof(*value));
 
@@ -336,25 +337,29 @@ static int worker_pack_value(lua_State *L, int index, worker_value *value,
 		lua_pushnil(L);
 		while (lua_next(L, absolute_index) != 0) {
 			worker_table_entry *entry = &value->as.table_value.entries[i++];
+			has_table_value = 1;
 			entry->key = (worker_value *)calloc(1, sizeof(worker_value));
 			entry->value = (worker_value *)calloc(1, sizeof(worker_value));
 			if (entry->key == NULL || entry->value == NULL) {
-				worker_table_path_pop(visited);
 				*error = "out of memory while copying worker table entry";
-				lua_pop(L, 1);
-				return 0;
+				goto table_error;
 			}
 			if (!worker_pack_key(L, -2, entry->key, error) ||
 			    !worker_pack_value(L, -1, entry->value, visited, error)) {
-				worker_table_path_pop(visited);
-				lua_pop(L, 1);
-				return 0;
+				goto table_error;
 			}
 			lua_pop(L, 1);
+			has_table_value = 0;
 		}
 
 		worker_table_path_pop(visited);
 		return 1;
+	table_error:
+		if (has_table_value) {
+			lua_pop(L, 1);
+		}
+		worker_table_path_pop(visited);
+		return 0;
 	case LUA_TUSERDATA:
 		if (!worker_channel_is_ref(L, absolute_index)) {
 			*error = "worker only supports worker channels as userdata values";
@@ -505,7 +510,6 @@ static int worker_thread_main(void *arg)
 		task->done = 1;
 		cnd_broadcast(&task->done_cond);
 		mtx_unlock(&task->mutex);
-		lua_pop(L, 2);
 		lua_close(L);
 		goto cleanup;
 	}
