@@ -18,6 +18,7 @@ require"elios"
 require"global"
 require"signal"
 require"ipc"
+require"worker"
 
 require"extensions.string"
 require"extensions.table"
