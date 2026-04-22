@@ -402,8 +402,6 @@ static void worker_free_value(worker_value *value)
 	memset(value, 0, sizeof(*value));
 }
 
-static int worker_ensure_channel_metatable(lua_State *L);
-
 static int worker_push_channel_ref(lua_State *L, worker_channel *channel)
 {
 	worker_channel_ref *ref;
@@ -556,7 +554,8 @@ static int worker_thread_main(void *arg)
 		if (!worker_pack_value(L, (int)i + 1, &task->results[i], &visited, &error)) {
 			size_t j;
 			worker_table_path_free(&visited);
-			for (j = 0; j <= i; j++) {
+			worker_free_value(&task->results[i]);
+			for (j = 0; j < i; j++) {
 				worker_free_value(&task->results[j]);
 			}
 			free(task->results);
@@ -885,7 +884,8 @@ static int worker_spawn(lua_State *L)
 		if (!worker_pack_value(L, (int)i + 2, &args[i], &visited, &error)) {
 			size_t j;
 			worker_table_path_free(&visited);
-			for (j = 0; j <= i; j++) {
+			worker_free_value(&args[i]);
+			for (j = 0; j < i; j++) {
 				worker_free_value(&args[j]);
 			}
 			free(args);
