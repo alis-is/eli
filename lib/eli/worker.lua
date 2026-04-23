@@ -52,6 +52,7 @@ local function dump_function(fn)
 		return nil, validation_error
 	end
 
+	-- Strip debug info so dumped jobs stay compact and do not retain source details unnecessarily.
 	local dumped_ok, dumped_or_error = pcall(string.dump, fn, true)
 	if not dumped_ok then
 		return nil, dumped_or_error
@@ -75,10 +76,12 @@ local function normalize_job(job)
 	end
 
 	if type(job) == "string" then
-		local file = io.open(job, "rb")
-		if file ~= nil then
-			file:close()
-			return load_file_job(job)
+		local dumped_job, dump_error = load_file_job(job)
+		if dumped_job ~= nil then
+			return dumped_job
+		end
+		if type(dump_error) ~= "string" or dump_error:find("cannot open", 1, true) == nil then
+			return nil, dump_error
 		end
 		return job
 	end
