@@ -90,6 +90,7 @@ typedef struct worker_visited_tables {
 typedef struct worker_thread_context {
 	worker_task *task;
 	char *code;
+	size_t code_length;
 	size_t arg_count;
 	worker_value *args;
 } worker_thread_context;
@@ -503,7 +504,7 @@ static int worker_thread_main(void *arg)
 	lua_pushcfunction(L, worker_traceback);
 	handler_index = lua_gettop(L);
 
-	status = luaL_loadbuffer(L, context->code, strlen(context->code), "=worker");
+	status = luaL_loadbuffer(L, context->code, context->code_length, "=worker");
 	if (status != LUA_OK) {
 		mtx_lock(&task->mutex);
 		worker_task_set_error(task, lua_tostring(L, -1));
@@ -861,8 +862,9 @@ static int worker_spawn(lua_State *L)
 {
 	size_t arg_count;
 	size_t i;
-	const char *code = luaL_checkstring(L, 1);
-	char *code_copy = worker_strdup(code);
+	size_t code_length = 0;
+	const char *code = luaL_checklstring(L, 1, &code_length);
+	char *code_copy = worker_strdup_n(code, code_length);
 	worker_value *args;
 	worker_task *task;
 	worker_thread_context *context;
@@ -944,6 +946,7 @@ static int worker_spawn(lua_State *L)
 
 	context->task = task;
 	context->code = code_copy;
+	context->code_length = code_length;
 	context->arg_count = arg_count;
 	context->args = args;
 
