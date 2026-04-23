@@ -78,8 +78,8 @@ test["worker channels exchange messages"] = function ()
 	test.assert(ok_recv, response)
 	test.equal(response, "ping:pong")
 
-	local ok_join, original = task:wait()
-	test.assert(ok_join, original)
+	local ok_wait, original = task:wait()
+	test.assert(ok_wait, original)
 	test.equal(original, "ping")
 end
 

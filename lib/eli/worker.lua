@@ -91,6 +91,7 @@ end
 
 local function sleep_wait_poll()
 	if is_os_loaded and type(eli_os.sleep) == "function" then
+		-- eli.os.sleep defaults to milliseconds, so this keeps wait() responsive without a tight spin loop.
 		eli_os.sleep(1)
 	end
 end
