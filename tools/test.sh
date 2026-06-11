@@ -3,7 +3,11 @@
 # for debugging
 # set -euxo
 
-go-httpbin -host 127.0.0.1 -port 8081 >httpbin.log 2>&1 &
+if command -v go-httpbin >/dev/null 2>&1; then
+    go-httpbin -host 127.0.0.1 -port 8081 >httpbin.log 2>&1 &
+else
+    go run github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@v2 -host 127.0.0.1 -port 8081 >httpbin.log 2>&1 &
+fi
 HTTPBIN_PID=$!
 
 # Wait up to 5 minutes (300 seconds) for "go-httpbin listening" to appear in httpbin.log
