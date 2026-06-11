@@ -3,7 +3,7 @@
 # for debugging
 # set -euxo
 
-go run github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@v2 -host 127.0.0.1 -port 8081 >httpbin.log 2>&1 &
+go-httpbin -host 127.0.0.1 -port 8081 >httpbin.log 2>&1 &
 HTTPBIN_PID=$!
 
 # Wait up to 5 minutes (300 seconds) for "go-httpbin listening" to appear in httpbin.log
@@ -14,6 +14,7 @@ while ! grep -q "go-httpbin listening" httpbin.log; do
     SECONDS_WAITED=$((SECONDS_WAITED + 1))
     if [ $SECONDS_WAITED -ge $TIMEOUT ]; then
         echo "Timeout waiting for go-httpbin to start."
+        cat httpbin.log
         kill $HTTPBIN_PID 2>/dev/null
         exit 1
     fi

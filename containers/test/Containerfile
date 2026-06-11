@@ -1,0 +1,4 @@
+FROM docker.io/alpine:latest
+RUN apk add qemu-i386 qemu-aarch64 qemu-x86_64 qemu-riscv64 go
+RUN GOBIN=/usr/local/bin go install github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@v2
+ENTRYPOINT [ "./tools/test.sh" ]
