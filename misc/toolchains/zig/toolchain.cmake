@@ -13,6 +13,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL Windows)
 	set(CMAKE_LD "${CMAKE_CURRENT_LIST_DIR}/lld-link${SCRIPT_SUFFIX}")
 elseif(CMAKE_SYSTEM_NAME STREQUAL Darwin)
 	set(CMAKE_LD "${CMAKE_CURRENT_LIST_DIR}/ld64.lld${SCRIPT_SUFFIX}")
+	# zig ships no install_name_tool and everything is linked static, but cmake
+	# requires it during compiler detection; no-op is enough
+	set(CMAKE_INSTALL_NAME_TOOL ":")
 else()
 	set(CMAKE_LD "${CMAKE_CURRENT_LIST_DIR}/ld.ldd${SCRIPT_SUFFIX}")
 endif()
