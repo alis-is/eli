@@ -24,6 +24,7 @@
         lua_corehttp: corehttp
         lua_simple_socket: socket
         lua_simple_ipc_core: ipc.core
+        eli_worker_extra: eli.worker.extra
     }
     lua_libs: [
         {
