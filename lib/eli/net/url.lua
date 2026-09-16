@@ -21,6 +21,7 @@ local util = require"eli.util"
 
 local legal_in_path = ":_-.!~*'()@&=$,;"
 local legal_in_query = ":_-.,!~*';()@$"
+local query_key_legal = { ["-"] = true, ["_"] = true, ["."] = true }
 
 ---@param str string
 local function split_to_map(str)
@@ -29,6 +30,10 @@ local function split_to_map(str)
 		map[char] = true
 	end
 	return map
+end
+
+local function padnum(n, rest)
+	return ("%03d" .. rest):format(tonumber(n))
 end
 
 url.options = {
@@ -78,14 +83,17 @@ function url.build_query(tab, sep, key)
 	sep = sep or url.options.separator or "&"
 
 	local keys = exTable.keys(tab)
+	local sort_keys = {}
+	for _, k in ipairs(keys) do
+		sort_keys[k] = tostring(k):gsub("(%d+)(%.)", padnum)
+	end
 	table.sort(keys, function (a, b)
-		local function padnum(n, rest) return ("%03d" .. rest):format(tonumber(n)) end
-		return tostring(a):gsub("(%d+)(%.)", padnum) < tostring(b):gsub("(%d+)(%.)", padnum)
+		return sort_keys[a] < sort_keys[b]
 	end)
 
 	for _, name in ipairs(keys) do
 		local value = tab[name]
-		name = url.encode(tostring(name), { ["-"] = true, ["_"] = true, ["."] = true })
+		name = url.encode(tostring(name), query_key_legal)
 		if key then
 			if url.options.cumulative_parameters and string.find(name, "^%d+$") then
 				name = tostring(key)
@@ -160,6 +168,7 @@ function url.parse_query(str, sep)
 		key = key:gsub("=+.*$", "")
 		key = key:gsub("%s", "_") -- remove spaces in parameter name
 		val = val:gsub("^=+", "")
+		local decoded_value = decodeValue(val)
 
 		if not values[key] then
 			values[key] = {}
@@ -168,11 +177,11 @@ function url.parse_query(str, sep)
 		if #keys > 0 and type(values[key]) ~= "table" then
 			values[key] = {}
 		elseif #keys == 0 and type(values[key]) == "table" then
-			values[key] = decodeValue(val)
+			values[key] = decoded_value
 		elseif url.options.cumulative_parameters
 		and    type(values[key]) == "string" then
 			values[key] = { values[key] }
-			table.insert(values[key], decodeValue(val))
+			table.insert(values[key], decoded_value)
 		end
 
 		local t = values[key]
@@ -187,7 +196,7 @@ function url.parse_query(str, sep)
 				t[k] = {}
 			end
 			if i == #keys then
-				t[k] = val
+				t[k] = decoded_value
 			end
 			t = t[k]
 		end
@@ -446,13 +455,14 @@ end
 ---@return Url
 function url.parse(urlStr)
 	local result = {}
-	result.query = url.parse_query""
 
 	local scheme, authority, path, query, fragment = extract_url_components(urlStr)
 	result.fragment = fragment
 	result.scheme = scheme
 	if query ~= nil then
 		url.set_query(result, query)
+	else
+		result.query = url.parse_query""
 	end
 	if authority ~= nil then
 		url.set_authority(result, authority)

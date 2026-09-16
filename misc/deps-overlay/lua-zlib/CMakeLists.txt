@@ -5,4 +5,3 @@ set(lzlib ${lzlib_sources})
 
 add_library (lzlib  ${lzlib})
 target_link_libraries (lzlib)
-

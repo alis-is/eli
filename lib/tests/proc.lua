@@ -90,6 +90,33 @@ test["spawn"] = function ()
 	test.assert(exit_code == 0 and result:match"173")
 end
 
+test["spawn (numeric args survive options GC)"] = function ()
+	local native = require"eli.proc.extra"
+	local args = isUnixLike and { "%s\n" } or { "/c", "echo" }
+	local first = #args + 1
+	for i = 1, 64 do args[#args + 1] = 1234567890000 + i end
+	local collected = false
+	local options = setmetatable({ args = args }, { __index = function (_, key)
+		if key == "env" then
+			collectgarbage"collect"
+			local churn = {}
+			for i = 1, 4096 do churn[i] = string.format("%013d", i) end
+			collectgarbage"collect"
+			collected = true
+		end
+	end })
+	local process = assert(native.spawn(isUnixLike and "printf" or "cmd", options))
+	local output = process:get_stdout():read"a"
+	test.assert(process:wait() == 0 and collected)
+	local count = 0
+	for value in output:gmatch"%S+" do
+		count = count + 1
+		test.assert(tonumber(value) == 1234567890000 + count)
+	end
+	test.assert(count == 64)
+	for i = first, #args do test.assert(type(args[i]) == "number") end
+end
+
 test["spawn (cleanup)"] = function ()
 	local testExecutable = isUnixLike and "sh" or "cmd"
 	function t()
@@ -105,6 +132,31 @@ test["spawn (not found)"] = function ()
 	local test_executable = "nonExistentExecutable"
 	local ok, _ = eli_proc.spawn(test_executable)
 	test.assert(not ok)
+end
+
+test["spawn (path skips directories)"] = function ()
+	if not isUnixLike then return end
+	local eli_env = require"eli.env"
+	local name = "eli_path_probe_" .. tostring(os.time())
+	local dir_candidate = eli_path.combine("tmp", "path_a")
+	local bin_candidate = eli_path.combine("tmp", "path_b")
+	local command_dir = eli_path.combine(dir_candidate, name)
+	local command_bin = eli_path.combine(bin_candidate, name)
+	eli_fs.mkdirp(command_dir)
+	eli_fs.mkdirp(bin_candidate)
+	eli_fs.write_file(command_bin, "#!/bin/sh\nprintf 'from-path'\n")
+	os.execute("chmod +x '" .. command_dir .. "' '" .. command_bin .. "'")
+	local previous = os.getenv"PATH"
+	eli_env.set_env("PATH",
+		eli_path.abs(dir_candidate, os.cwd()) .. ":" ..
+		eli_path.abs(bin_candidate, os.cwd()) .. ":" .. (previous or ""))
+	local result = eli_proc.spawn(name, {}, { wait = true })
+	eli_env.set_env("PATH", previous)
+	eli_fs.remove(command_dir, { recurse = true })
+	eli_fs.remove(bin_candidate, { recurse = true })
+	test.assert(result and result.exit_code == 0,
+		"directory candidate shadowed the real executable")
+	test.assert(result.stdout_stream:read"a":find("from-path", 1, true))
 end
 
 test["spawn (args)"] = function ()

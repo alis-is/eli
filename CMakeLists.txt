@@ -7,6 +7,9 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 set(CMAKE_CROSSCOMPILING CACHE BOOL ON FORCE)
 project(eli LANGUAGES C)
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
 # Build type flags come from tools/build.lua through the BUILD_FLAGS cache variable.
 separate_arguments(ELI_BUILD_FLAGS UNIX_COMMAND "${BUILD_FLAGS}")
 add_compile_options(
@@ -20,8 +23,14 @@ add_compile_options(
   $<$<NOT:$<CONFIG:Debug>>:-g0>
 )
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+add_compile_definitions(_DEFAULT_SOURCE)
 add_compile_definitions(MBEDTLS_USER_CONFIG_FILE=\"mbedtls/eli_mbedtls_config.h\")
-add_link_options(${ELI_BUILD_FLAGS} -fPIC -fPIE -Wl,--as-needed -Wl,--gc-sections -Wl,-Bsymbolic -static)
+add_link_options(${ELI_BUILD_FLAGS} -fPIC -fPIE)
+if(APPLE)
+  add_link_options(-Wl,-dead_strip)
+else()
+  add_link_options(-Wl,--as-needed -Wl,--gc-sections -Wl,-Bsymbolic -static)
+endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   add_compile_options(-flto -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-exceptions)
@@ -45,8 +54,6 @@ set(ZLIB_INCLUDE_DIR ${CMAKE_BINARY_DIR}/deps/zlib-ng CACHE STRING "zlib" FORCE)
 set(ZLIB_SOURCE_DIR ${CMAKE_SOURCE_DIR}/deps/zlib-ng)
 set(ZLIB_LIBRARY ${CMAKE_BINARY_DIR}/deps/zlib-ng/libz.a)
 set(MBEDTLS_INCLUDE ${CMAKE_SOURCE_DIR}/deps/mbedtls/include)
-set(MbedTLS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/include)
-set(MbedTLS_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/library/libmbedtls.a)
 set(ZIP_LIB_INCLUDE ${CMAKE_BINARY_DIR}/deps/libzip ${CMAKE_SOURCE_DIR}/deps/libzip/lib)
 set(COREHTTP_INCLUDE ${CMAKE_SOURCE_DIR}/deps/lua-corehttp/include)
 
@@ -61,9 +68,19 @@ include(${CMAKE_SOURCE_DIR}/deps/corehttp/httpFilePaths.cmake)
 
 # MBEDTLS
 set(ENABLE_ZLIB_SUPPORT ON CACHE BOOL "")
+# mbedtls registers its own tests even though EXCLUDE_FROM_ALL omits their
+# executables. Its option is cached, so force it off before entering that
+# subdirectory; Eli's tests enable CTest below.
+set(ENABLE_TESTING OFF CACHE BOOL "Build Mbed TLS tests." FORCE)
 add_subdirectory(deps/mbedtls/ EXCLUDE_FROM_ALL)
+unset(ENABLE_TESTING)
 
 # SUBPROJECTS
+add_subdirectory(deps/eli-worker/)
+target_include_directories(eli_worker PRIVATE
+  ${LUA_INCLUDE} ${C11THREADS_INCLUDE} ${ELI_EXTRA_UTILS_INCLUDE}
+  ${ELI_OS_EXTRA_INCLUDE})
+
 add_subdirectory(deps/lua-is-tty/)
 target_include_directories(lis_tty PRIVATE ${LUA_INCLUDE})
 
@@ -77,7 +94,8 @@ target_include_directories(eli_extra_utils PRIVATE ${LUA_INCLUDE} ${C11THREADS_I
 
 add_subdirectory(deps/lua-simple-socket/)
 target_compile_definitions(lssocket PRIVATE LSS_HAS_BUNDLED_ROOT_CERTIFICATES)
-target_include_directories(lssocket PRIVATE ${LUA_INCLUDE} ${MBEDTLS_INCLUDE} ${ELI_EXTRA_UTILS_INCLUDE})
+target_include_directories(lssocket PRIVATE ${LUA_INCLUDE} ${MBEDTLS_INCLUDE} ${ELI_EXTRA_UTILS_INCLUDE}
+  ${C11THREADS_INCLUDE})
 
 add_subdirectory(deps/lua-corehttp/)
 target_include_directories(lcorehttp PRIVATE ${LUA_INCLUDE} ${ELI_EXTRA_UTILS_INCLUDE} ${HTTP_INCLUDE_PUBLIC_DIRS}
@@ -89,14 +107,12 @@ target_include_directories(corehttp PUBLIC ${COREHTTP_INCLUDE})
 add_subdirectory(deps/lua-simple-ipc/)
 target_include_directories(lua_simple_ipc PRIVATE ${LUA_INCLUDE} ${ELI_EXTRA_UTILS_INCLUDE})
 
-add_subdirectory(deps/eli-env-extra/)
-target_include_directories(eli_env_extra PRIVATE ${LUA_INCLUDE} ${ELI_EXTRA_UTILS_INCLUDE})
-
 add_subdirectory(deps/eli-fs-extra/)
 target_include_directories(eli_fs_extra PRIVATE ${LUA_INCLUDE} ${ELI_EXTRA_UTILS_INCLUDE})
 
 add_subdirectory(deps/eli-os-extra/)
-target_include_directories(eli_os_extra PRIVATE ${LUA_INCLUDE} ${ELI_EXTRA_UTILS_INCLUDE})
+target_include_directories(eli_os_extra PRIVATE ${LUA_INCLUDE} ${ELI_EXTRA_UTILS_INCLUDE}
+  ${C11THREADS_INCLUDE})
 
 add_subdirectory(deps/eli-pipe-extra/)
 target_include_directories(eli_pipe_extra PRIVATE
@@ -104,7 +120,8 @@ target_include_directories(eli_pipe_extra PRIVATE
 
 add_subdirectory(deps/eli-proc-extra/)
 target_include_directories(eli_proc_extra PRIVATE ${LUA_INCLUDE} ${ELI_EXTRA_UTILS_INCLUDE}
-  ${ELI_STREAM_EXTRA_INCLUDE} ${ELI_OS_EXTRA_INCLUDE} ${ELI_PIPE_EXTRA_INCLUDE})
+  ${ELI_STREAM_EXTRA_INCLUDE} ${ELI_OS_EXTRA_INCLUDE} ${ELI_PIPE_EXTRA_INCLUDE}
+  ${C11THREADS_INCLUDE})
 
 add_subdirectory(deps/eli-stream-extra/)
 target_include_directories(eli_stream_extra PRIVATE ${LUA_INCLUDE} ${ELI_EXTRA_UTILS_INCLUDE})
@@ -138,9 +155,11 @@ add_dependencies(lzlib copy_zlib_files)
 # LIBZIP
 set(CMAKE_POLICY_DEFAULT_CMP0063 NEW)
 set(BUILD_SHARED_LIBS CACHE BOOL OFF FORCE)
+# libzip dropped its mbed TLS backend after 1.11.4; don't select it here.
+set(ENABLE_MBEDTLS OFF CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/libzip/ EXCLUDE_FROM_ALL)
-add_dependencies(zip zlibstatic mbedx509 mbedtls mbedcrypto)
-target_include_directories(zip PRIVATE ${ZLIB_INCLUDE_DIR} ${ZLIB_SOURCE_DIR} ${MBEDTLS_INCLUDE} ${MbedTLS_INCLUDE_DIR})
+add_dependencies(zip zlibstatic)
+target_include_directories(zip PRIVATE ${ZLIB_INCLUDE_DIR} ${ZLIB_SOURCE_DIR})
 
 # LUA-ZIP
 set(LUA_ZIP_BUILD_SHARED OFF)
@@ -148,17 +167,12 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/deps/lua-zip/)
 target_include_directories(lua_zip PRIVATE ${LUA_INCLUDE} ${ZIP_LIB_INCLUDE} ${ZLIB_INCLUDE_DIR} ${ZLIB_SOURCE_DIR})
 add_dependencies(lua_zip zip)
 
-set(MBEDTLS_LIBRARY mbedtls CACHE INTERNAL "" FORCE)
-set(MBEDX509_LIBRARY mbedx509 CACHE INTERNAL "" FORCE)
-set(MBEDCRYPTO_LIBRARY mbedcrypto CACHE INTERNAL "" FORCE)
-set(MBEDTLS_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/deps/mbedtls/include CACHE STRING "mbed" FORCE)
-
 # ELI
 add_executable(eli deps/lua/onelua.c)
 target_include_directories(eli PRIVATE ${LUA_INCLUDE})
 target_link_libraries(eli
-  lis_tty lua_zip ltar eli_fs_extra eli_pipe_extra eli_proc_extra eli_stream_extra eli_os_extra eli_env_extra
-  eli_extra_utils lua_mbed_bigint lua_mbed_base64 lua_simple_ipc lssocket corehttp lcorehttp
+  lis_tty lua_zip ltar eli_fs_extra eli_pipe_extra eli_proc_extra eli_stream_extra
+  eli_worker eli_os_extra eli_extra_utils lua_mbed_bigint lua_mbed_base64 lua_simple_ipc lssocket corehttp lcorehttp
   mbedx509 mbedtls mbedcrypto lhash zip lzlib zlibstatic)
 
 if(APPLE)
@@ -167,4 +181,18 @@ endif()
 
 if(WIN32 OR MINGW)
   target_link_libraries(eli bcrypt advapi32 ws2_32 c11threads)
+endif()
+
+option(ELI_BUILD_TESTS "Build native regression tests" OFF)
+if(ELI_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(deps/eli-worker/tests)
+  if(UNIX)
+    add_subdirectory(deps/eli-os-extra/tests)
+    add_subdirectory(deps/eli-proc-extra/tests)
+    add_subdirectory(deps/lua-simple-socket/tests)
+  endif()
+  if(WIN32)
+    add_subdirectory(deps/eli-proc-extra/tests)
+  endif()
 endif()

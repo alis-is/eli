@@ -1,6 +1,7 @@
 param ([string]$platform_choice)
 
-$httpbinLog = "$PSScriptRoot\httpbin.log"
+$httpbinLog = Join-Path (Get-Location) "httpbin.log"
+Remove-Item $httpbinLog -ErrorAction SilentlyContinue
 $job = Start-Job -ScriptBlock {
     go run github.com/mccutchen/go-httpbin/v2/cmd/go-httpbin@v2 -host 127.0.0.1 -port 8081 *>&1 | Tee-Object -FilePath $using:httpbinLog
 }
@@ -22,6 +23,7 @@ while ($elapsed -lt $timeout) {
 
 if ($elapsed -ge $timeout) {
     Stop-Job $job | Out-Null
+    Remove-Job $job
     throw "go-httpbin did not start listening within 5 minutes."
 }
 
@@ -31,9 +33,18 @@ $ROOT=$(pwd).Path
 
 function test_build {
     param ([string]$platform)
-    Set-Location "lib\\tests" &&
-    & "$ROOT\\release\\eli-windows-$platform.exe" "all.lua" &&
-    Set-Location "$ROOT" || throw "failed"
+    try {
+        Set-Location "lib\\tests" -ErrorAction Stop
+        $process = Start-Process -FilePath "$ROOT\\release\\eli-windows-$platform.exe" -ArgumentList "all.lua" -NoNewWindow -PassThru -ErrorAction Stop
+        if (-not $process.WaitForExit(900000)) {
+            Stop-Process -Id $process.Id -Force
+            throw "test suite timed out after 900 seconds"
+        }
+        $exitCode = $process.ExitCode
+        if ($exitCode -ne 0) { throw "failed" }
+    } finally {
+        Set-Location "$ROOT"
+    }
 }
 
 try {
@@ -44,5 +55,9 @@ try {
         test_build "i686"
     }
 } catch {
+    Write-Error $_
     exit 333
+} finally {
+    Stop-Job $job | Out-Null
+    Remove-Job $job
 }

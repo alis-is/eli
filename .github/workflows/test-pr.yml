@@ -20,6 +20,18 @@ jobs:
         toolchain: zig:x86_64-linux-musl
         artifact-id: eli-linux-x86_64
         debug-artifact-id: eli-linux-x86_64-debug
+    - name: test native
+      uses: addnab/docker-run-action@v3
+      with:
+        image: ghcr.io/alis-is/eli-build:latest
+        run: cmake -S . -B build/x86_64-linux-musl -DELI_BUILD_TESTS=ON && cmake --build build/x86_64-linux-musl -j2 && ctest --test-dir build/x86_64-linux-musl --output-on-failure
+        options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild
+    - name: test dependency patches
+      run: ./release/eli-linux-x86_64 tools/patches/deps-test.lua
+    - name: test watchdog
+      run: python3 tools/tests/watchdog.py
+    - name: test interpreter argv0 quoting
+      run: python3 tools/tests/interpreter_argv0.py ./release/eli-linux-x86_64
   build-linux-aarch64:
     runs-on: ubuntu-latest
     steps:
@@ -57,6 +69,16 @@ jobs:
           toolchain: zig:x86_64-windows-gnu
           artifact-id: eli-windows-x86_64.exe
           debug-artifact-id: eli-windows-x86_64-debug.exe
+      - name: build Windows handle-list regression
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/alis-is/eli-build:latest
+          run: cmake -S . -B build/x86_64-windows-gnu -DELI_BUILD_TESTS=ON && cmake --build build/x86_64-windows-gnu --target eli_proc_windows_handle_list_test -j2
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-windows-handle-list
+          path: build/x86_64-windows-gnu/deps/eli-proc-extra/tests/eli_proc_windows_handle_list_test.exe
 
   build-macos:
     runs-on: ubuntu-latest
@@ -109,6 +131,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: "./.github/template/prepare-test"
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-windows-handle-list
+          path: native-tests
+      - name: test Windows handle-list regression
+        shell: pwsh
+        run: |
+          .\native-tests\eli_proc_windows_handle_list_test.exe
+          if ($LASTEXITCODE -ne 0) { throw "Windows handle-list regression failed" }
       - name: test
         shell: pwsh
         run: |

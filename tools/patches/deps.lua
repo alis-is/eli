@@ -29,7 +29,6 @@ local LSTATE_C = "deps/lua/lstate.c"
 local LUA_C = "deps/lua/lua.c"
 local LUA_H = "deps/lua/lua.h"
 local LUACONF_H = "deps/lua/luaconf.h"
-local LUA_ZIP_C = "deps/lua-zip/lua_zip.c"
 local LIBZIP_CMAKELISTS = "deps/libzip/CMakeLists.txt"
 local MBED_MBEDTLS_CONFIG_H = "deps/mbedtls/include/mbedtls/mbedtls_config.h"
 local MBED_CMAKELISTS_TXT = "deps/mbedtls/CMakeLists.txt"
@@ -81,53 +80,62 @@ local patches = {
 			return file:match"lua_close%s-%(lua_State %*L%)%s-{.-\n%s*}"
 		end,
 		patch = function (file)
-			local unloadCode = [[
-			/* Begin __unload code injection */
+			local helpers = [[/* Begin __unload helpers injection */
+static int rununloadhooks (lua_State *L) {
+  lua_getglobal(L, "____UNLOAD_MODULE");
+  if (lua_istable(L, -1)) {
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+      if (lua_isfunction(L, -1)) {
+        if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+          lua_pop(L, 1);
+          lua_warning(L, "error while running unload hook", 0);
+        }
+      }
+      else
+        lua_pop(L, 1);
+    }
+  }
+  lua_pop(L, 1);
+  return 0;
+}
+/* End __unload helpers injection */
+]]
+			local call = [[  /* Begin __unload call injection */
+  L->status = LUA_OK;  /* unload hooks run as a normal protected call */
+  if (lua_checkstack(L, 2)) {
+    lua_pushcfunction(L, rununloadhooks);
+    if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+      lua_pop(L, 1);
+      lua_warning(L, "error while running unload hooks", 0);
+    }
+  }
+  else
+    lua_warning(L, "could not run unload hooks", 0);
+  /* End __unload call injection */
+]]
 
-			lua_getglobal(L, "____UNLOAD_MODULE");  // Get the ____UNLOAD_MODULE table
-			if (lua_istable(L, -1)) {
-				lua_pushnil(L);  // first key for lua_next
-				while (lua_next(L, -2) != 0) {
-				  // -1 is the unload routine, -2 is the key (module name)
-				  if (lua_isfunction(L, -1)) {
-					 lua_call(L, 0, 0);  // unload
-				  } else {
-					 lua_pop(L, 1);  // pop unload if not a function
-				  }
-				}
-				
-			}	
-			lua_pop(L, 1);  // Pop ____UNLOAD_MODULE
+			file = file:gsub("[ \t]*/%* Begin __unload helpers injection %*/.-/%* End __unload helpers injection %*/\n?", "")
+			file = file:gsub("[ \t]*/%* Begin __unload call injection %*/.-/%* End __unload call injection %*/\n?", "")
+			file = file:gsub("[ \t]*/%* Begin __unload code injection %*/.-/%* End __unload code injection %*/\n?", "")
 
-			/* End __unload code injection */
-			]]
-
-			-- check if patched alreadyt with `/* Begin __unload code injection */ .* /* End __unload code injection */`
-			local start, _end = file:find"/%* Begin __unload code injection %*/.-/%* End __unload code injection %*/\n"
-			local targetPos, targetContinueFrom
-			if not start then
-				-- find the close_state function
-				start, _end = file:find"void lua_close%s-%(lua_State %*L%)%s-{.-\n%s*}"
-				if not start then
-					error"failed to find lua_close function"
-				end
-				-- find ` close_state(L);` position
-				local closeStateStart, _ = file:sub(start, _end):find("close_state(L)", 1, true)
-				if not closeStateStart then
-					error"failed to find close_state(L);"
-				end
-
-				targetPos = start - 1 + closeStateStart - 1
-				targetContinueFrom = targetPos + 1
-			else
-				targetPos = start - 1
-				targetContinueFrom = _end
+			-- The helpers must precede close_state, which runs them after the
+			-- state's call frames and status are normalized but before objects
+			-- are finalized. Calling them from lua_close (or before teardown)
+			-- trips lua_pcall's normal-thread API check on a state that ended
+			-- in error.
+			local closeStateDef = file:find("static void close_state %(lua_State %*L%) {")
+			if not closeStateDef then
+				error"failed to find close_state function"
 			end
+			file = file:sub(1, closeStateDef - 1) .. helpers .. file:sub(closeStateDef)
 
-			-- Locate the lua_close function and inject the __unload code
-			local _patched = file:sub(1, targetPos) .. unloadCode .. file:sub(targetContinueFrom)
-
-			return _patched
+			local anchor = "L->top.p = L->stack.p + 1;  /* empty the stack to run finalizers */"
+			local anchorStart, anchorEnd = file:find(anchor, 1, true)
+			if not anchorStart then
+				error"failed to find close_state stack reset"
+			end
+			return file:sub(1, anchorEnd) .. "\n" .. call .. file:sub(anchorEnd + 2)
 		end,
 	},
 	[LUA_C] = {
@@ -167,45 +175,65 @@ local patches = {
 		end,
 	},
 	[LUACONF_H] = {
+		validate = function (file)
+			return file:match"#define LUA_VDIR"
+		end,
 		patch = function (file)
-			if not config.global_modules then
+			if not config.global_modules and
+				(not file:match"eliconf%.h" or file:match'LUA_LDIR%s*"%?%.lua;"%s*LUA_LDIR%s*"%?/init%.lua;"') then
 				local _toReplace = {
-					['\n\t\tLUA_LDIR"%?%.lua;"  LUA_LDIR"%?/init%.lua;" \\'] = "",
-					['\n\t\tLUA_CDIR"%?%.lua;"  LUA_CDIR"%?/init%.lua;" \\'] = "",
-					['LUA_CDIR"%?%.so;" LUA_CDIR"loadall%.so;"'] = "",
-					['\n\t\tLUA_SHRDIR"%?%.lua;" LUA_SHRDIR"%?\\\\init%.lua;" \\'] = "",
+					['\n[\t ]*LUA_LDIR%s*"%?%.lua;"%s*LUA_LDIR%s*"%?/init%.lua;"[\t ]*\\'] = "",
+					['\n[\t ]*LUA_CDIR%s*"%?%.lua;"%s*LUA_CDIR%s*"%?/init%.lua;"[\t ]*\\'] = "",
+					['LUA_CDIR%s*"%?%.so;"%s*LUA_CDIR%s*"loadall%.so;"'] = "",
+					['\n[\t ]*LUA_SHRDIR%s*"%?%.lua;"%s*LUA_SHRDIR%s*"%?\\\\init%.lua;"[\t ]*\\'] = "",
 				}
 				for _pattern, _replacement in pairs(_toReplace) do
-					file = file:gsub(_pattern, _replacement)
+					local _count
+					file, _count = file:gsub(_pattern, _replacement)
+					assert(_count == 1, "failed to find luaconf global module path: " .. _pattern)
 				end
 			end
+			-- Keep macOS readline optional, using Lua's dlopen/fallback path.
+			file = file:gsub("(#if defined%(LUA_USE_MACOSX%)\n)(.-)(\n#endif)",
+				function (prefix, body, suffix)
+					return prefix .. body:gsub("#define LUA_USE_READLINE[^\n]*",
+						'#if !defined(LUA_READLINELIB)\n#define LUA_READLINELIB\t\t"libedit.dylib"\n#endif') .. suffix
+				end)
 			if not file:match"eliconf%.h" then
 				file = "#include <eliconf.h>\n" .. file
 			end
 			return file
 		end,
 	},
-	[LUA_ZIP_C] = {
-		patch = function (file)
-			local _toReplace = {
-				["LUALIB_API int luaopen_brimworks_zip"] = "LUALIB_API int luaopen_lzip",
-			}
-			for _pattern, _replacement in pairs(_toReplace) do
-				file = file:gsub(_pattern, _replacement)
-			end
-			return file
-		end,
-	},
 	[LIBZIP_CMAKELISTS] = {
 		-- // TODO: handle in root CMakeLists.txt
+		validate = function (file)
+			return file:match"project%(libzip"
+		end,
 		patch = function (file)
+			if file:find("SET(ZLIB_LIBRARY ${ZLIBLIBPATH})", 1, true) then
+				return file
+			end
+			local _legacy = file:find("SET(ZLIB_INCLUDE_DIR", 1, true) or file:find("SET(ZLIB_LIBRARY", 1, true) or
+				file:find("ZLIBINCLUDEDIR", 1, true) or file:find("ZLIBLIBPATH", 1, true) or
+				file:find("CMAKE_MINIMUM_REQUIRED", 1, true)
+			if not _legacy then
+				return file
+			end
 			local _zlibPath = path.combine(os.cwd(), "build/deps/zlib/")
-			local _toReplace = {
-				["SET%(ZLIB_INCLUDE_DIR .-\n"] = "",
-				["SET%(ZLIB_LIBRARY .-\n"] = "",
-				["option%(ZLIBINCLUDEDIR .-\n"] = "",
-				["option%(ZLIBLIBPATH .-\n"] = "",
-				["CMAKE_MINIMUM_REQUIRED.-\n"] = [[CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
+			local _toRemove = {
+				"SET%(ZLIB_INCLUDE_DIR .-\n",
+				"SET%(ZLIB_LIBRARY .-\n",
+				"option%(ZLIBINCLUDEDIR .-\n",
+				"option%(ZLIBLIBPATH .-\n",
+			}
+			for _, _pattern in ipairs(_toRemove) do
+				local _count
+				file, _count = file:gsub(_pattern, "")
+				assert(_count == 1, "failed to find libzip zlib path: " .. _pattern)
+			end
+			local _count
+			file, _count = file:gsub("CMAKE_MINIMUM_REQUIRED.-\n", [[CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
 option(ZLIBLIBPATH "path to zlib" ]] .. _zlibPath .. [[)
 option(ZLIBINCLUDEDIR "path to zlib include dir" ]] .. _zlibPath .. [[)
 SET(ZLIB_LIBRARY ${ZLIBLIBPATH})
@@ -215,11 +243,8 @@ message( ${ZLIB_LIBRARY} )
 message( ${ZLIBLIBPATH} )
 message( ${ZLIB_INCLUDE_DIR} )
 message( ${ZLIBINCLUDEDIR} )
-]],
-			}
-			for _pattern, _replacement in pairs(_toReplace) do
-				file = file:gsub(_pattern, _replacement)
-			end
+]])
+			assert(_count == 1, "failed to find libzip minimum required version")
 			return file
 		end,
 	},
@@ -250,13 +275,15 @@ message( ${ZLIBINCLUDEDIR} )
 	},
 	[LUA_COREHTTP_CONFIG_H] = {
 		validate = function (file)
-			return file:match"HTTP_USER_AGENT_VALUE"
+			return file:match"#define HTTP_USER_AGENT_VALUE"
 		end,
 		patch = function (file)
 			-- #define HTTP_USER_AGENT_VALUE "lua-corehttp"
 			-- replace user agent with eli version
-			return file:gsub("#define HTTP_USER_AGENT_VALUE .-\n",
+			local _patched, _count = file:gsub("#define HTTP_USER_AGENT_VALUE .-\n",
 				"#define HTTP_USER_AGENT_VALUE \"eli/" .. config.version .. "\"\n")
+			assert(_count == 1, "failed to find corehttp user agent")
+			return _patched
 		end,
 	},
 }

@@ -1,4 +1,4 @@
-local signal = require"os.signal"
+local signal = require"eli.os.extra".signal
 
 signal.handle(signal.SIGBREAK, function (_, crtlEvent)
 	if crtlEvent then

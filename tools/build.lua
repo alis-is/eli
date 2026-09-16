@@ -126,7 +126,7 @@ local function configure(id, rootDir, isZig, toolchainDor)
 	end
 
 	log_info("Configuring (" .. _cmd .. ")...")
-	os.execute(_cmd)
+	assert(os.execute(_cmd), "Failed to configure eli for " .. id)
 	return builtBinaryId
 end
 
@@ -207,7 +207,7 @@ local function buildWithChain(id, buildDir)
 	os.chdir(buildDir)
 	local builtBinaryId = configure(id, _oldCwd, isZig)
 	log_info"Building eli (make)..."
-	os.execute"make"
+	assert(os.execute"make", "Failed to build eli for " .. id)
 	os.chdir(_oldCwd)
 	fs.mkdirp"release"
 	local _buildSuffix = ""

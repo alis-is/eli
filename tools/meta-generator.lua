@@ -1,5 +1,5 @@
 local _exclude = { "eli.internals.util", "eli.pipe.extra", "eli.proc.extra", "eli.stream.extra", "eli.fs.extra",
-	"eli.os.extra", "eli.env.extra" }
+	"eli.os.extra" }
 
 ---comment
 ---@param code string

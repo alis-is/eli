@@ -42,4 +42,10 @@
 #undef MBEDTLS_ECP_DP_BP512R1_ENABLED
 #undef MBEDTLS_ECP_DP_CURVE448_ENABLED
 
+/* eli workers run independent Lua states on native threads and share the
+ * process-wide PSA state, so mbedtls must be thread aware. The mutexes are
+ * backed by C11 threads (see lss_runtime.c). */
+#define MBEDTLS_THREADING_C
+#define MBEDTLS_THREADING_ALT
+
 #endif /* ELI_MBEDTLS_CONFIG_H */

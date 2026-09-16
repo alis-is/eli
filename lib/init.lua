@@ -1,6 +1,13 @@
-ELI_LIB_VERSION = '0.37.0-alpha'
-ELI_VERSION = '0.37.0-alpha'
+ELI_LIB_VERSION = '0.38.0-alpha'
+ELI_VERSION = '0.38.0-alpha'
 do
+	-- install process-global guards and the combined os extras
+	-- before any application code can cache the original functions
+	require"eli.worker"
+	require"eli.os.extra"
+	-- install the mbedtls threading runtime before any bundled mbedtls
+	-- consumer (hash, zip) can initialize contexts
+	require"socket"
 	local path = require"eli.path"
 	local _eos = require"eli.os"
 	local exString = require"eli.extensions.string"
@@ -11,13 +18,14 @@ do
 
 	local function try_identify_interpreter(interpreter)
 		if path.default_sep() == "/" then
-			local io = require"io"
-			local f <close> = io.popen("which " .. interpreter)
+			local quoted = "'" .. interpreter:gsub("'", "'\\''") .. "'"
+			local f = io.popen("which -- " .. quoted)
+			if not f then return interpreter end
 			local _path = f:read"a*"
-			if _path ~= nil then
-				_path = _path:gsub("%s*", "")
-			end
-			return _path
+			local closed = f:close()
+			if not closed or _path == nil then return interpreter end
+			_path = _path:gsub("[\r\n]+$", "")
+			return _path ~= "" and _path or interpreter
 		end
 		return interpreter
 	end
@@ -31,7 +39,6 @@ do
 	elseif not path.isabs(INTERPRETER) and _eos.EOS then
 		INTERPRETER = path.abs(INTERPRETER, _eos.cwd())
 	end
-	INTERPRETER = exString.trim(INTERPRETER) -- remove leading and trailing whitespaces
 
 	if i_min == -1 then                   -- we are running without script (interactive mode)
 		APP_ROOT = nil

@@ -30,11 +30,36 @@ ROOT=$(pwd)
 echo "Platform: $PLATFORM"
 echo "Root: $ROOT"
 
+run_suite() {
+    # Watchdog: a blocked channel/worker test must fail instead of hanging CI.
+    if command -v timeout >/dev/null 2>&1; then
+        # A suite that handles or defers SIGTERM must still die; kill -9 after 10s.
+        timeout -k 10 900 "$@"
+        return $?
+    fi
+    # ponytail: stock macOS lacks timeout(1); same 900s deadline, TERM then KILL.
+    "$@" &
+    _suite_pid=$!
+    _waited=0
+    while kill -0 "$_suite_pid" 2>/dev/null; do
+        if [ "$_waited" -ge 900 ]; then
+            kill -TERM "$_suite_pid" 2>/dev/null
+            sleep 10
+            kill -KILL "$_suite_pid" 2>/dev/null
+            wait "$_suite_pid"
+            return 124
+        fi
+        sleep 1
+        _waited=$((_waited + 1))
+    done
+    wait "$_suite_pid"
+}
+
 test_build() {
 
     cd lib/tests &&
         chmod +x "$ROOT/release/eli-$2-$1" &&
-        "$ROOT/release/eli-$2-$1" all.lua &&
+        run_suite "$ROOT/release/eli-$2-$1" all.lua &&
         cd "$ROOT" || exit 1
 }
 
@@ -42,7 +67,7 @@ test_qemu_build() {
     cd lib/tests &&
         export QEMU="$3" &&
         chmod +x "$ROOT/release/eli-$2-$1" &&
-        "$3" "$ROOT/release/eli-$2-$1" all.lua &&
+        run_suite "$3" "$ROOT/release/eli-$2-$1" all.lua &&
         cd "$ROOT" || exit 1
 }
 

@@ -417,6 +417,11 @@ test["(queries) string with encoded data and plus signs"] = function ()
 	}, true), "not equal")
 end
 
+test["(queries) nested values are decoded"] = function ()
+	local q = url.parse_query"filter[name]=Jane+Doe&filter[token]=a%2Bb"
+	test.assert(q.filter.name == "Jane Doe" and q.filter.token == "a+b", "nested values were not decoded")
+end
+
 test["(queries) string with single quotes characters"] = function ()
 	local s = "firstname=Bill&surname=O%27Reilly"
 	local q = url.parse_query(s)

@@ -19,13 +19,7 @@ local net = {
 
 net.set_default_buffer_capacity = function (capacity)
 	if type(capacity) ~= "number" then return end
-	if capacity < MINIMUM_BUFFER_CAPACITY then
-		capacity = MINIMUM_BUFFER_CAPACITY
-	elseif capacity > MAXIMUM_BUFFER_CAPACITY then
-		capacity = MAXIMUM_BUFFER_CAPACITY
-	else
-		DEFAULT_BUFFER_CAPACITY = capacity
-	end
+	DEFAULT_BUFFER_CAPACITY = math.max(MINIMUM_BUFFER_CAPACITY, math.min(capacity, MAXIMUM_BUFFER_CAPACITY))
 end
 
 if not is_corehttp_loaded then
@@ -108,6 +102,8 @@ local DEFAULT_HEADERS = {
 	["Pragma"] = "no-cache",
 }
 
+local REDIRECT_STATUS_CODES = { 301, 302, 303, 307, 308 }
+
 local function encode_uri_component(url)
 	if url == nil then return end
 	url = url:gsub("\n", "\r\n")
@@ -139,12 +135,13 @@ local function generate_progress_function(step)
 end
 
 local function parse_content_type(header_value)
+	if type(header_value) ~= "string" then return end
 	-- Initially match for both MIME type and charset
-	local type, subtype, charset = string.match(header_value, "(%w+)/(%w+);%s*charset=(%w+)")
+	local type, subtype, charset = string.match(header_value, "^%s*([^/%s;]+)/([^%s;]+);%s*charset=([^%s;]+)")
 
 	-- If charset is missing, match only for MIME type
 	if not charset then
-		type, subtype = string.match(header_value, "(%w+)/(%w+)")
+		type, subtype = string.match(header_value, "^%s*([^/%s;]+)/([^%s;]+)")
 	end
 
 	return type, subtype, charset
@@ -172,16 +169,19 @@ local function request(client, path, method, options, data)
 	if type(options.codecs) ~= "table" then options.codecs = {} end
 
 	local request_options = {}
-	local headers = setmetatable(options.headers or {}, corehttp.HEADERS_METATABLE)
+	local headers = setmetatable(options.headers, corehttp.HEADERS_METATABLE)
 
 	-- options
 	request_options.verify_peer = options.verify_peer == nil and true or options.verify_peer
 	request_options.connect_timeout = options.connect_timeout or options.timeout
 	request_options.read_timeout = options.read_timeout
 	request_options.write_timeout = options.write_timeout
-	request_options.drgb_seed = type(options.drgb_seed) == "string" or options.drgb_seed or "eli.net"
-	request_options.use_bundled_root_certificates = type(options.use_bundled_root_certificates) == "boolean" or
-	   options.use_bundled_root_certificates or true
+	request_options.drgb_seed = type(options.drgb_seed) == "string" and options.drgb_seed or "eli.net"
+	if type(options.use_bundled_root_certificates) == "boolean" then
+		request_options.use_bundled_root_certificates = options.use_bundled_root_certificates
+	else
+		request_options.use_bundled_root_certificates = true
+	end
 	request_options.ca_certificates = options.ca_certificates
 	request_options.client_certificate = options.client_certificate
 	request_options.headers = headers
@@ -237,6 +237,8 @@ local function request(client, path, method, options, data)
 			local codec = options.codecs[headers["Content-Type"]]
 			if codec and type(codec.encode) == "function" then
 				request_options.body = codec.encode(data)
+			elseif type(data) == "string" then
+				request_options.body = data
 			end
 		end
 	end
@@ -248,7 +250,7 @@ local function request(client, path, method, options, data)
 	end
 
 	local response_headers = response:headers()
-	if options.follow_redirects and table_extensions.includes({ 301, 302, 303, 307, 308 }, response:http_status_code()) then
+	if options.follow_redirects and table_extensions.includes(REDIRECT_STATUS_CODES, response:http_status_code()) then
 		local location = response_headers["Location"]
 		if location then
 			-- we don't want to decode url values as they might be encoded secrets, we trust server to send us valid url
@@ -295,7 +297,7 @@ local function request(client, path, method, options, data)
 	local response_data = nil
 	if type(raw_response_data) == "string" and #raw_response_data > 0 then
 		local mime_type, subtype, _ = parse_content_type(response_headers["Content-Type"])
-		local codec_type = options.codecs[type] or options.codecs[mime_type .. "/" .. subtype]
+		local codec_type = mime_type and subtype and options.codecs[mime_type .. "/" .. subtype]
 		if codec_type and type(codec_type.decode) == "function" then
 			response_data = codec_type.decode(raw_response_data)
 		end
@@ -689,12 +691,12 @@ function net.download_string(url, options)
 	local retry_limit = get_retry_limit(options)
 
 	while tries <= retry_limit do
-		local result = ""
-		local write = function (data) result = result .. data end
+		local chunks = {}
+		local write = function (data) chunks[#chunks + 1] = data end
 
 		local response, err = download(url, write, options)
 		if response then
-			return result, response.code
+			return table.concat(chunks), response.code
 		elseif (tries >= retry_limit) then
 			return nil, err
 		end

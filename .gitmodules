@@ -11,10 +11,6 @@
 	path = deps/lua_is_tty
 	url = https://github.com/alis-is/lua_is_tty
 	ignore = dirty
-[submodule "deps/lua-mbed-has"]
-	path = deps/lua-mbed-has
-	url = https://github.com/alis-is/lua-mbed-hash
-	ignore = dirty
 [submodule "deps/lua-mbed-hash"]
 	path = deps/lua-mbed-hash
 	url = https://github.com/alis-is/lua-mbed-hash
@@ -51,17 +47,13 @@
 	path = deps/eli-os-extra
 	url = https://github.com/alis-is/eli-os-extra
 	ignore = dirty
-[submodule "deps/eli-env-extra"]
-	path = deps/eli-env-extra
-	url = https://github.com/alis-is/eli-env-extra
-	ignore = dirty
 [submodule "deps/lua-tar-read-native"]
 	path = deps/lua-tar-read-native
 	url = https://github.com/alis-is/lua-tar-read-native.git
 	ignore = dirty
 [submodule "deps/lua-zip"]
 	path = deps/lua-zip
-	url = https://github.com/brimworks/lua-zip
+	url = https://github.com/alis-is/lua-zip
 	ignore = dirty
 [submodule "deps/mbedtls"]
 	path = deps/mbedtls
@@ -114,3 +106,6 @@
 [submodule "deps/c11threads"]
 	path = deps/c11threads
 	url = https://github.com/cryi/c11threads.git
+[submodule "deps/eli-worker"]
+	path = deps/eli-worker
+	url = https://github.com/alis-is/eli-worker.git

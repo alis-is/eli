@@ -3,5 +3,6 @@
 	signal(SIGPIPE, SIG_IGN);
 #endif
 	const char eli_init[] = "{{{embedableInit}}}";
-	luaL_dostring(L, eli_init);
+	if (luaL_dostring(L, eli_init) != LUA_OK)
+		return lua_error(L);
 /* end eli init */

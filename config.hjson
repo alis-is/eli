@@ -1,5 +1,5 @@
 {
-    version: 0.37.2
+    version: 0.38.0-alpha
     global_modules: false //disables global modules loading (only looks up for modules in cwd)
     minify: true
     compress: true
@@ -8,12 +8,10 @@
     c_libs: {
         eli_fs_extra: eli.fs.extra
         eli_proc_extra: eli.proc.extra
-        eli_env_extra: eli.env.extra
         eli_pipe_extra: eli.pipe.extra
         eli_stream_extra: eli.stream.extra
         eli_os_extra: eli.os.extra
-        // we want to make signal available directly through require "os.signal"
-        eli_os_signal: os.signal
+        eli_worker: eli.worker
         l_mbed_bigint: bigint
         l_mbed_base64: base64
         ltar: ltar
@@ -68,7 +66,7 @@
             ]
         }
         {
-            source: deps/eli-env-extra
+            source: deps/eli-os-extra
             files: [
                 {
                     lib: eli.env
@@ -76,11 +74,6 @@
                     isGlobal: true
                     destination: env.extra.lua
                 }
-            ]
-        }
-        {
-            source: deps/eli-os-extra
-            files: [
                 {
                     lib: eli.os
                     name: src/los.c

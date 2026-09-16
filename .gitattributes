@@ -4,3 +4,5 @@
 *.sh text eol=lf
 
 lib/tests/assets/** binary
+lib/tests/assets/*.py text diff merge eol=lf
+*.ps1 whitespace=cr-at-eol

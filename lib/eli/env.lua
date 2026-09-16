@@ -1,18 +1,24 @@
 local os = require"os"
-local is_loaded, eenv = pcall(require, "eli.env.extra")
+local is_loaded = type(os.set_env) == "function"
 
-local util = require"eli.util"
+local function deprecated(name, replacement, fn)
+    return function(...)
+        print("eli.env." .. name .. " is deprecated; use " .. replacement .. " instead")
+        return fn(...)
+    end
+end
 
 local env = {
-    get_env = is_loaded and eenv.get_env or os.getenv,
+    get_env = deprecated("get_env", "os.getenv", os.getenv),
     ---#DES env.EENV
     ---
     ---@type boolean
     EENV = is_loaded,
 }
 
-if not is_loaded then
-    return env
+if is_loaded then
+    env.set_env = deprecated("set_env", "os.setenv", os.setenv)
+    env.environment = deprecated("environment", "os.environment", os.environment)
 end
 
-return util.merge_tables(env, eenv)
+return env

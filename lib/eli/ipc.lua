@@ -1,5 +1,4 @@
 local ipc_core = require"ipc.core"
-local signal = require"os.signal"
 local table_extensions = require"eli.extensions.table"
 
 ---@class IPCSocketReadOptions
@@ -17,7 +16,7 @@ local table_extensions = require"eli.extensions.table"
 ---#DES 'IPCServer'
 ---
 ---@class IPCServer
----@field process_events fun(self: IPCServer, handlers: IPCHandlers, options?: IPCServerOptions): boolean
+---@field process_events fun(self: IPCServer, options: IPCEventOptions): boolean
 ---@field close fun(self: IPCServer, closeClients: boolean?)
 ---@field get_clients fun(self: IPCServer): IPCSocket[]
 ---@field get_client_limit fun(self: IPCServer): number
@@ -35,6 +34,9 @@ local table_extensions = require"eli.extensions.table"
 ---@field accept fun(socket: IPCSocket)?
 ---@field error fun(source: string, err: any, socket?: IPCSocket)?
 ---@field disconnected fun(socket: IPCSocket)?
+
+---@class IPCEventOptions: IPCHandlers
+---@field timeout number? @timeout in milliseconds
 
 ---#DES 'ipc.core.listen'
 ---
@@ -59,28 +61,31 @@ local ipc = {}
 function ipc.listen(path, handlers, options)
 	local _, is_main_thread = coroutine.running()
 
-	local server, err = ipc_core.listen(path, options)
+	local server <close>, err = ipc_core.listen(path, options)
 	if not server then
 		return false, err
 	end
 
-	signal.handle(signal.SIGPIPE, signal.IGNORE_SIGNAL) -- ignore SIGPIPE, ignore works even if signal isnt defined on the platform - no-op
-
-	coroutine.yield(server)
+	if not is_main_thread then
+		coroutine.yield(server)
+	end
 
 	local is_stop_requested = table_extensions.get(options --[[@as table]], "is_stop_requested",
 		function () return false end) --[[@as fun(): boolean]]
+	local event_options = setmetatable({ timeout = table_extensions.get(options, "timeout") },
+		{ __index = handlers })
 
 	while not is_stop_requested() do
-		local ok, err = server:process_events(handlers, options)
+		local ok, err = server:process_events(event_options)
 		if not is_main_thread then
 			coroutine.yield(ok, err)
 		elseif not ok then
-			if type(handlers.error) == "function" then
+			if handlers and type(handlers.error) == "function" then
 				handlers.error("internal", err)
 			end
 		end
 	end
+	return true
 end
 
 ---#DES 'ipc.connect'
