@@ -62,7 +62,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/alis-is/eli-build:latest
-          run: cmake -S . -B build/x86_64-linux-musl -DELI_BUILD_TESTS=ON && cmake --build build/x86_64-linux-musl -j2 && ctest --test-dir build/x86_64-linux-musl --output-on-failure
+          run: cmake -S . -B build/x86_64-linux-musl -DCMAKE_TOOLCHAIN_FILE=misc/toolchains/zig/toolchain.cmake -DCLANG_TARGET=x86_64-linux-musl -DCMAKE_SYSTEM_NAME=Linux -DELI_BUILD_TESTS=ON && cmake --build build/x86_64-linux-musl -j2 && ctest --test-dir build/x86_64-linux-musl --output-on-failure
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild
       - name: test dependency patches
         run: ./release/eli-linux-x86_64 tools/patches/deps-test.lua
@@ -111,7 +111,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/alis-is/eli-build:latest
-          run: cmake -S . -B build/x86_64-windows-gnu -DELI_BUILD_TESTS=ON && cmake --build build/x86_64-windows-gnu --target eli_proc_windows_handle_list_test -j2
+          run: cmake -S . -B build/x86_64-windows-gnu -DCMAKE_TOOLCHAIN_FILE=misc/toolchains/zig/toolchain.cmake -DCLANG_TARGET=x86_64-windows-gnu -DCMAKE_SYSTEM_NAME=Windows -DELI_BUILD_TESTS=ON && cmake --build build/x86_64-windows-gnu --target eli_proc_windows_handle_list_test -j2
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild
       - uses: actions/upload-artifact@v4
         with:

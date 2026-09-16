@@ -33,9 +33,16 @@ else()
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  add_compile_options(-flto -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-exceptions)
+  # Static musl: local-exec TLS avoids __tls_get_addr, which zig's riscv64
+  # libc.a defines as absolute and LLD cannot relocate.
+  add_compile_options(-fno-unwind-tables -fno-asynchronous-unwind-tables -fno-exceptions -ftls-model=local-exec)
   add_compile_definitions(LUA_USE_LINUX)
-  add_link_options(-flto)
+  # LTO merges zig's compiler-rt bitcode, whose TLS model the backend keeps at
+  # global-dynamic, so riscv64 static links must stay LTO-free.
+  if(NOT CLANG_TARGET MATCHES "riscv64")
+    add_compile_options(-flto)
+    add_link_options(-flto)
+  endif()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   add_compile_options(-fno-unwind-tables -fno-asynchronous-unwind-tables -fno-exceptions)
   add_compile_definitions(LUA_USE_MACOSX)
