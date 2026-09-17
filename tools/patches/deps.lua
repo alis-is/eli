@@ -311,7 +311,7 @@ local injects = {
 			if not config.inject_ca then
 				return file
 			end
-			local _certs = _buildUtil.get_ca_certs()
+			local _certs = _buildUtil.get_ca_certs(os.getenv"ELI_REUSE_BUNDLED_CA_CERTS")
 			local _certsAsByteArrays = table.map(_certs, function (cert)
 				return table.map(
 					table.filter(

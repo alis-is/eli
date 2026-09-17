@@ -11,19 +11,24 @@ inputs:
 runs:
   using: "composite"
   steps:
+  - name: download bundled CA certificates
+    uses: actions/download-artifact@v4
+    with:
+      name: bundled-ca-certificates
+      path: .ca-certs
   - name: build
     uses: addnab/docker-run-action@v3
     with:
       image: ghcr.io/alis-is/eli-build:latest
       run: eli tools/build.lua
-      options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }}
+      options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }} -e ELI_REUSE_BUNDLED_CA_CERTS=.ca-certs/roots.pem
   - name: build
     uses: addnab/docker-run-action@v3
     if: ${{ inputs.debug-artifact-id != '' }}
     with:
       image: ghcr.io/alis-is/eli-build:latest
       run: eli tools/build.lua --debug
-      options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }}
+      options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -e TOOLCHAINS=${{ inputs.toolchain }} -e ELI_REUSE_BUNDLED_CA_CERTS=.ca-certs/roots.pem
 
   - uses: actions/upload-artifact@v4
     with:

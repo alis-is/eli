@@ -1,0 +1,18 @@
+name: prepare-certs
+description: download the CA bundle once for all build jobs
+
+runs:
+  using: composite
+  steps:
+    - name: setup eli
+      uses: alis-is/setup-eli@v1
+    - name: download CA bundle
+      shell: sh
+      run: |
+        mkdir .ca-certs
+        eli tools/download-ca-certs.lua .ca-certs/roots.pem
+    - uses: actions/upload-artifact@v4
+      with:
+        name: bundled-ca-certificates
+        path: .ca-certs/roots.pem
+        if-no-files-found: error

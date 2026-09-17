@@ -6,6 +6,14 @@ on:
       - main
 
 jobs:
+  prepare-certs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: "./.github/template/prepare-certs"
+
   prepare:
     runs-on: ubuntu-latest
     outputs:
@@ -48,6 +56,7 @@ jobs:
           echo "Building eli $VERSION (RELEASE_REQUIRE: $NEEDS_RELEASE)"
   build-linux-x86_64:
     runs-on: ubuntu-latest
+    needs: prepare-certs
     steps:
       - uses: actions/checkout@v4
         with:
@@ -72,6 +81,7 @@ jobs:
         run: python3 tools/tests/interpreter_argv0.py ./release/eli-linux-x86_64
   build-linux-aarch64:
     runs-on: ubuntu-latest
+    needs: prepare-certs
     steps:
       - uses: actions/checkout@v4
         with:
@@ -84,6 +94,7 @@ jobs:
           debug-artifact-id: eli-linux-aarch64-debug
   build-linux-riscv64:
     runs-on: ubuntu-latest
+    needs: prepare-certs
     steps:
       - uses: actions/checkout@v4
         with:
@@ -97,6 +108,7 @@ jobs:
 
   build-windows-x86_64:
     runs-on: ubuntu-latest
+    needs: prepare-certs
     steps:
       - uses: actions/checkout@v4
         with:
@@ -126,6 +138,7 @@ jobs:
           path: native-out/
   build-windows-aarch64:
     runs-on: ubuntu-latest
+    needs: prepare-certs
     steps:
       - uses: actions/checkout@v4
         with:
@@ -138,6 +151,7 @@ jobs:
           debug-artifact-id: eli-windows-aarch64-debug.exe
   build-macos-x86_64:
     runs-on: ubuntu-latest
+    needs: prepare-certs
     steps:
       - uses: actions/checkout@v4
         with:
@@ -150,6 +164,7 @@ jobs:
           debug-artifact-id: eli-macos-x86_64-debug
   build-macos-aarch64:
     runs-on: ubuntu-latest
+    needs: prepare-certs
     steps:
       - uses: actions/checkout@v4
         with:
