@@ -4,13 +4,14 @@ description: download the CA bundle once for all build jobs
 runs:
   using: composite
   steps:
-    - name: setup eli
-      uses: alis-is/setup-eli@v1
     - name: download CA bundle
       shell: sh
       run: |
         mkdir .ca-certs
-        eli tools/download-ca-certs.lua .ca-certs/roots.pem
+        curl --fail --location --retry 3 --retry-all-errors \
+          --connect-timeout 30 --max-time 60 \
+          --output .ca-certs/roots.pem \
+          'https://ccadb.my.salesforce-sites.com/mozilla/IncludedRootsPEMTxt?TrustBitsInclude=Websites'
     - uses: actions/upload-artifact@v4
       with:
         name: bundled-ca-certificates
