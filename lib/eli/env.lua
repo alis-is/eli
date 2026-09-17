@@ -1,9 +1,16 @@
 local os = require"os"
 local is_loaded = type(os.set_env) == "function"
+local is_tty = require"is_tty".is_stdout_tty()
 
+-- Keep the notice on stderr, but only for interactive runs: callers that
+-- capture output (proc.spawn output="pipe" merges stderr into stdout) must
+-- not have their machine-readable streams polluted.
 local function deprecated(name, replacement, fn)
+    local message = "eli.env." .. name .. " is deprecated; use " .. replacement .. " instead\n"
     return function(...)
-        print("eli.env." .. name .. " is deprecated; use " .. replacement .. " instead")
+        if is_tty then
+            io.stderr:write(message)
+        end
         return fn(...)
     end
 end

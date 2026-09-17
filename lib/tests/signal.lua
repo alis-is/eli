@@ -1,11 +1,12 @@
 local test = TEST or require"u-test"
 local okSignal, os_extra = pcall(require, "eli.os.extra")
 local signal = okSignal and os_extra.signal
+local okOsSignal, osSignal = pcall(require, "os.signal")
 local okProc, eliProc = pcall(require, "eli.proc")
 
 local isWindows = package.config:sub(1, 1) == "\\"
 
-if not okSignal or type(signal) ~= "table" or not okProc then
+if not okSignal or type(signal) ~= "table" or not okOsSignal or osSignal ~= signal or not okProc then
 	test["os.signal available"] = function ()
 		test.assert(false, "os.signal not available")
 	end
@@ -18,7 +19,7 @@ if not okSignal or type(signal) ~= "table" or not okProc then
 end
 
 test["os.signal available"]       = function ()
-	test.assert(true)
+	test.assert(require"os.signal" == signal)
 end
 
 test["main-state coroutine"]      = function ()

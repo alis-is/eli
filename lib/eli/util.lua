@@ -153,12 +153,14 @@ function util.merge_tables(t1, t2, options)
 		end
 		for k, v2 in pairs(t2) do
 			local v1 = result[k]
-			if type(v1) == "table" and type(v2) == "table" then
-				result[k] = util.merge_tables(v1, v2, options)
-			elseif type(v1) == "nil" then
-				result[k] = v2
-			elseif options.overwrite then
-				result[k] = v2
+			if v1 ~= v2 then
+				if type(v1) == "table" and type(v2) == "table" then
+					result[k] = util.merge_tables(v1, v2, options)
+				elseif type(v1) == "nil" then
+					result[k] = v2
+				elseif options.overwrite then
+					result[k] = v2
+				end
 			end
 		end
 	end

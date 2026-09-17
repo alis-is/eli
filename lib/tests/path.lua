@@ -2,7 +2,7 @@ local test = TEST or require"u-test"
 local path = require"eli.path"
 
 test["path core"] = function ()
-	test.equal(path.combine("a", "b"), "a/b")
+	test.equal(path.combine("a", "b"), "a" .. path.default_sep() .. "b")
 	test.equal(path.abs("script.lua", "/work"), "/work/script.lua")
 	test.equal(path.dir("/work/script.lua"), "/work")
 	test.equal(path.file("/work/script.lua"), "script.lua")

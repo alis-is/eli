@@ -108,11 +108,13 @@ test["ipc manually closed client releases its slot"] = function ()
 	end)
 	local _, server = coroutine.resume(thread)
 	test.assert(server, "ipc server unavailable")
-	local client_a = test.assert(eliIpc.connect"/tmp/eli-ipc-slot.sock")
+	local client_a = eliIpc.connect"/tmp/eli-ipc-slot.sock"
+	test.assert(client_a, "client A connect failed")
 	coroutine.resume(thread)
 	test.assert(accepted_a, "client A was not accepted")
 	accepted_a:close()
-	local client_b = test.assert(eliIpc.connect"/tmp/eli-ipc-slot.sock")
+	local client_b = eliIpc.connect"/tmp/eli-ipc-slot.sock"
+	test.assert(client_b, "client B connect failed")
 	coroutine.resume(thread)
 	test.assert(accepted_b, "closed client did not release its slot")
 	client_b:write"hello"

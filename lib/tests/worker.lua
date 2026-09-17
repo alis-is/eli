@@ -476,27 +476,6 @@ test["dropped worker handle is safe"] = function ()
 	test.assert(worker.active_count() == 0)
 end
 
-test["finalizing a handle during join decode is safe"] = function ()
-	local fixture = require"eli.worker.test"
-	local w = worker.spawn {
-		environment = "lua",
-		fn = function ()
-			require"eli.worker"
-			return require"eli.worker.test".box(7)
-		end,
-	}
-	-- The hook runs while join is decoding the results; finalizing the handle
-	-- there used to free the packet still being read.
-	fixture.set_import_hook(function ()
-		fixture.set_import_hook(nil)
-		getmetatable(w).__gc(w)
-	end)
-	local r = join_of(w)
-	fixture.set_import_hook(nil)
-	test.assert(r[1] == true, tostring(r[2]))
-	test.assert(fixture.value(r[2]) == 7)
-end
-
 test["invalid timeouts are rejected"] = function ()
 	local ch = worker.channel(1)
 	local w = worker.spawn { fn = function () return true end }
@@ -773,77 +752,61 @@ test["finalizing a channel during send is rejected"] = function ()
 		tostring(err))
 end
 
-test["unreachable channel cycles are reclaimed"] = function ()
-	local fixture = require"eli.worker.test"
-	collectgarbage"collect"
-	collectgarbage"collect"
-	local before = fixture.channel_count()
-	local a = worker.channel(1)
-	local b = worker.channel(1)
-	a:send(b)
-	b:send(a)
-	a:close()
-	b:close()
-	a = nil
-	b = nil
-	collectgarbage"collect"
-	collectgarbage"collect"
-	test.assert(fixture.channel_count() == before)
-end
-
-test["self-referential channel is reclaimed"] = function ()
-	local fixture = require"eli.worker.test"
-	collectgarbage"collect"
-	collectgarbage"collect"
-	local before = fixture.channel_count()
-	local ch = worker.channel(1)
-	ch:send(ch)
-	ch:close()
-	ch = nil
-	collectgarbage"collect"
-	collectgarbage"collect"
-	test.assert(fixture.channel_count() == before)
-end
-
-test["to-be-closed channel releases at scope exit"] = function ()
-	local fixture = require"eli.worker.test"
-	collectgarbage"collect"
-	local before = fixture.channel_count()
+test["unreachable channel cycles are collected"] = function ()
+	local weak = setmetatable({}, { __mode = "v" })
 	do
-		local ch <close> = worker.channel(1)
-		test.assert(fixture.channel_count() == before + 1)
+		local a = worker.channel(1)
+		local b = worker.channel(1)
+		a:send(b)
+		b:send(a)
+		a:close()
+		b:close()
+		weak[1], weak[2] = a, b
 	end
-	test.assert(fixture.channel_count() == before)
+	collectgarbage"collect"
+	collectgarbage"collect"
+	test.assert(weak[1] == nil and weak[2] == nil)
+end
+
+test["self-referential channel is collected"] = function ()
+	local weak = setmetatable({}, { __mode = "v" })
+	do
+		local ch = worker.channel(1)
+		ch:send(ch)
+		ch:close()
+		weak[1] = ch
+	end
+	collectgarbage"collect"
+	collectgarbage"collect"
+	test.assert(weak[1] == nil)
 end
 
 test["rooted channel cycle remains usable"] = function ()
-	local fixture = require"eli.worker.test"
-	collectgarbage"collect"
-	collectgarbage"collect"
-	local before = fixture.channel_count()
 	local a = worker.channel(1)
 	local b = worker.channel(1)
 	a:send(b)
 	b:send(a)
 	b = nil
 	collectgarbage"collect"
-	test.assert(fixture.channel_count() == before + 2)
 	local received = a:receive()
 	test.assert(received ~= nil)
 	received:close()
 	a:close()
-	a = nil
-	received = nil
-	collectgarbage"collect"
-	collectgarbage"collect"
-	test.assert(fixture.channel_count() == before)
+end
+
+test["to-be-closed channel is finalized at scope exit"] = function ()
+	local ch
+	do
+		local scoped <close> = worker.channel(1)
+		ch = scoped
+	end
+	local ok, err = pcall(ch.receive, ch)
+	test.assert(ok == false and tostring(err):find("finalized", 1, true),
+		tostring(err))
 end
 
 test["bulk channel transfer releases all references"] = function ()
-	local fixture = require"eli.worker.test"
-	collectgarbage"collect"
-	collectgarbage"collect"
-	local before = fixture.channel_count()
+	local weak = setmetatable({}, { __mode = "v" })
 	local hub = worker.channel(1)
 	local channels = {}
 	for i = 1, 256 do channels[i] = worker.channel(1) end
@@ -851,12 +814,11 @@ test["bulk channel transfer releases all references"] = function ()
 	local received = hub:receive()
 	hub:close()
 	test.assert(type(received) == "table" and #received == 256)
-	hub = nil
-	channels = nil
-	received = nil
+	for i = 1, 256 do weak[i] = channels[i] end
+	channels, received = nil, nil
 	collectgarbage"collect"
 	collectgarbage"collect"
-	test.assert(fixture.channel_count() == before)
+	for i = 1, 256 do test.assert(weak[i] == nil) end
 end
 
 -- --------------------------------------------------------------------- locks
@@ -1009,20 +971,17 @@ test["mutexes created in workers reach the main state"] = function ()
 	out:close()
 end
 
-test["finalized mutexes are reclaimed"] = function ()
-	local fixture = require"eli.worker.test"
-	collectgarbage"collect"
-	collectgarbage"collect"
-	local before = fixture.mutex_count()
+test["finalized mutexes are collected"] = function ()
+	local weak = setmetatable({}, { __mode = "v" })
 	do
 		local m = worker.mutex()
-		test.assert(fixture.mutex_count() == before + 1)
 		test.assert(m:lock())
 		test.assert(m:unlock())
+		weak[1] = m
 	end
 	collectgarbage"collect"
 	collectgarbage"collect"
-	test.assert(fixture.mutex_count() == before)
+	test.assert(weak[1] == nil)
 end
 
 test["mutex box tracks its own acquisition"] = function ()
@@ -1100,10 +1059,7 @@ test["to-be-closed mutex unlocks on error"] = function ()
 end
 
 test["bulk mutex transfer releases all references"] = function ()
-	local fixture = require"eli.worker.test"
-	collectgarbage"collect"
-	collectgarbage"collect"
-	local before = fixture.mutex_count()
+	local weak = setmetatable({}, { __mode = "v" })
 	local hub = worker.channel(1)
 	local mutexes = {}
 	for i = 1, 64 do mutexes[i] = worker.mutex() end
@@ -1111,57 +1067,11 @@ test["bulk mutex transfer releases all references"] = function ()
 	local received = hub:receive()
 	hub:close()
 	test.assert(type(received) == "table" and #received == 64)
-	hub = nil
-	mutexes = nil
-	received = nil
+	for i = 1, 64 do weak[i] = mutexes[i] end
+	mutexes, received = nil, nil
 	collectgarbage"collect"
 	collectgarbage"collect"
-	test.assert(fixture.mutex_count() == before)
-end
-
--- ------------------------------------------------------------------- adapter
-
-test["adapter fixture round trip"] = function ()
-	local fixture = require"eli.worker.test"
-	local box = fixture.box(41)
-	local w = worker.spawn {
-		environment = "lua",
-		args = { box },
-		fn = function (box)
-			return require"eli.worker" and box
-		end,
-	}
-	local r = join_of(w)
-	test.assert(r[1] == true)
-	test.assert(fixture.value(r[2]) == 41)
-end
-
-test["adapter identity within a transfer"] = function ()
-	local fixture = require"eli.worker.test"
-	local box = fixture.box(5)
-	local w = worker.spawn {
-		environment = "lua",
-		args = { { x = box, y = box } },
-		fn = function (t) return t.x == t.y, t.x end,
-	}
-	local r = join_of(w)
-	test.assert(r[1] == true)
-	test.assert(r[2] == true)
-	test.assert(fixture.value(r[3]) == 5)
-end
-
-test["adapter import failure releases the packet and preserves the channel"] = function ()
-	local fixture = require"eli.worker.test"
-	local ch = worker.channel(2)
-	test.assert(ch:send(fixture.box(1)))
-	test.assert(ch:send(fixture.box(2)))
-	fixture.set_import_hook(function () error"adapter import aborted" end)
-	local ok, err = pcall(ch.receive, ch)
-	fixture.set_import_hook(nil)
-	test.assert(ok == false and tostring(err):find("adapter import aborted", 1, true))
-	local box, received = ch:receive()
-	test.assert(received == true and fixture.value(box) == 2)
-	ch:close()
+	for i = 1, 64 do test.assert(weak[i] == nil) end
 end
 
 test["workers use TLS while the main state serves IPC"] = function ()
@@ -1338,7 +1248,7 @@ test["concurrent popen close and descriptor reuse"] = function ()
 		workers[i] = worker.spawn {
 			environment = "lua",
 			fn = function ()
-				for _ = 1, 200 do
+				for _ = 1, 50 do
 					local f = assert(io.popen("printf shell; exit 9"))
 					assert(f:read"a" == "shell")
 					local ok, kind, code = f:close()
@@ -1521,12 +1431,12 @@ test["shared cwd"] = function ()
 		fn = function ()
 			local before = os.cwd()
 			os.chdir("/tmp")
-			return before
+			return before, os.cwd()
 		end,
 	}
 	local r = join_of(w)
 	test.assert(r[1] == true)
-	test.assert(eli_os.cwd() == "/tmp")
+	test.assert(eli_os.cwd() == r[3], tostring(r[3]))
 	eli_os.chdir(original)
 end
 

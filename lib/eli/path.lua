@@ -255,16 +255,31 @@ function path.commonpath(first, second, platform)
 
 	local left, right = first, second
 	if is_windows(platform) then
+		local first_drive = first:match("^%a:")
+		local second_drive = second:match("^%a:")
+		if (first_drive or ""):lower() ~= (second_drive or ""):lower() then return nil end
 		left = left:lower():gsub("[\\/]", "\\")
 		right = right:lower():gsub("[\\/]", "\\")
 	end
+	local shorter = #left <= #right and left or right
+	local sep_byte = separator(platform):byte(1)
 	local common = 0
-	for index = 1, math.min(#left, #right) do
-		if left:byte(index) ~= right:byte(index) then break end
-		if left:sub(index, index):match(separator_pattern(platform)) then common = index end
+	-- Scan one byte past the shorter path so a common path that is a prefix of
+	-- the other is accepted at the end-of-string boundary.
+	for index = 1, #shorter + 1 do
+		local left_byte, right_byte = left:byte(index), right:byte(index)
+		local left_sep = left_byte == nil or left_byte == sep_byte
+		local right_sep = right_byte == nil or right_byte == sep_byte
+		if left_sep and right_sep then
+			common = index
+		elseif left_byte ~= right_byte then
+			break
+		end
 	end
-	if common > 0 then return first:sub(1, common) end
-	return ""
+	if common == 0 then return "" end
+	if common > #shorter then common = #shorter end
+	local prefix = #first == #shorter and first or second
+	return prefix:sub(1, common)
 end
 
 ---#DES 'path.depth'

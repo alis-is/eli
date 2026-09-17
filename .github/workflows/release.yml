@@ -107,16 +107,23 @@ jobs:
           toolchain: zig:x86_64-windows-gnu
           artifact-id: eli-windows-x86_64.exe
           debug-artifact-id: eli-windows-x86_64-debug.exe
-      - name: build Windows handle-list regression
+      - name: build native Windows tests
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/alis-is/eli-build:latest
-          run: cmake -S . -B build/x86_64-windows-gnu -DCMAKE_TOOLCHAIN_FILE=misc/toolchains/zig/toolchain.cmake -DCLANG_TARGET=x86_64-windows-gnu -DCMAKE_SYSTEM_NAME=Windows -DELI_BUILD_TESTS=ON && cmake --build build/x86_64-windows-gnu --target eli_proc_windows_handle_list_test -j2
+          run: cmake -S . -B build/x86_64-windows-gnu -DCMAKE_TOOLCHAIN_FILE=misc/toolchains/zig/toolchain.cmake -DCLANG_TARGET=x86_64-windows-gnu -DCMAKE_SYSTEM_NAME=Windows -DELI_BUILD_TESTS=ON && cmake --build build/x86_64-windows-gnu --target eli_worker_constructor_test eli_worker_deadline_native_test eli_worker_deadline_time32_test eli_proc_windows_handle_list_test -j2
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild
+      - name: stage native Windows tests
+        run: |
+          mkdir -p native-out
+          cp build/x86_64-windows-gnu/deps/eli-worker/tests/eli_worker_constructor_test.exe native-out/
+          cp build/x86_64-windows-gnu/deps/eli-worker/tests/eli_worker_deadline_native_test.exe native-out/
+          cp build/x86_64-windows-gnu/deps/eli-worker/tests/eli_worker_deadline_time32_test.exe native-out/
+          cp build/x86_64-windows-gnu/deps/eli-proc-extra/tests/eli_proc_windows_handle_list_test.exe native-out/
       - uses: actions/upload-artifact@v4
         with:
-          name: native-windows-handle-list
-          path: build/x86_64-windows-gnu/deps/eli-proc-extra/tests/eli_proc_windows_handle_list_test.exe
+          name: native-windows
+          path: native-out/
   build-windows-aarch64:
     runs-on: ubuntu-latest
     steps:
@@ -153,6 +160,27 @@ jobs:
           toolchain: zig:aarch64-macos-none
           artifact-id: eli-macos-aarch64
           debug-artifact-id: eli-macos-aarch64-debug
+      - name: build native macOS tests
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/alis-is/eli-build:latest
+          run: cmake -S . -B build/aarch64-macos-native -DCMAKE_TOOLCHAIN_FILE=misc/toolchains/zig/toolchain.cmake -DCLANG_TARGET=aarch64-macos-none -DCMAKE_SYSTEM_NAME=Darwin -DELI_BUILD_TESTS=ON && cmake --build build/aarch64-macos-native --target eli_worker_constructor_test eli_worker_deadline_native_test eli_worker_deadline_time32_test signal_coordination eli_proc_user_lookup_test eli_tls_io_test eli_tls_options_test eli_plaintext_io_test -j2
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild
+      - name: stage native macOS tests
+        run: |
+          mkdir -p native-out
+          cp build/aarch64-macos-native/deps/eli-worker/tests/eli_worker_constructor_test native-out/
+          cp build/aarch64-macos-native/deps/eli-worker/tests/eli_worker_deadline_native_test native-out/
+          cp build/aarch64-macos-native/deps/eli-worker/tests/eli_worker_deadline_time32_test native-out/
+          cp build/aarch64-macos-native/deps/eli-os-extra/tests/signal_coordination native-out/
+          cp build/aarch64-macos-native/deps/eli-proc-extra/tests/eli_proc_user_lookup_test native-out/
+          cp build/aarch64-macos-native/deps/lua-simple-socket/tests/eli_tls_io_test native-out/
+          cp build/aarch64-macos-native/deps/lua-simple-socket/tests/eli_tls_options_test native-out/
+          cp build/aarch64-macos-native/deps/lua-simple-socket/tests/eli_plaintext_io_test native-out/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-macos-aarch64
+          path: native-out/
 
   # tests
   test-linux:
@@ -188,13 +216,18 @@ jobs:
       - uses: "./.github/template/prepare-test"
       - uses: actions/download-artifact@v4
         with:
-          name: native-windows-handle-list
+          name: native-windows
           path: native-tests
-      - name: test Windows handle-list regression
+      - name: test native Windows
         shell: pwsh
         run: |
-          .\native-tests\eli_proc_windows_handle_list_test.exe
-          if ($LASTEXITCODE -ne 0) { throw "Windows handle-list regression failed" }
+          $tests = Get-ChildItem .\native-tests\*.exe
+          if (-not $tests) { throw "no native Windows tests downloaded" }
+          $tests | ForEach-Object {
+            Write-Host "== $($_.Name)"
+            & $_.FullName
+            if ($LASTEXITCODE -ne 0) { throw "native test failed: $($_.Name)" }
+          }
       - name: test
         shell: pwsh
         run: |
@@ -210,6 +243,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: "./.github/template/prepare-test"
+      - uses: actions/download-artifact@v4
+        if: matrix.arch == 'arm64'
+        with:
+          name: native-macos-aarch64
+          path: native-tests
+      - name: test native macOS
+        if: matrix.arch == 'arm64'
+        run: |
+          chmod +x native-tests/*
+          for test in native-tests/*; do
+            echo "== $test"
+            "$test"
+          done
       - name: test
         run: |
           ./tools/test.sh ${{ matrix.arch }}
