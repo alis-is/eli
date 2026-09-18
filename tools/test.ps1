@@ -41,7 +41,7 @@ function test_build {
             throw "test suite timed out after 900 seconds"
         }
         $exitCode = $process.ExitCode
-        if ($exitCode -ne 0) { throw "failed" }
+        if ($exitCode -ne 0) { throw "failed with exit code $exitCode" }
     } finally {
         Set-Location "$ROOT"
     }

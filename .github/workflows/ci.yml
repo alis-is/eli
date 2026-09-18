@@ -271,11 +271,12 @@ jobs:
         with:
           name: native-linux-${{ matrix.arch }}
           path: native-tests
+      - name: make native tests executable
+        if: matrix.arch != 'x86_64'
+        run: chmod +x native-tests/*
       - name: test native aarch64
         if: matrix.arch == 'aarch64'
-        run: |
-          chmod +x native-tests/*
-          for test in native-tests/*; do echo "== $test"; "$test" || exit 1; done
+        run: for test in native-tests/*; do echo "== $test"; "$test" || exit 1; done
       - name: test native riscv64
         if: matrix.arch == 'riscv64'
         uses: addnab/docker-run-action@v3
@@ -296,6 +297,7 @@ jobs:
 
   test-windows:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
