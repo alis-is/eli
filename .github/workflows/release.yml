@@ -279,51 +279,53 @@ jobs:
 
   # tests
   test-linux:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+          - os: ubuntu-latest
+            arch: riscv64
+    runs-on: ${{ matrix.os }}
     needs: [build-linux-x86_64, build-linux-aarch64, build-linux-riscv64]
     steps:
       - uses: actions/checkout@v4
       - uses: "./.github/template/prepare-test"
+      - name: register qemu binfmt handlers
+        if: matrix.arch == 'riscv64'
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: riscv64
       - uses: actions/download-artifact@v4
+        if: matrix.arch != 'x86_64'
         with:
-          name: native-linux-aarch64
-          path: native-tests/aarch64
-      - uses: actions/download-artifact@v4
-        with:
-          name: native-linux-riscv64
-          path: native-tests/riscv64
-      - name: make native tests executable
-        run: chmod +x native-tests/aarch64/* native-tests/riscv64/*
-      - name: test x86_64
-        uses: addnab/docker-run-action@v3
-        with:
-          image: ghcr.io/alis-is/eli-test:latest
-          run: ./tools/test.sh x86_64
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
-      - name: test aarch64
-        uses: addnab/docker-run-action@v3
-        with:
-          image: ghcr.io/alis-is/eli-test:latest
-          run: ./tools/test.sh aarch64
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
+          name: native-linux-${{ matrix.arch }}
+          path: native-tests
       - name: test native aarch64
-        uses: addnab/docker-run-action@v3
-        with:
-          image: ghcr.io/alis-is/eli-test:latest
-          run: for test in native-tests/aarch64/*; do echo "== $test"; qemu-aarch64 "$test" || exit 1; done
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild
-      - name: test riscv64
-        uses: addnab/docker-run-action@v3
-        with:
-          image: ghcr.io/alis-is/eli-test:latest
-          run: ./tools/test.sh riscv64
-          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
+        if: matrix.arch == 'aarch64'
+        run: |
+          chmod +x native-tests/*
+          for test in native-tests/*; do echo "== $test"; "$test" || exit 1; done
       - name: test native riscv64
+        if: matrix.arch == 'riscv64'
         uses: addnab/docker-run-action@v3
         with:
           image: ghcr.io/alis-is/eli-test:latest
-          run: for test in native-tests/riscv64/*; do echo "== $test"; qemu-riscv64 "$test" || exit 1; done
+          run: for test in native-tests/*; do echo "== $test"; qemu-riscv64 "$test" || exit 1; done
           options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild
+      - name: test aarch64
+        if: matrix.arch == 'aarch64'
+        run: ./tools/test.sh aarch64
+      - name: test
+        if: matrix.arch != 'aarch64'
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ghcr.io/alis-is/eli-test:latest
+          run: ./tools/test.sh ${{ matrix.arch }}
+          options: -w /root/luabuild -v ${{ github.workspace }}:/root/luabuild -v ${{ github.workspace }}/toolchains:/opt/cross
 
   test-windows:
     strategy:
