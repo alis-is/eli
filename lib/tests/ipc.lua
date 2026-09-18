@@ -113,6 +113,9 @@ test["ipc manually closed client releases its slot"] = function ()
 	coroutine.resume(thread)
 	test.assert(accepted_a, "client A was not accepted")
 	accepted_a:close()
+	-- windows named pipes have no accept backlog: the closed client's pipe
+	-- instance is only rearmed once the server processes events
+	coroutine.resume(thread)
 	local client_b = eliIpc.connect"/tmp/eli-ipc-slot.sock"
 	test.assert(client_b, "client B connect failed")
 	coroutine.resume(thread)
