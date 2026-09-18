@@ -26,9 +26,15 @@ Predefined variables:
 - `APP_ROOT` - path to directory containing `APP_ROOT_SCRIPT`
 - `ELI_LIB_VERSION` - version of eli library
 
-### Install latest binary release (currently unix only)
+### Install latest binary release
+
+Linux or MacOS:
 
 `wget -q https://raw.githubusercontent.com/alis-is/eli/main/install.sh -O /tmp/install.sh && sudo sh /tmp/install.sh`
+
+Windows (PowerShell):
+
+`iwr https://raw.githubusercontent.com/alis-is/eli/main/install.ps1 -OutFile $env:TEMP\install-eli.ps1 -UseBasicParsing; if ($?) { & $env:TEMP\install-eli.ps1 }`
 
 ### Build eli
 

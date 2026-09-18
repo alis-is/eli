@@ -6,8 +6,8 @@ if [ "$1" = "--prerelease" ]; then
     PRERELEASE=true
 fi
 
-if which curl >/dev/null; then
-    if curl --help 2>&1 | grep "--progress-bar" >/dev/null 2>&1; then
+if command -v curl >/dev/null 2>&1; then
+    if curl --help 2>&1 | grep -- "--progress-bar" >/dev/null 2>&1; then
         PROGRESS="--progress-bar"
     fi
 
@@ -17,8 +17,8 @@ if which curl >/dev/null; then
     else
         LATEST=$(curl -sL https://api.github.com/repos/alis-is/eli/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g' | tr -d '[:space:]')
     fi
-else
-    if wget --help 2>&1 | grep "--show-progress" >/dev/null 2>&1; then
+elif command -v wget >/dev/null 2>&1; then
+    if wget --help 2>&1 | grep -- "--show-progress" >/dev/null 2>&1; then
         PROGRESS="--show-progress"
     fi
     set -- wget -q $PROGRESS -O "$TMP_NAME"
@@ -27,28 +27,47 @@ else
     else
         LATEST=$(wget -qO- https://api.github.com/repos/alis-is/eli/releases/latest | grep tag_name | sed 's/  "tag_name": "//g' | sed 's/",//g' | tr -d '[:space:]')
     fi
+else
+    echo "curl or wget is required to install eli" 1>&2
+    exit 1
 fi
 
-if eli -v | grep "$LATEST"; then
+if [ -z "$LATEST" ]; then
+    echo "failed to resolve the latest eli release" 1>&2
+    exit 1
+fi
+
+if command -v eli >/dev/null 2>&1 && eli -v 2>/dev/null | grep -q "$LATEST"; then
     echo "latest eli already available"
     exit 0
 fi
 
-PLATFORM=$(uname -m)
-UNAME=$(uname -s | tr '[:upper:]' '[:lower:]')
-OS=linux
-if [ "$UNAME" = "darwin" ]; then
-    mkdir -p /usr/local/bin
-    OS=macos
-
-    if [ "$PLATFORM" = "x86_64" ]; then
-        PLATFORM="amd64"
-    elif [ "$PLATFORM" = "arm64" ]; then
-        PLATFORM="aarch64"
-    else
-        echo "Unsupported platform: $PLATFORM" 1>&2
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+case "$OS" in
+    linux) ;;
+    darwin) OS=macos ;;
+    *)
+        echo "Unsupported OS: $OS" 1>&2
         exit 1
-    fi
+        ;;
+esac
+case "$ARCH" in
+    x86_64 | amd64) ARCH=x86_64 ;;
+    aarch64 | arm64) ARCH=aarch64 ;;
+    riscv64) ;;
+    *)
+        echo "Unsupported architecture: $ARCH" 1>&2
+        exit 1
+        ;;
+esac
+if [ "$OS" = "macos" ] && [ "$ARCH" = "riscv64" ]; then
+    echo "Unsupported platform: macos-$ARCH" 1>&2
+    exit 1
+fi
+
+if [ "$OS" = "macos" ]; then
+    mkdir -p /usr/local/bin 2>/dev/null || true
 fi
 
 BIN="eli"
@@ -76,18 +95,18 @@ else
     DESTINATION="./$BIN"
 fi
 
-if [ "$1" = "--prerelease" ]; then
-    echo "downloading latest eli prerelease for $PLATFORM..."
+if [ "$PRERELEASE" = true ]; then
+    echo "downloading latest eli prerelease for $OS-$ARCH..."
 else
-    echo "downloading eli-$OS-$PLATFORM $LATEST..."
+    echo "downloading eli-$OS-$ARCH $LATEST..."
 fi
 
-if "$@" "https://github.com/alis-is/eli/releases/download/$LATEST/eli-$OS-$PLATFORM" &&
+if "$@" "https://github.com/alis-is/eli/releases/download/$LATEST/eli-$OS-$ARCH" &&
     cp "$TMP_NAME" "$DESTINATION" && rm "$TMP_NAME" && chmod +x "$DESTINATION"; then
-    if [ "$1" = "--prerelease" ]; then
-        echo "latest eli prerelease for $PLATFORM successfully installed"
+    if [ "$PRERELEASE" = true ]; then
+        echo "latest eli prerelease for $OS-$ARCH successfully installed"
     else
-        echo "eli $LATEST for $PLATFORM successfully installed"
+        echo "eli $LATEST for $OS-$ARCH successfully installed"
     fi
 else
     echo "eli installation failed!" 1>&2
