@@ -23,7 +23,6 @@ end
 
 log_info"patching env"
 
-local INIT_SOURCE = config.init
 local LINIT_C = "deps/lua/linit.c"
 local LSTATE_C = "deps/lua/lstate.c"
 local LUA_C = "deps/lua/lua.c"
@@ -36,17 +35,6 @@ local MBED_LIBRARY_CMAKELISTS_TXT = "deps/mbedtls/library/CMakeLists.txt"
 local LUA_COREHTTP_CONFIG_H = "deps/lua-corehttp/include/core_http_config.h"
 
 local patches = {
-	[INIT_SOURCE] = {
-		patch = function (file)
-			local _versions = string.interpolate("ELI_LIB_VERSION = '${version}'\nELI_VERSION = '${version}'\n", config)
-			local file, count = file:gsub("[ \t]-ELI_LIB_VERSION = .-\n[ \t]-ELI_VERSION = .-\n", "")
-			if count == 0 then
-				print(file)
-				error"failed to inject new version"
-			end
-			return _versions .. file
-		end,
-	},
 	[LINIT_C] = {
 		validate = function (file)
 			return file:match"\nLUALIB_API void luaL_openselectedlibs.-\n%s*}"
@@ -150,7 +138,7 @@ static int rununloadhooks (lua_State *L) {
 				amalgate = false,
 				minify = config.minify,
 			})
-			local _rendered = lustache:render(templates.ELI_INIT, { embedableInit = _embedable })
+			local _rendered = lustache:render(templates.ELI_INIT, { embedableInit = _embedable, version = config.version })
 			return _new:sub(1, _end) .. _rendered .. _new:sub(_end + 1)
 		end,
 	},

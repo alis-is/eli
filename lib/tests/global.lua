@@ -27,12 +27,10 @@ test["printf interpolated"] = function ()
     test.assert(result == "Hello from printf! This is formatted: 1 2\nAnd this is escaped ${escaped}")
 end
 
-test["ELI_VERSION"] = function ()
-    test.assert(ELI_VERSION, "ELI_VERSION not defined!")
-end
-
-test["ELI_LIB_VERSION"] = function ()
-    test.assert(ELI_LIB_VERSION, "ELI_LIB_VERSION not defined!")
+test["embedded release version"] = function ()
+    local version = assert(require"hjson".parse(fs.read_file"../../config.hjson").version)
+    test.assert(ELI_VERSION == version, "ELI_VERSION must match " .. version)
+    test.assert(ELI_LIB_VERSION == version, "ELI_LIB_VERSION must match " .. version)
 end
 
 if not TEST then

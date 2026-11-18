@@ -1,5 +1,3 @@
-ELI_LIB_VERSION = '0.38.0-alpha'
-ELI_VERSION = '0.38.0-alpha'
 do
 	-- install process-global guards and the combined os extras
 	-- before any application code can cache the original functions

@@ -2,7 +2,10 @@
 #ifdef SIGPIPE
 	signal(SIGPIPE, SIG_IGN);
 #endif
-	const char eli_init[] = "{{{embedableInit}}}";
+	const char eli_init[] =
+		"ELI_VERSION = '{{{version}}}'\n"
+		"ELI_LIB_VERSION = ELI_VERSION\n"
+		"{{{embedableInit}}}";
 	if (luaL_dostring(L, eli_init) != LUA_OK)
 		return lua_error(L);
 /* end eli init */
