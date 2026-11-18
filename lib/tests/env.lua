@@ -45,6 +45,17 @@ test["environment"] = function ()
     test.assert(type(env) == "table")
 end
 
+test["os.execute inherits changes to the Windows process environment"] = function ()
+    if package.config:sub(1, 1) ~= "\\" then return end
+    local name = "ELI_EXECUTE_ENV_TEST"
+    local previous = os.getenv(name)
+    local value = previous == "one" and "two" or "one"
+    assert(os.set_env(name, value))
+    local ok = os.execute(('if "%%%s%%"=="%s" (exit /b 0) else (exit /b 1)'):format(name, value))
+    assert(os.set_env(name, previous))
+    test.assert(ok, "child did not inherit the value set by os.set_env")
+end
+
 test["environment API belongs to os"] = function ()
 	local os_extra = require"eli.os.extra"
 	test.assert(os.env == nil)
