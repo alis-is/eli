@@ -23,7 +23,7 @@ local zip = {}
 ---@class ZipExtractOptions
 ---@field skip_destination_check boolean?
 ---@field flatten_root_dir boolean?
----@field chmod (fun(path: string, attributes: integer))?
+---@field chmod (fun(path: string, attributes: integer): boolean?, string?)? Receives raw ZIP external attributes.
 ---@field open_flags integer?
 ---@field mkdirp (fun(path: string))?
 ---@field transform_path transform_path_fn?
@@ -64,9 +64,18 @@ function zip.extract(source, destination, options)
 	local mkdirp = fs.EFS and fs.mkdirp or function () end
 	mkdirp = type(options.mkdirp) == "function" and options.mkdirp or mkdirp
 
-	---@type fun(path: string, attributes: integer)
+	---@type fun(path: string, attributes: integer): boolean?, string?
 	local chmod = fs.EFS and fs.chmod or function () end
 	chmod = type(options.chmod) == "function" and options.chmod or chmod
+
+	local function restore_mode(target, mode)
+		local ok, result, err = pcall(chmod, target, mode)
+		-- Custom chmod callbacks may return nothing on success.
+		if not ok or result == false or (result == nil and err ~= nil) then
+			return false, ("zip.extract: chmod failed for %s: %s"):format(target, tostring(err or result))
+		end
+		return true
+	end
 
 	---@type transform_path_fn?
 	local transform_path = type(options.transform_path) == "function" and options.transform_path or nil
@@ -96,6 +105,7 @@ function zip.extract(source, destination, options)
 
 	local ignore_path = flatten_root_dir and get_root_dir(zip_arch) or ""
 	local il = #ignore_path + 1 -- ignore length
+	local directory_modes = {}
 
 	for i = 1, #zip_arch do
 		local stat = zip_arch:stat(i)
@@ -117,8 +127,8 @@ function zip.extract(source, destination, options)
 			target_path = path.combine(destination, stat.name:sub(il))
 		end
 
-		if stat.name:sub(-(#"/")) == "/" then
-			-- directory
+		local is_directory = stat.name:sub(-1) == "/"
+		if is_directory then
 			mkdirp(target_path)
 		else
 			local comprimedFile = zip_arch:open(i)
@@ -128,6 +138,7 @@ function zip.extract(source, destination, options)
 			local b = 0
 			local file, err = open_file(target_path, "wb")
 			if not file then
+				zip_arch:close()
 				return false, "zip.extract: failed to open file: " .. target_path .. " because of: " .. (err or "")
 			end
 			local chunkSize = 2 ^ 13 -- 8K
@@ -138,18 +149,42 @@ function zip.extract(source, destination, options)
 			end
 			close_file(file)
 		end
-		local external_attributes = zip_arch:get_external_attributes(i)
-		if external_chmod then                      -- we got supplied chmod
-			chmod(target_path, external_attributes)
-		elseif type(external_attributes) == "number" then -- we use built in chmod
-			local permissions = math.floor(external_attributes / 2 ^ 16)
-			if tonumber(permissions) ~= 0 then
-				pcall(chmod, target_path, tonumber(permissions))
+		local mode, err
+		if external_chmod then
+			mode, err = zip_arch:get_external_attributes(i)
+		else
+			mode, err = zip_arch:get_unix_mode(i)
+		end
+		if err then
+			zip_arch:close()
+			return false, ("zip.extract: could not read attributes for %s: %s"):format(stat.name, err)
+		end
+		if mode ~= nil then
+			if is_directory then
+				table.insert(directory_modes, {
+					path = target_path, mode = mode, depth = path.depth(path.normalize(target_path)), index = i,
+				})
+			else
+				local ok, err = restore_mode(target_path, mode)
+				if not ok then
+					zip_arch:close()
+					return false, err
+				end
 			end
 		end
 		::continue::
 	end
 	zip_arch:close()
+
+	-- A restrictive parent must stay traversable until its children have their final modes.
+	table.sort(directory_modes, function (a, b)
+		if a.depth == b.depth then return a.index < b.index end
+		return a.depth > b.depth
+	end)
+	for _, dir in ipairs(directory_modes) do
+		local ok, err = restore_mode(dir.path, dir.mode)
+		if not ok then return false, err end
+	end
 	return true
 end
 
@@ -284,13 +319,13 @@ end
 ---@param archive userdata
 ---@param path string
 ---@param type '"file"' | '"string"' | '"directory"'
----@param content string
+---@param content string? Source path for a filesystem entry, or data for a string entry.
 ---@return boolean, string?
 function zip.add_to_archive(archive, path, type, content)
 	if type == "directory" then
 		-- // TODO: typing for archive
 		---@diagnostic disable-next-line: undefined-field
-		archive:add_dir(path)
+		archive:add_dir(path, content)
 	elseif type == "file" then
 		---@diagnostic disable-next-line: undefined-field
 		archive:add(path, "file", content)
@@ -397,6 +432,13 @@ function zip.compress(source, target, options)
 		local ok, err = zip.add_to_archive(archive, entry_path, entry:type(), entry:fullpath())
 		if not ok then return false, err end
 		::files_loop::
+	end
+	-- Store the mode of the named source directory as well as its children.
+	local root_name = path.endsep(source:sub(skip_length), nil, false)
+	local base_name = path.file(root_name)
+	if base_name ~= "" and base_name ~= "." and base_name ~= ".."
+	   and (#archive > 0 or not options.filter) then
+		zip.add_to_archive(archive, root_name, "directory", source)
 	end
 	---@diagnostic disable-next-line: undefined-field
 	archive:close()
